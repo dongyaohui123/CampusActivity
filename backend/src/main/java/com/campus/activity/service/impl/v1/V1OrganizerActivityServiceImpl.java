@@ -1,0 +1,288 @@
+package com.campus.activity.service.impl.v1;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.campus.activity.common.ErrorCode;
+import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
+import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
+import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
+import com.campus.activity.entity.Activity;
+import com.campus.activity.entity.ActivityAuditLog;
+import com.campus.activity.entity.ActivityRegistration;
+import com.campus.activity.entity.ActivityReview;
+import com.campus.activity.entity.User;
+import com.campus.activity.entity.view.ActivityListItemView;
+import com.campus.activity.enums.ActivityStatus;
+import com.campus.activity.enums.AuditAction;
+import com.campus.activity.enums.RegistrationStatus;
+import com.campus.activity.enums.ReviewStatus;
+import com.campus.activity.enums.UserRole;
+import com.campus.activity.enums.Visibility;
+import com.campus.activity.exception.BusinessException;
+import com.campus.activity.mapper.ActivityAuditLogMapper;
+import com.campus.activity.mapper.ActivityMapper;
+import com.campus.activity.mapper.ActivityRegistrationMapper;
+import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.mapper.UserMapper;
+import com.campus.activity.service.v1.OperatorPermissionService;
+import com.campus.activity.service.v1.V1OrganizerActivityService;
+import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+@Service
+public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityService {
+    private final ActivityMapper activityMapper;
+    private final ActivityReviewMapper reviewMapper;
+    private final ActivityAuditLogMapper auditLogMapper;
+    private final ActivityRegistrationMapper registrationMapper;
+    private final UserMapper userMapper;
+    private final OperatorPermissionService permissionService;
+
+    public V1OrganizerActivityServiceImpl(
+            ActivityMapper activityMapper,
+            ActivityReviewMapper reviewMapper,
+            ActivityAuditLogMapper auditLogMapper,
+            ActivityRegistrationMapper registrationMapper,
+            UserMapper userMapper,
+            OperatorPermissionService permissionService
+    ) {
+        this.activityMapper = activityMapper;
+        this.reviewMapper = reviewMapper;
+        this.auditLogMapper = auditLogMapper;
+        this.registrationMapper = registrationMapper;
+        this.userMapper = userMapper;
+        this.permissionService = permissionService;
+    }
+
+    @Override
+    @Transactional
+    public Activity createActivity(OrganizerActivityCreateRequest request, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        validateActivityTime(request.getStartTime(), request.getEndTime(), request.getRegistrationDeadline());
+
+        Activity activity = new Activity();
+        activity.setOrganizerId(operator.getId());
+        activity.setPublisherId(operator.getId());
+        activity.setTitle(request.getTitle());
+        activity.setSummary(request.getSummary());
+        activity.setContent(request.getContent());
+        activity.setCoverUrl(request.getCoverUrl());
+        activity.setLocation(request.getLocation());
+        activity.setStartTime(request.getStartTime());
+        activity.setEndTime(request.getEndTime());
+        activity.setRegistrationDeadline(request.getRegistrationDeadline());
+        activity.setMaxParticipants(request.getMaxParticipants());
+        activity.setRegisteredCount(0);
+        activity.setVisibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC);
+        activity.setFeatured(request.getFeatured() != null ? request.getFeatured() : Boolean.FALSE);
+        activity.setStatus(ActivityStatus.DRAFT);
+        activityMapper.insert(activity);
+        return activity;
+    }
+
+    @Override
+    @Transactional
+    public Activity updateActivity(Long activityId, OrganizerActivityUpdateRequest request, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+
+        Activity activity = getOwnedActivityOrThrow(activityId, operator.getId());
+        if (ActivityStatus.CANCELLED.equals(activity.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "cancelled activity cannot be updated");
+        }
+        if (!hasAnyUpdatableField(request)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "no updatable field provided");
+        }
+
+        LocalDateTime mergedStart = request.getStartTime() != null ? request.getStartTime() : activity.getStartTime();
+        LocalDateTime mergedEnd = request.getEndTime() != null ? request.getEndTime() : activity.getEndTime();
+        LocalDateTime mergedDeadline = request.getRegistrationDeadline() != null
+                ? request.getRegistrationDeadline() : activity.getRegistrationDeadline();
+        validateActivityTime(mergedStart, mergedEnd, mergedDeadline);
+
+        if (request.getTitle() != null) {
+            activity.setTitle(request.getTitle());
+        }
+        if (request.getSummary() != null) {
+            activity.setSummary(request.getSummary());
+        }
+        if (request.getContent() != null) {
+            activity.setContent(request.getContent());
+        }
+        if (request.getCoverUrl() != null) {
+            activity.setCoverUrl(request.getCoverUrl());
+        }
+        if (request.getLocation() != null) {
+            activity.setLocation(request.getLocation());
+        }
+        if (request.getStartTime() != null) {
+            activity.setStartTime(request.getStartTime());
+        }
+        if (request.getEndTime() != null) {
+            activity.setEndTime(request.getEndTime());
+        }
+        if (request.getRegistrationDeadline() != null) {
+            activity.setRegistrationDeadline(request.getRegistrationDeadline());
+        }
+        if (request.getMaxParticipants() != null) {
+            activity.setMaxParticipants(request.getMaxParticipants());
+        }
+        if (request.getVisibility() != null) {
+            activity.setVisibility(request.getVisibility());
+        }
+        if (request.getFeatured() != null) {
+            activity.setFeatured(request.getFeatured());
+        }
+
+        activityMapper.updateById(activity);
+        return activity;
+    }
+
+    @Override
+    @Transactional
+    public Activity submitForReview(Long activityId, SubmitReviewRequest request, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        Activity activity = getOwnedActivityOrThrow(activityId, operator.getId());
+        if (ActivityStatus.CANCELLED.equals(activity.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "cancelled activity cannot be submitted");
+        }
+
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        if (activity.getPublishedAt() == null) {
+            activity.setPublishedAt(LocalDateTime.now());
+        }
+        activityMapper.updateById(activity);
+
+        ActivityReview review = reviewMapper.selectById(activityId);
+        if (review == null) {
+            review = new ActivityReview();
+            review.setActivityId(activityId);
+            review.setReviewStatus(ReviewStatus.PENDING);
+            reviewMapper.insert(review);
+        } else {
+            review.setReviewStatus(ReviewStatus.PENDING);
+            review.setReviewerId(null);
+            review.setReviewComment(null);
+            review.setReviewedAt(null);
+            reviewMapper.updateById(review);
+        }
+
+        ActivityAuditLog log = new ActivityAuditLog();
+        log.setActivityId(activityId);
+        log.setOperatorId(operator.getId());
+        log.setAction(AuditAction.SUBMIT);
+        log.setComment(request.getComment());
+        log.setCreatedAt(LocalDateTime.now());
+        auditLogMapper.insert(log);
+        return activity;
+    }
+
+    @Override
+    public List<ActivityListItemView> listOwnActivities(
+            Long operatorUserId,
+            UserRole operatorRole,
+            String keyword,
+            LocalDateTime startFrom,
+            LocalDateTime startTo
+    ) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        return activityMapper.selectActivityList(null, null, operator.getId(), keyword, startFrom, startTo);
+    }
+
+    @Override
+    public List<ActivityRegistrationUserView> listActivityRegistrations(
+            Long activityId,
+            RegistrationStatus status,
+            Long operatorUserId,
+            UserRole operatorRole
+    ) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        getOwnedActivityOrThrow(activityId, operator.getId());
+
+        QueryWrapper<ActivityRegistration> wrapper = new QueryWrapper<ActivityRegistration>()
+                .eq("activity_id", activityId)
+                .orderByDesc("registered_at", "id");
+        if (status != null) {
+            wrapper.eq("status", status.name());
+        }
+        List<ActivityRegistration> registrations = registrationMapper.selectList(wrapper);
+        if (registrations.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> userIds = registrations.stream()
+                .map(ActivityRegistration::getUserId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        List<User> users = userIds.isEmpty() ? Collections.emptyList() : userMapper.selectBatchIds(userIds);
+        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+
+        List<ActivityRegistrationUserView> result = new ArrayList<>(registrations.size());
+        for (ActivityRegistration registration : registrations) {
+            ActivityRegistrationUserView view = new ActivityRegistrationUserView();
+            view.setRegistrationId(registration.getId());
+            view.setUserId(registration.getUserId());
+            view.setStatus(registration.getStatus());
+            view.setRemark(registration.getRemark());
+            view.setRegisteredAt(registration.getRegisteredAt());
+            view.setCancelledAt(registration.getCancelledAt());
+            User user = userMap.get(registration.getUserId());
+            if (user != null) {
+                view.setNickname(user.getNickname());
+                view.setPhone(user.getPhone());
+            }
+            result.add(view);
+        }
+        return result;
+    }
+
+    private Activity getOwnedActivityOrThrow(Long activityId, Long organizerId) {
+        Activity activity = activityMapper.selectById(activityId);
+        if (activity == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + activityId);
+        }
+        if (!organizerId.equals(activity.getOrganizerId())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "organizer cannot operate another organizer's activity");
+        }
+        return activity;
+    }
+
+    private boolean hasAnyUpdatableField(OrganizerActivityUpdateRequest request) {
+        return StringUtils.hasText(request.getTitle())
+                || StringUtils.hasText(request.getSummary())
+                || request.getContent() != null
+                || request.getCoverUrl() != null
+                || StringUtils.hasText(request.getLocation())
+                || request.getStartTime() != null
+                || request.getEndTime() != null
+                || request.getRegistrationDeadline() != null
+                || request.getMaxParticipants() != null
+                || request.getVisibility() != null
+                || request.getFeatured() != null;
+    }
+
+    private void validateActivityTime(LocalDateTime start, LocalDateTime end, LocalDateTime registrationDeadline) {
+        if (start == null || end == null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "startTime and endTime are required");
+        }
+        if (!end.isAfter(start)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "endTime must be later than startTime");
+        }
+        if (registrationDeadline != null && registrationDeadline.isAfter(start)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "registrationDeadline must be <= startTime");
+        }
+    }
+}

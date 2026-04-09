@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.ActivityMapper">
+
+    <resultMap id="ActivityResultMap" type="com.campus.activity.entity.Activity">
+        <id property="id" column="id"/>
+        <result property="organizerId" column="organizer_id"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="content" column="content"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="location" column="location"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="registrationDeadline" column="registration_deadline"/>
+        <result property="maxParticipants" column="max_participants"/>
+        <result property="registeredCount" column="registered_count"/>
+        <result property="status" column="status" javaType="com.campus.activity.enums.ActivityStatus"/>
+        <result property="visibility" column="visibility" javaType="com.campus.activity.enums.Visibility"/>
+        <result property="featured" column="is_featured"/>
+        <result property="publishedAt" column="published_at"/>
+        <result property="cancelledAt" column="cancelled_at"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ActivityListItemViewResultMap" type="com.campus.activity.entity.view.ActivityListItemView">
+        <id property="id" column="id"/>
+        <result property="organizerId" column="organizer_id"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="location" column="location"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="registrationDeadline" column="registration_deadline"/>
+        <result property="maxParticipants" column="max_participants"/>
+        <result property="registeredCount" column="registered_count"/>
+        <result property="status" column="status" javaType="com.campus.activity.enums.ActivityStatus"/>
+        <result property="visibility" column="visibility" javaType="com.campus.activity.enums.Visibility"/>
+        <result property="featured" column="is_featured"/>
+        <result property="publishedAt" column="published_at"/>
+        <result property="reviewStatus" column="review_status" javaType="com.campus.activity.enums.ReviewStatus"/>
+        <result property="organizerName" column="organizer_name"/>
+        <result property="categoryNames" column="category_names"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, organizer_id, publisher_id, title, summary, content, cover_url, location,
+        start_time, end_time, registration_deadline, max_participants, registered_count,
+        status, visibility, is_featured, published_at, cancelled_at, cancel_reason,
+        created_at, updated_at
+    </sql>
+
+    <!--
+      Activity list with optional filters.
+      Purpose:
+      - Provide one query for common list pages (admin/organizer/student).
+      - Return organizer display name and concatenated categories in one round trip.
+      Index notes:
+      - status filter can use idx_activities_status.
+      - organizer filter can use idx_activities_organizer.
+      - start_time range can use idx_activities_start_time.
+      Caution:
+      - keyword LIKE on title/summary may not use index effectively.
+      - GROUP BY is required because of category left join.
+    -->
+    <select id="selectActivityList" resultMap="ActivityListItemViewResultMap">
+        SELECT
+            a.id,
+            a.organizer_id,
+            a.publisher_id,
+            a.title,
+            a.summary,
+            a.location,
+            a.start_time,
+            a.end_time,
+            a.registration_deadline,
+            a.max_participants,
+            a.registered_count,
+            a.status,
+            a.visibility,
+            a.is_featured,
+            a.published_at,
+            ar.review_status,
+            op.organizer_name,
+            GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names
+        FROM activities a
+        LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id
+        LEFT JOIN activity_reviews ar ON ar.activity_id = a.id
+        LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id
+        LEFT JOIN activity_categories ac ON ac.id = acr.category_id
+        <where>
+            <if test="status != null">
+                AND a.status = #{status}
+            </if>
+            <if test="visibility != null">
+                AND a.visibility = #{visibility}
+            </if>
+            <if test="organizerId != null">
+                AND a.organizer_id = #{organizerId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (a.title LIKE CONCAT('%', #{keyword}, '%')
+                OR a.summary LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="startFrom != null">
+                AND a.start_time <![CDATA[>=]]> #{startFrom}
+            </if>
+            <if test="startTo != null">
+                AND a.start_time <![CDATA[<=]]> #{startTo}
+            </if>
+        </where>
+        GROUP BY
+            a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location,
+            a.start_time, a.end_time, a.registration_deadline, a.max_participants,
+            a.registered_count, a.status, a.visibility, a.is_featured, a.published_at,
+            ar.review_status, op.organizer_name
+        ORDER BY a.start_time DESC, a.id DESC
+    </select>
+</mapper>

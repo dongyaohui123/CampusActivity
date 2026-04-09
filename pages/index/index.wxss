@@ -1,0 +1,102 @@
+page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f2f3f5;
+}
+
+.home-scroll {
+  flex: 1;
+}
+
+.banner-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+swiper {
+  height: 300rpx;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+.quick-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-icon {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 46rpx;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-bottom: 10rpx;
+}
+
+.quick-icon.orange {
+  background: #ff8a00;
+}
+
+.quick-icon.blue {
+  background: #4f8df7;
+}
+
+.quick-icon.cyan {
+  background: #33c7d8;
+}
+
+.quick-text {
+  color: #4b5563;
+  font-size: 26rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  margin: 8rpx 0 16rpx 0;
+}
+
+.activity-row {
+  display: flex;
+}
+
+.cover {
+  width: 180rpx;
+  height: 140rpx;
+  border-radius: 12rpx;
+  margin-right: 18rpx;
+  background: #edf2f7;
+}
+
+.activity-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.meta {
+  color: #6b7280;
+  font-size: 26rpx;
+}
+

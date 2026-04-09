@@ -1,0 +1,42 @@
+<navigation-bar title="找活动" back="{{false}}" color="#fff" background="#2f80ed"></navigation-bar>
+
+<scroll-view class="find-scroll" scroll-y type="list">
+  <view class="page-body with-bottom-nav">
+    <view class="search-wrap card">
+      <input class="search-input" placeholder="请输入内容" value="{{keyword}}" bindinput="onKeywordInput" />
+    </view>
+
+    <view class="category-wrap card">
+      <scroll-view scroll-x class="category-scroll">
+        <view class="category-row">
+          <block wx:for="{{categories}}" wx:key="key">
+            <view
+              class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
+              data-category="{{item.key}}"
+              bindtap="onCategoryTap"
+            >
+              {{item.label}}
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{loading}}" class="empty">加载中...</view>
+
+    <view class="grid">
+      <block wx:for="{{displayList}}" wx:key="id">
+        <view class="grid-card" bindtap="goDetail" data-id="{{item.id}}">
+          <image class="grid-cover" src="{{item.cover}}" mode="aspectFill" />
+          <view class="grid-title">{{item.title}}</view>
+          <view class="grid-meta">{{item.timeDisplay}}</view>
+          <view class="grid-meta">{{item.locationDisplay}}</view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:if="{{!loading && displayList.length === 0}}" class="empty">没有更多啦~</view>
+  </view>
+</scroll-view>
+
+<bottom-nav active="find" bind:change="onBottomTabChange"></bottom-nav>

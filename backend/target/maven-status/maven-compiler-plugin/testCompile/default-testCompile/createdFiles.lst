@@ -1,0 +1,8 @@
+com\campus\activity\service\ActivityServiceImplTest.class
+com\campus\activity\CampusActivityBackendApplicationTests.class
+com\campus\activity\service\V1AdminReviewServiceImplTest.class
+com\campus\activity\controller\V1ApiControllerIntegrationTest.class
+com\campus\activity\service\V1RegistrationServiceImplTest.class
+com\campus\activity\service\UserServiceImplTest.class
+com\campus\activity\service\V1AuthServiceImplTest.class
+com\campus\activity\controller\ApiControllerIntegrationTest.class

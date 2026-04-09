@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.ActivityReviewMapper">
+
+    <resultMap id="ActivityReviewResultMap" type="com.campus.activity.entity.ActivityReview">
+        <id property="activityId" column="activity_id"/>
+        <result property="reviewStatus" column="review_status" javaType="com.campus.activity.enums.ReviewStatus"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="reviewComment" column="review_comment"/>
+        <result property="reviewedAt" column="reviewed_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ActivityReviewDetailViewResultMap" type="com.campus.activity.entity.view.ActivityReviewDetailView">
+        <id property="activityId" column="activity_id"/>
+        <result property="reviewStatus" column="review_status" javaType="com.campus.activity.enums.ReviewStatus"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="reviewerNickname" column="reviewer_nickname"/>
+        <result property="reviewComment" column="review_comment"/>
+        <result property="reviewedAt" column="reviewed_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        activity_id, review_status, reviewer_id, review_comment, reviewed_at, created_at, updated_at
+    </sql>
+
+    <!--
+      Query review details and reviewer nickname together.
+      LEFT JOIN is required because reviewer_id can be NULL (pending state).
+    -->
+    <select id="selectDetailByActivityId" resultMap="ActivityReviewDetailViewResultMap">
+        SELECT
+            ar.activity_id,
+            ar.review_status,
+            ar.reviewer_id,
+            u.nickname AS reviewer_nickname,
+            ar.review_comment,
+            ar.reviewed_at
+        FROM activity_reviews ar
+        LEFT JOIN users u ON u.id = ar.reviewer_id
+        WHERE ar.activity_id = #{activityId}
+    </select>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.LoginLogMapper">
+
+    <resultMap id="LoginLogResultMap" type="com.campus.activity.entity.LoginLog">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="usernameAttempt" column="username_attempt"/>
+        <result property="loginResult" column="login_result" javaType="com.campus.activity.enums.LoginResult"/>
+        <result property="failureReason" column="failure_reason"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="loggedAt" column="logged_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, username_attempt, login_result, failure_reason, ip_address, user_agent, logged_at
+    </sql>
+
+    <!--
+      Query recent logs for one user.
+      - startTime is optional lower-bound filter.
+      - limit protects upper layers from fetching unbounded rows.
+      idx_login_logs_user and idx_login_logs_logged_at are the key indexes.
+    -->
+    <select id="selectRecentByUserId" resultMap="LoginLogResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM login_logs
+        WHERE user_id = #{userId}
+        <if test="startTime != null">
+            AND logged_at <![CDATA[>=]]> #{startTime}
+        </if>
+        ORDER BY logged_at DESC, id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

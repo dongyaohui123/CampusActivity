@@ -1,0 +1,31 @@
+<navigation-bar title="管理员审核（简页）" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+<scroll-view class="page-scroll" scroll-y type="list">
+  <view class="page-body">
+    <view wx:if="{{operatorRole !== 'ADMIN'}}" class="card">
+      <view class="muted">当前角色为 {{operatorRole}}，请在首页切换为 ADMIN。</view>
+    </view>
+
+    <view wx:if="{{operatorRole === 'ADMIN'}}" class="card">
+      <view class="title mb-12">审核意见</view>
+      <input class="input" value="{{reviewComment}}" bindinput="onCommentInput" placeholder="通过可空，驳回必填" />
+    </view>
+
+    <view wx:if="{{loading}}" class="empty">加载中...</view>
+
+    <block wx:for="{{pendingList}}" wx:key="activityId">
+      <view class="card">
+        <view class="title mb-12">{{item.title}}</view>
+        <view class="muted mb-12">活动ID：{{item.activityId}} / 组织者：{{item.organizerId}}</view>
+        <view class="muted mb-12">时间：{{item.startDisplay}} ~ {{item.endDisplay}}</view>
+        <view class="muted mb-12">审核状态：{{item.reviewStatus}}</view>
+        <view class="row gap-12">
+          <button type="primary" size="mini" data-id="{{item.activityId}}" bindtap="onApproveTap">通过</button>
+          <button size="mini" data-id="{{item.activityId}}" bindtap="onRejectTap">驳回</button>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{!loading && pendingList.length === 0 && operatorRole === 'ADMIN'}}" class="empty">暂无待审核活动</view>
+  </view>
+</scroll-view>
+

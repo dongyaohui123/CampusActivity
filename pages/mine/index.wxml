@@ -1,0 +1,46 @@
+<navigation-bar title="我的" back="{{false}}" color="#fff" background="#2f80ed"></navigation-bar>
+
+<scroll-view class="mine-scroll" scroll-y type="list">
+  <view class="with-bottom-nav">
+    <view class="profile-header">
+      <view wx:if="{{!loginUser}}" class="login-panel">
+        <view class="login-title">立即登录</view>
+        <input class="login-input" data-field="username" value="{{username}}" bindinput="onInput" placeholder="用户名" />
+        <input class="login-input" password data-field="password" value="{{password}}" bindinput="onInput" placeholder="密码" />
+        <button class="login-btn" loading="{{loading}}" bindtap="onLoginTap">登录</button>
+      </view>
+
+      <view wx:if="{{loginUser}}" class="user-panel">
+        <view class="row-between mb-16">
+          <view class="user-name">{{loginUser.nickname || loginUser.username}}</view>
+          <view class="role-tag">{{loginUser.role}}</view>
+        </view>
+        <view class="count-row">
+          <view class="count-item">
+            <view class="count-num">{{stats.participatedCount}}</view>
+            <view class="count-label">参与活动数</view>
+          </view>
+          <view class="count-item">
+            <view class="count-num">{{stats.initiatedCount}}</view>
+            <view class="count-label">发起活动数</view>
+          </view>
+          <view class="count-item">
+            <view class="count-num">{{stats.managedOrgCount}}</view>
+            <view class="count-label">管理组织数</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="menu-card">
+      <view class="menu-item" data-action="myActivity" bindtap="onMenuTap">我的活动</view>
+      <view class="menu-item" data-action="myOrg" bindtap="onMenuTap">我的组织</view>
+      <view wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" class="menu-item" data-action="review" bindtap="onMenuTap">审核管理</view>
+      <view class="menu-item" data-action="help" bindtap="onMenuTap">帮助中心</view>
+      <view class="menu-item" data-action="contact" bindtap="onMenuTap">联系客服</view>
+      <view wx:if="{{loginUser}}" class="menu-item danger" bindtap="onLogoutTap">退出登录</view>
+    </view>
+  </view>
+</scroll-view>
+
+<bottom-nav active="mine" bind:change="onBottomTabChange"></bottom-nav>

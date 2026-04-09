@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.ActivityRegistrationMapper">
+
+    <resultMap id="ActivityRegistrationResultMap" type="com.campus.activity.entity.ActivityRegistration">
+        <id property="id" column="id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status" javaType="com.campus.activity.enums.RegistrationStatus"/>
+        <result property="remark" column="remark"/>
+        <result property="registeredAt" column="registered_at"/>
+        <result property="cancelledAt" column="cancelled_at"/>
+        <result property="checkinAt" column="checkin_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ActivityRegistrationCountViewResultMap" type="com.campus.activity.entity.view.ActivityRegistrationCountView">
+        <result property="activityId" column="activity_id"/>
+        <result property="registrationCount" column="registration_count"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, activity_id, user_id, status, remark, registered_at, cancelled_at, checkin_at, created_at, updated_at
+    </sql>
+
+    <!--
+      Effective count excludes CANCELLED and WAITLISTED.
+      It is used when the business only cares about confirmed attendees.
+    -->
+    <select id="countEffectiveByActivityId" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM activity_registrations
+        WHERE activity_id = #{activityId}
+          AND status IN ('REGISTERED', 'CHECKED_IN')
+    </select>
+
+    <!-- Batch aggregation for list pages and dashboards. -->
+    <select id="countEffectiveByActivityIds" resultMap="ActivityRegistrationCountViewResultMap">
+        SELECT
+            activity_id,
+            COUNT(1) AS registration_count
+        FROM activity_registrations
+        WHERE status IN ('REGISTERED', 'CHECKED_IN')
+          AND activity_id IN
+          <foreach collection="activityIds" item="activityId" open="(" separator="," close=")">
+              #{activityId}
+          </foreach>
+        GROUP BY activity_id
+    </select>
+
+    <!--
+      Returns TRUE/FALSE for quick "already registered" checks.
+      Unique key uk_activity_registrations_activity_user makes this stable.
+    -->
+    <select id="existsEffectiveRegistration" resultType="java.lang.Boolean">
+        SELECT
+            CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END
+        FROM activity_registrations
+        WHERE activity_id = #{activityId}
+          AND user_id = #{userId}
+          AND status IN ('REGISTERED', 'CHECKED_IN')
+    </select>
+</mapper>

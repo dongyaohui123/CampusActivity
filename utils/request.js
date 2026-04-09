@@ -1,0 +1,118 @@
+const { baseURL } = require("../config");
+const { getOperatorQuery, hasOperatorContext } = require("./operator-context");
+
+const SUCCESS_CODE = 0;
+const REQUEST_TIMEOUT = 12000;
+
+function showErrorToast(message) {
+  if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
+    wx.showToast({
+      title: String(message || "请求失败"),
+      icon: "none",
+      duration: 1800,
+    });
+  }
+}
+
+function buildQueryString(query) {
+  if (!query || typeof query !== "object") {
+    return "";
+  }
+  const pairs = Object.keys(query)
+    .filter((key) => query[key] !== undefined && query[key] !== null && query[key] !== "")
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(query[key])}`);
+  return pairs.length > 0 ? `?${pairs.join("&")}` : "";
+}
+
+function toMethod(method) {
+  return String(method || "GET").toUpperCase();
+}
+
+function isWriteMethod(method) {
+  return ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+}
+
+function mapNetworkErrorMessage(errMsg) {
+  const raw = String(errMsg || "");
+  if (/timeout/i.test(raw)) {
+    return "请求超时，请检查后端是否启动、地址是否可访问";
+  }
+  if (/refused/i.test(raw)) {
+    return "连接被拒绝，请确认后端服务已启动";
+  }
+  if (/url not in domain list/i.test(raw)) {
+    return "请求域名未加入白名单（开发者工具可先关闭域名校验）";
+  }
+  return raw || "网络请求失败";
+}
+
+function request(options) {
+  const opts = options || {};
+  const method = toMethod(opts.method);
+  const withOperator = opts.withOperator === true || (opts.withOperator !== false && isWriteMethod(method));
+
+  if (withOperator && !hasOperatorContext()) {
+    const message = "请先登录";
+    if (!opts.silent) {
+      showErrorToast(message);
+    }
+    return Promise.reject({ message, code: 40100 });
+  }
+
+  const query = Object.assign({}, opts.query || {}, withOperator ? getOperatorQuery() : {});
+  const path = opts.path || "";
+  const url = `${baseURL}${path}${buildQueryString(query)}`;
+  const data = opts.data || {};
+  const headers = Object.assign(
+    {
+      "content-type": "application/json",
+    },
+    opts.headers || {}
+  );
+  const silent = Boolean(opts.silent);
+
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method,
+      data,
+      header: headers,
+      timeout: Number(opts.timeout) > 0 ? Number(opts.timeout) : REQUEST_TIMEOUT,
+      success(res) {
+        const payload = res.data || {};
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          const message = payload.message || `HTTP ${res.statusCode}`;
+          if (!silent) {
+            showErrorToast(message);
+          }
+          reject({ message, statusCode: res.statusCode, code: payload.code, url });
+          return;
+        }
+
+        if (payload.code !== SUCCESS_CODE) {
+          const message = payload.message || "业务请求失败";
+          if (!silent) {
+            showErrorToast(message);
+          }
+          reject({ message, statusCode: res.statusCode, code: payload.code, url });
+          return;
+        }
+
+        resolve(payload.data);
+      },
+      fail(err) {
+        const rawErrMsg = (err && err.errMsg) || "";
+        const message = mapNetworkErrorMessage(rawErrMsg);
+        if (!silent) {
+          showErrorToast(message);
+        }
+        reject({ message, errMsg: rawErrMsg, err, url });
+      },
+    });
+  });
+}
+
+module.exports = {
+  request,
+};
+

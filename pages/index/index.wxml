@@ -1,0 +1,51 @@
+<navigation-bar title="首页" back="{{false}}" color="#fff" background="#2f80ed"></navigation-bar>
+
+<scroll-view class="home-scroll" scroll-y type="list">
+  <view class="page-body with-bottom-nav">
+    <view class="card banner-card">
+      <swiper indicator-dots autoplay interval="3000" circular>
+        <block wx:for="{{banners}}" wx:key="*this">
+          <swiper-item>
+            <image class="banner-image" src="{{item}}" mode="aspectFill" />
+          </swiper-item>
+        </block>
+      </swiper>
+    </view>
+
+    <view class="card quick-card">
+      <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
+        <view class="quick-icon orange">❤</view>
+        <text class="quick-text">我的活动</text>
+      </view>
+      <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
+        <view class="quick-icon blue">⚑</view>
+        <text class="quick-text">我的组织</text>
+      </view>
+      <view class="quick-item" data-action="publish" bindtap="onQuickTap">
+        <view class="quick-icon cyan">➤</view>
+        <text class="quick-text">发布活动</text>
+      </view>
+    </view>
+
+    <view class="section-title row-between">
+      <text>推荐活动</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="empty">加载中...</view>
+
+    <block wx:for="{{recommendList}}" wx:key="id">
+      <view class="card activity-row" bindtap="goDetail" data-id="{{item.id}}">
+        <image class="cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="activity-main">
+          <view class="name">{{item.title}}</view>
+          <view class="meta">{{item.locationDisplay}}</view>
+          <view class="meta">{{item.startDisplay}}</view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{!loading && recommendList.length === 0}}" class="empty">暂无推荐活动</view>
+  </view>
+</scroll-view>
+
+<bottom-nav active="home" bind:change="onBottomTabChange"></bottom-nav>

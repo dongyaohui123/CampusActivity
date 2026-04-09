@@ -1,0 +1,63 @@
+/** app.wxss **/
+page {
+  min-height: 100%;
+  background: #f4f6f9;
+  color: #222;
+  font-size: 28rpx;
+}
+
+.page-body {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.with-bottom-nav {
+  padding-bottom: 132rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(16, 24, 40, 0.06);
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.muted {
+  color: #667085;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gap-12 {
+  gap: 12rpx;
+}
+
+.mb-12 {
+  margin-bottom: 12rpx;
+}
+
+.mb-16 {
+  margin-bottom: 16rpx;
+}
+
+.empty {
+  padding: 48rpx 0;
+  text-align: center;
+  color: #98a2b3;
+}
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.ActivityAuditLogMapper">
+
+    <resultMap id="ActivityAuditLogResultMap" type="com.campus.activity.entity.ActivityAuditLog">
+        <id property="id" column="id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="action" column="action" javaType="com.campus.activity.enums.AuditAction"/>
+        <result property="comment" column="comment"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, activity_id, operator_id, action, comment, created_at
+    </sql>
+
+    <!--
+      Audit timeline query.
+      Ordering by created_at DESC gives newest first for management pages.
+      idx_activity_audit_logs_activity + idx_activity_audit_logs_created_at help this query.
+    -->
+    <select id="selectByActivityIdOrderByCreatedAtDesc" resultMap="ActivityAuditLogResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM activity_audit_logs
+        WHERE activity_id = #{activityId}
+        ORDER BY created_at DESC, id DESC
+    </select>
+</mapper>
