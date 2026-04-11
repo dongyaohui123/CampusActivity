@@ -1,16 +1,16 @@
 <view class="bottom-nav-wrap">
   <view class="bottom-nav">
     <view class="tab {{active === 'home' ? 'tab-active' : ''}}" data-tab="home" bindtap="onTabTap">
-      <text class="tab-icon">🏠</text>
-      <text class="tab-label">首页</text>
+      <text class="tab-icon">H</text>
+      <text class="tab-label">{{labels.home}}</text>
     </view>
     <view class="tab {{active === 'find' ? 'tab-active' : ''}}" data-tab="find" bindtap="onTabTap">
-      <text class="tab-icon">🔎</text>
-      <text class="tab-label">找活动</text>
+      <text class="tab-icon">F</text>
+      <text class="tab-label">{{labels.find}}</text>
     </view>
     <view class="tab {{active === 'mine' ? 'tab-active' : ''}}" data-tab="mine" bindtap="onTabTap">
-      <text class="tab-icon">👤</text>
-      <text class="tab-label">我的</text>
+      <text class="tab-icon">M</text>
+      <text class="tab-label">{{labels.mine}}</text>
     </view>
   </view>
 </view>

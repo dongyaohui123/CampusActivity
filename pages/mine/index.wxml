@@ -1,13 +1,21 @@
-<navigation-bar title="我的" back="{{false}}" color="#fff" background="#2f80ed"></navigation-bar>
+<navigation-bar title="{{i18n.navTitle}}" back="{{false}}" color="#111111" background="#f7f8fa"></navigation-bar>
 
 <scroll-view class="mine-scroll" scroll-y type="list">
   <view class="with-bottom-nav">
     <view class="profile-header">
-      <view wx:if="{{!loginUser}}" class="login-panel">
-        <view class="login-title">立即登录</view>
-        <input class="login-input" data-field="username" value="{{username}}" bindinput="onInput" placeholder="用户名" />
-        <input class="login-input" password data-field="password" value="{{password}}" bindinput="onInput" placeholder="密码" />
-        <button class="login-btn" loading="{{loading}}" bindtap="onLoginTap">登录</button>
+      <view wx:if="{{!loginUser}}" class="auth-card">
+        <view class="auth-switch">
+          <view class="auth-tab {{authMode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="onAuthModeChange">{{i18n.login}}</view>
+          <view class="auth-tab {{authMode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="onAuthModeChange">{{i18n.register}}</view>
+        </view>
+
+        <input class="auth-input" data-field="username" value="{{username}}" bindinput="onInput" placeholder="{{i18n.username}}" />
+        <input class="auth-input" password data-field="password" value="{{password}}" bindinput="onInput" placeholder="{{i18n.password}}" />
+        <input wx:if="{{authMode === 'register'}}" class="auth-input" data-field="registerNickname" value="{{registerNickname}}" bindinput="onInput" placeholder="{{i18n.nickname}}" />
+
+        <button wx:if="{{authMode === 'login'}}" class="auth-btn" loading="{{loading}}" bindtap="onLoginTap">{{i18n.login}}</button>
+        <button wx:if="{{authMode === 'register'}}" class="auth-btn" loading="{{loading}}" bindtap="onRegisterTap">{{i18n.registerAndLogin}}</button>
+        <view class="auth-tip">{{i18n.wechatLater}}</view>
       </view>
 
       <view wx:if="{{loginUser}}" class="user-panel">
@@ -16,29 +24,20 @@
           <view class="role-tag">{{loginUser.role}}</view>
         </view>
         <view class="count-row">
-          <view class="count-item">
-            <view class="count-num">{{stats.participatedCount}}</view>
-            <view class="count-label">参与活动数</view>
-          </view>
-          <view class="count-item">
-            <view class="count-num">{{stats.initiatedCount}}</view>
-            <view class="count-label">发起活动数</view>
-          </view>
-          <view class="count-item">
-            <view class="count-num">{{stats.managedOrgCount}}</view>
-            <view class="count-label">管理组织数</view>
-          </view>
+          <view class="count-item"><view class="count-num">{{stats.participatedCount}}</view><view class="count-label">{{i18n.participatedCount}}</view></view>
+          <view class="count-item"><view class="count-num">{{stats.initiatedCount}}</view><view class="count-label">{{i18n.initiatedCount}}</view></view>
+          <view class="count-item"><view class="count-num">{{stats.managedOrgCount}}</view><view class="count-label">{{i18n.managedOrgCount}}</view></view>
         </view>
       </view>
     </view>
 
     <view class="menu-card">
-      <view class="menu-item" data-action="myActivity" bindtap="onMenuTap">我的活动</view>
-      <view class="menu-item" data-action="myOrg" bindtap="onMenuTap">我的组织</view>
-      <view wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" class="menu-item" data-action="review" bindtap="onMenuTap">审核管理</view>
-      <view class="menu-item" data-action="help" bindtap="onMenuTap">帮助中心</view>
-      <view class="menu-item" data-action="contact" bindtap="onMenuTap">联系客服</view>
-      <view wx:if="{{loginUser}}" class="menu-item danger" bindtap="onLogoutTap">退出登录</view>
+      <view class="menu-item" data-action="myActivity" bindtap="onMenuTap">{{i18n.myActivity}}</view>
+      <view class="menu-item" data-action="myOrg" bindtap="onMenuTap">{{i18n.myOrg}}</view>
+      <view wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" class="menu-item" data-action="review" bindtap="onMenuTap">{{i18n.reviewManage}}</view>
+      <view class="menu-item" data-action="help" bindtap="onMenuTap">{{i18n.helpCenter}}</view>
+      <view class="menu-item" data-action="contact" bindtap="onMenuTap">{{i18n.contact}}</view>
+      <view wx:if="{{loginUser}}" class="menu-item danger" bindtap="onLogoutTap">{{i18n.logout}}</view>
     </view>
   </view>
 </scroll-view>

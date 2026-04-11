@@ -7,7 +7,7 @@ const REQUEST_TIMEOUT = 12000;
 function showErrorToast(message) {
   if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
     wx.showToast({
-      title: String(message || "请求失败"),
+      title: String(message || "\u8bf7\u6c42\u5931\u8d25"),
       icon: "none",
       duration: 1800,
     });
@@ -35,15 +35,15 @@ function isWriteMethod(method) {
 function mapNetworkErrorMessage(errMsg) {
   const raw = String(errMsg || "");
   if (/timeout/i.test(raw)) {
-    return "请求超时，请检查后端是否启动、地址是否可访问";
+    return "\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u68c0\u67e5\u540e\u7aef\u670d\u52a1";
   }
   if (/refused/i.test(raw)) {
-    return "连接被拒绝，请确认后端服务已启动";
+    return "\u8fde\u63a5\u88ab\u62d2\u7edd\uff0c\u8bf7\u786e\u8ba4\u540e\u7aef\u5df2\u542f\u52a8";
   }
   if (/url not in domain list/i.test(raw)) {
-    return "请求域名未加入白名单（开发者工具可先关闭域名校验）";
+    return "\u8bf7\u6c42\u57df\u540d\u4e0d\u5728\u767d\u540d\u5355";
   }
-  return raw || "网络请求失败";
+  return raw || "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25";
 }
 
 function request(options) {
@@ -52,7 +52,7 @@ function request(options) {
   const withOperator = opts.withOperator === true || (opts.withOperator !== false && isWriteMethod(method));
 
   if (withOperator && !hasOperatorContext()) {
-    const message = "请先登录";
+    const message = "\u8bf7\u5148\u767b\u5f55";
     if (!opts.silent) {
       showErrorToast(message);
     }
@@ -90,7 +90,7 @@ function request(options) {
         }
 
         if (payload.code !== SUCCESS_CODE) {
-          const message = payload.message || "业务请求失败";
+          const message = payload.message || "\u4e1a\u52a1\u8bf7\u6c42\u5931\u8d25";
           if (!silent) {
             showErrorToast(message);
           }
@@ -115,4 +115,3 @@ function request(options) {
 module.exports = {
   request,
 };
-

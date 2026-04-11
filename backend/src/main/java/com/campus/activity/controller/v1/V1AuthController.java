@@ -2,6 +2,7 @@ package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.auth.LoginRequest;
+import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.view.v1.LoginUserView;
 import jakarta.validation.Valid;
@@ -25,5 +26,9 @@ public class V1AuthController {
     public ApiResponse<LoginUserView> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.success("login success", authService.login(request));
     }
-}
 
+    @PostMapping("/register")
+    public ApiResponse<LoginUserView> register(@Valid @RequestBody RegisterRequest request) {
+        return ApiResponse.success("register success", authService.register(request));
+    }
+}

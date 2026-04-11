@@ -1,30 +1,19 @@
-<navigation-bar title="我的活动" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
 <scroll-view class="list-scroll" scroll-y type="list">
   <view class="page-body">
-    <view wx:if="{{!loginUser}}" class="card">
-      <view class="muted">请先在“我的”页面登录后查看活动记录。</view>
-    </view>
-
-    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:if="{{!loginUser}}" class="card"><view class="muted">{{i18n.loginHint}}</view></view>
+    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
 
     <block wx:for="{{registrations}}" wx:key="registrationId">
       <view class="card">
-        <view class="title mb-12">{{item.activityTitle || '未知活动'}}</view>
-        <view class="muted mb-12">地点：{{item.location || '-'}}</view>
-        <view class="muted mb-12">时间：{{item.activityStartDisplay}} ~ {{item.activityEndDisplay}}</view>
-        <view class="muted mb-12">状态：{{item.registrationStatus}}</view>
-        <button
-          wx:if="{{item.registrationStatus === 'REGISTERED' || item.registrationStatus === 'CHECKED_IN'}}"
-          size="mini"
-          bindtap="onCancelTap"
-          data-id="{{item.registrationId}}"
-        >
-          取消报名
-        </button>
+        <view class="title mb-12">{{item.activityTitleDisplay}}</view>
+        <view class="muted mb-12">{{i18n.locationLabel}}: {{item.location || '-'}}</view>
+        <view class="muted mb-12">{{i18n.timeLabel}}: {{item.activityStartDisplay}} ~ {{item.activityEndDisplay}}</view>
+        <view class="muted mb-12">{{i18n.statusLabel}}: {{item.registrationStatus}}</view>
+        <button wx:if="{{item.registrationStatus === 'REGISTERED' || item.registrationStatus === 'CHECKED_IN'}}" size="mini" bindtap="onCancelTap" data-id="{{item.registrationId}}">{{i18n.cancelRegister}}</button>
       </view>
     </block>
 
-    <view wx:if="{{!loading && registrations.length === 0 && loginUser}}" class="empty">暂无活动记录</view>
+    <view wx:if="{{!loading && registrations.length === 0 && loginUser}}" class="empty">{{i18n.empty}}</view>
   </view>
 </scroll-view>
-

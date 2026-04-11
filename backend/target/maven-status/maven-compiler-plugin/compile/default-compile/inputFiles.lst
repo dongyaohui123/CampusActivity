@@ -20,6 +20,7 @@ E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\acti
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\activity\OrganizerActivityUpdateRequest.java
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\activity\SubmitReviewRequest.java
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\auth\LoginRequest.java
+E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\auth\RegisterRequest.java
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\registration\RegistrationCancelRequest.java
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\registration\RegistrationCreateRequest.java
 E:\Projects\WeiChatProjects\CampusActivity\backend\src\main\java\com\campus\activity\dto\v1\review\ReviewApproveRequest.java

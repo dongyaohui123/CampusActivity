@@ -13,6 +13,19 @@ function login(username, password) {
   });
 }
 
+function registerUser(username, password, nickname) {
+  return request({
+    path: "/api/v1/auth/register",
+    method: "POST",
+    data: {
+      username: String(username || "").trim(),
+      password: String(password || ""),
+      nickname: String(nickname || "").trim(),
+    },
+    withOperator: false,
+  });
+}
+
 function listPublicActivities(params) {
   return request({
     path: "/api/v1/activities",
@@ -34,7 +47,7 @@ function getMyRegistrations(userId) {
   const ctx = getOperatorContext();
   const targetUserId = Number(userId || ctx.operatorUserId);
   if (!Number.isFinite(targetUserId) || targetUserId <= 0) {
-    return Promise.reject({ message: "请先登录" });
+    return Promise.reject({ message: "\u8bf7\u5148\u767b\u5f55" });
   }
   return request({
     path: `/api/v1/users/${targetUserId}/registrations`,
@@ -129,6 +142,7 @@ function rejectReview(activityId, comment) {
 
 module.exports = {
   login,
+  registerUser,
   listPublicActivities,
   getPublicActivityDetail,
   getMyRegistrations,
@@ -142,4 +156,3 @@ module.exports = {
   approveReview,
   rejectReview,
 };
-

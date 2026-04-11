@@ -1,20 +1,16 @@
-<navigation-bar title="找活动" back="{{false}}" color="#fff" background="#2f80ed"></navigation-bar>
+<navigation-bar title="{{i18n.navTitle}}" back="{{false}}" color="#111111" background="#f7f8fa"></navigation-bar>
 
 <scroll-view class="find-scroll" scroll-y type="list">
   <view class="page-body with-bottom-nav">
     <view class="search-wrap card">
-      <input class="search-input" placeholder="请输入内容" value="{{keyword}}" bindinput="onKeywordInput" />
+      <input class="search-input" placeholder="{{i18n.searchPlaceholder}}" value="{{keyword}}" bindinput="onKeywordInput" />
     </view>
 
     <view class="category-wrap card">
       <scroll-view scroll-x class="category-scroll">
         <view class="category-row">
           <block wx:for="{{categories}}" wx:key="key">
-            <view
-              class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
-              data-category="{{item.key}}"
-              bindtap="onCategoryTap"
-            >
+            <view class="category-item {{selectedCategory === item.key ? 'active' : ''}}" data-category="{{item.key}}" bindtap="onCategoryTap">
               {{item.label}}
             </view>
           </block>
@@ -22,7 +18,7 @@
       </scroll-view>
     </view>
 
-    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
 
     <view class="grid">
       <block wx:for="{{displayList}}" wx:key="id">
@@ -35,7 +31,7 @@
       </block>
     </view>
 
-    <view wx:if="{{!loading && displayList.length === 0}}" class="empty">没有更多啦~</view>
+    <view wx:if="{{!loading && displayList.length === 0}}" class="empty">{{i18n.empty}}</view>
   </view>
 </scroll-view>
 

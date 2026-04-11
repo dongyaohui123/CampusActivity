@@ -1,70 +1,56 @@
-<navigation-bar title="组织者活动管理" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
 <scroll-view class="page-scroll" scroll-y type="list">
   <view class="page-body">
     <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="card">
-      <view class="muted">当前角色为 {{operatorRole}}，请在首页切换为 ORGANIZER 后再操作。</view>
+      <view class="muted">{{i18n.roleHintPrefix}} {{operatorRole}}, {{i18n.roleHintSuffix}}</view>
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card">
-      <view class="title mb-16">{{editingActivityId ? '编辑活动' : '创建活动'}}</view>
+      <view class="title mb-16"><text wx:if="{{editingActivityId}}">{{i18n.editActivity}}</text><text wx:else>{{i18n.createActivity}}</text></view>
 
-      <view class="label">标题 *</view>
-      <input class="input mb-12" data-field="title" value="{{form.title}}" bindinput="onFormInput" placeholder="例如：校园歌手大赛" />
-
-      <view class="label">摘要</view>
-      <input class="input mb-12" data-field="summary" value="{{form.summary}}" bindinput="onFormInput" placeholder="一句话摘要" />
-
-      <view class="label">地点 *</view>
-      <input class="input mb-12" data-field="location" value="{{form.location}}" bindinput="onFormInput" placeholder="例如：大学生活动中心" />
-
-      <view class="label">开始时间 *</view>
+      <view class="label">{{i18n.titleLabel}} {{i18n.required}}</view>
+      <input class="input mb-12" data-field="title" value="{{form.title}}" bindinput="onFormInput" placeholder="{{i18n.phTitle}}" />
+      <view class="label">{{i18n.summaryLabel}}</view>
+      <input class="input mb-12" data-field="summary" value="{{form.summary}}" bindinput="onFormInput" placeholder="{{i18n.phSummary}}" />
+      <view class="label">{{i18n.locationLabel}} {{i18n.required}}</view>
+      <input class="input mb-12" data-field="location" value="{{form.location}}" bindinput="onFormInput" placeholder="{{i18n.phLocation}}" />
+      <view class="label">{{i18n.startTimeLabel}} {{i18n.required}}</view>
       <input class="input mb-12" data-field="startTime" value="{{form.startTime}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
-
-      <view class="label">结束时间 *</view>
+      <view class="label">{{i18n.endTimeLabel}} {{i18n.required}}</view>
       <input class="input mb-12" data-field="endTime" value="{{form.endTime}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
-
-      <view class="label">报名截止时间</view>
-      <input class="input mb-12" data-field="registrationDeadline" value="{{form.registrationDeadline}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss（可空）" />
-
-      <view class="label">人数上限 *</view>
+      <view class="label">{{i18n.deadlineLabel}}</view>
+      <input class="input mb-12" data-field="registrationDeadline" value="{{form.registrationDeadline}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
+      <view class="label">{{i18n.maxParticipantsLabel}} {{i18n.required}}</view>
       <input class="input mb-12" type="number" data-field="maxParticipants" value="{{form.maxParticipants}}" bindinput="onFormInput" />
-
-      <view class="label">可见性</view>
-      <picker mode="selector" range="{{visibilityOptions}}" value="{{form.visibilityIndex}}" bindchange="onVisibilityChange">
-        <view class="picker mb-12">{{visibilityOptions[form.visibilityIndex]}}</view>
-      </picker>
-
-      <view class="row-between mb-16">
-        <text>推荐活动（featured）</text>
-        <switch checked="{{form.featured}}" bindchange="onFeaturedChange" />
-      </view>
+      <view class="label">{{i18n.visibilityLabel}}</view>
+      <picker mode="selector" range="{{visibilityOptions}}" value="{{form.visibilityIndex}}" bindchange="onVisibilityChange"><view class="picker mb-12">{{visibilityOptions[form.visibilityIndex]}}</view></picker>
+      <view class="row-between mb-16"><text>{{i18n.featuredLabel}}</text><switch checked="{{form.featured}}" bindchange="onFeaturedChange" /></view>
 
       <view class="row gap-12">
-        <button type="primary" bindtap="onSubmitTap">{{editingActivityId ? '更新活动' : '创建活动'}}</button>
-        <button bindtap="resetForm">重置</button>
+        <button type="primary" bindtap="onSubmitTap"><text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text><text wx:else>{{i18n.createActivity}}</text></button>
+        <button bindtap="resetForm">{{i18n.reset}}</button>
       </view>
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card">
-      <view class="title mb-12">提审备注（可选）</view>
-      <input class="input" value="{{reviewComment}}" bindinput="onReviewCommentInput" placeholder="提审备注" />
+      <view class="title mb-12">{{i18n.submitNote}}</view>
+      <input class="input" value="{{reviewComment}}" bindinput="onReviewCommentInput" placeholder="{{i18n.submitCommentPlaceholder}}" />
     </view>
 
-    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
 
     <block wx:for="{{activities}}" wx:key="id">
       <view class="card">
         <view class="title mb-12">{{item.title}}</view>
-        <view class="muted mb-12">状态：{{item.status}} / 审核：{{item.reviewStatus || '-'}}</view>
-        <view class="muted mb-12">时间：{{item.startDisplay}} ~ {{item.endDisplay}}</view>
+        <view class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
+        <view class="muted mb-12">{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}</view>
         <view class="row gap-12">
-          <button size="mini" data-id="{{item.id}}" bindtap="onEditTap">编辑</button>
-          <button size="mini" type="primary" data-id="{{item.id}}" bindtap="onSubmitReviewTap">提审</button>
+          <button size="mini" data-id="{{item.id}}" bindtap="onEditTap">{{i18n.edit}}</button>
+          <button size="mini" type="primary" data-id="{{item.id}}" bindtap="onSubmitReviewTap">{{i18n.submitReview}}</button>
         </view>
       </view>
     </block>
 
-    <view wx:if="{{!loading && activities.length === 0 && operatorRole === 'ORGANIZER'}}" class="empty">暂无活动</view>
+    <view wx:if="{{!loading && activities.length === 0 && operatorRole === 'ORGANIZER'}}" class="empty">{{i18n.empty}}</view>
   </view>
 </scroll-view>
-

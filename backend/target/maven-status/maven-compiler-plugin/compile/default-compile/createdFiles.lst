@@ -20,6 +20,7 @@ com\campus\activity\entity\StudentProfile.class
 com\campus\activity\dto\v1\review\ReviewRejectRequest.class
 com\campus\activity\view\v1\RegistrationRecordView.class
 com\campus\activity\entity\ActivityCategoryRel.class
+com\campus\activity\dto\v1\auth\RegisterRequest.class
 com\campus\activity\mapper\StudentProfileMapper.class
 com\campus\activity\view\v1\PendingReviewActivityView.class
 com\campus\activity\dto\v1\registration\RegistrationCreateRequest.class

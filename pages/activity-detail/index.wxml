@@ -1,27 +1,26 @@
-<navigation-bar title="活动详情" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
 <scroll-view class="detail-scroll" scroll-y type="list">
   <view class="page-body">
-    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
 
     <view wx:if="{{activity}}" class="card">
       <view class="title mb-12">{{activity.title}}</view>
-      <view class="muted mb-12">状态：{{activity.status || '-'}}</view>
-      <view class="muted mb-12">地点：{{activity.location || '-'}}</view>
-      <view class="muted mb-12">活动时间：{{activity.startDisplay}} ~ {{activity.endDisplay}}</view>
-      <view class="muted mb-12">报名截止：{{activity.deadlineDisplay}}</view>
-      <view class="muted mb-12">摘要：{{activity.summary || '-'}}</view>
-      <view>详情：{{activity.content || '-'}}</view>
+      <view class="muted mb-12">{{i18n.statusLabel}}: {{activity.status || '-'}}</view>
+      <view class="muted mb-12">{{i18n.locationLabel}}: {{activity.location || '-'}}</view>
+      <view class="muted mb-12">{{i18n.timeLabel}}: {{activity.startDisplay}} ~ {{activity.endDisplay}}</view>
+      <view class="muted mb-12">{{i18n.deadlineLabel}}: {{activity.deadlineDisplay}}</view>
+      <view class="muted mb-12">{{i18n.summaryLabel}}: {{activity.summary || '-'}}</view>
+      <view>{{i18n.contentLabel}}: {{activity.content || '-'}}</view>
     </view>
 
     <view class="card">
-      <view class="title mb-12">报名操作</view>
-      <view wx:if="{{operatorRole !== 'STUDENT'}}" class="muted mb-12">当前角色为 {{operatorRole}}，仅学生可报名/取消</view>
-      <view wx:if="{{currentRegistration}}" class="muted mb-12">当前报名状态：{{currentRegistration.registrationStatus}}</view>
+      <view class="title mb-12">{{i18n.registerOps}}</view>
+      <view wx:if="{{operatorRole !== 'STUDENT'}}" class="muted mb-12">{{i18n.studentOnly}}</view>
+      <view wx:if="{{currentRegistration}}" class="muted mb-12">{{i18n.currentStatus}}: {{currentRegistration.registrationStatus}}</view>
       <view class="row gap-12">
-        <button wx:if="{{canRegister}}" type="primary" bindtap="onRegisterTap">立即报名</button>
-        <button wx:if="{{canCancel}}" bindtap="onCancelTap">取消报名</button>
+        <button wx:if="{{canRegister}}" type="primary" bindtap="onRegisterTap">{{i18n.registerNow}}</button>
+        <button wx:if="{{canCancel}}" bindtap="onCancelTap">{{i18n.cancelRegister}}</button>
       </view>
     </view>
   </view>
 </scroll-view>
-
