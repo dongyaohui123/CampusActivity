@@ -11,6 +11,11 @@ Component({
       find: "\u627e\u6d3b\u52a8",
       mine: "\u6211\u7684",
     },
+    icons: {
+      home: "\u9996",
+      find: "\u627e",
+      mine: "\u6211",
+    },
   },
   methods: {
     onTabTap(event) {

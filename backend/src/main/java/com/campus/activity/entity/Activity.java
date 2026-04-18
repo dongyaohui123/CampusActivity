@@ -18,10 +18,10 @@ public class Activity {
     private Long id;
 
     /** FK users.id: organizer account. */
-    private Long organizerId;
+    private Long organizerId;//组织者,eg:社团官方
 
     /** Nullable FK users.id: real publisher account. */
-    private Long publisherId;
+    private Long publisherId;//发布者，可能是宣传负责人所发布
 
     private String title;
 

@@ -1,0 +1,30 @@
+%%{init: {"flowchart": {"curve": "stepBefore", "nodeSpacing": 38, "rankSpacing": 62}}}%%
+flowchart LR
+    A["组织者端"]
+
+    A --> B["活动发布"]
+    A --> C["活动维护"]
+    A --> D["审核提交"]
+    A --> E["活动看板"]
+
+    B --> B1["新建活动"]
+    B --> B2["填写标题摘要"]
+    B --> B3["设置时间地点"]
+    B --> B4["设置报名截止"]
+
+    C --> C1["编辑活动"]
+    C --> C2["人数上限设置"]
+    C --> C3["可见性设置"]
+    C --> C4["推荐活动设置"]
+
+    D --> D1["提交审核"]
+    D --> D2["审核备注填写"]
+    D --> D3["审核状态查看"]
+
+    E --> E1["我的组织活动"]
+    E --> E2["活动列表查看"]
+    E --> E3["时间信息查看"]
+    E --> E4["状态信息查看"]
+
+    classDef box fill:#ffffff,stroke:#475569,color:#111827,stroke-width:1px;
+    class A,B,C,D,E,B1,B2,B3,B4,C1,C2,C3,C4,D1,D2,D3,E1,E2,E3,E4 box;

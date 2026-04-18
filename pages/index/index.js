@@ -29,6 +29,7 @@ Page({
       recommend: "\u63a8\u8350\u6d3b\u52a8",
       loading: "\u52a0\u8f7d\u4e2d...",
       emptyRecommend: "\u6682\u65e0\u63a8\u8350\u6d3b\u52a8",
+      bannerSub: "\u6821\u56ed\u6d3b\u52a8\u4e00\u7ad9\u5f0f\u670d\u52a1",
     },
     banners: [
       "https://picsum.photos/980/420?random=31",

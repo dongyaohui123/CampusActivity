@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校园活动系统数据库 E-R 图</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f8fafc;
+      --line: #5b6b82;
+      --title: #10233f;
+      --text: #233247;
+      --muted: #5f6f85;
+      --head: #dbe7f5;
+      --border: #2e4668;
+      --shadow: 0 10px 24px rgba(34, 52, 79, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif;
+      color: var(--text);
+    }
+
+    .canvas {
+      position: relative;
+      width: 1900px;
+      height: 1520px;
+      margin: 0 auto;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    }
+
+    .title {
+      position: absolute;
+      left: 80px;
+      top: 42px;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--title);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      position: absolute;
+      left: 80px;
+      top: 90px;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .legend {
+      position: absolute;
+      right: 80px;
+      top: 48px;
+      padding: 14px 18px;
+      border: 1.5px solid #ccd7e6;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--muted);
+      text-align: left;
+    }
+
+    .section {
+      position: absolute;
+      top: 128px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #456384;
+      letter-spacing: 1px;
+    }
+
+    .section.left { left: 84px; }
+    .section.middle { left: 700px; }
+    .section.right { left: 1320px; }
+
+    .entity {
+      position: absolute;
+      width: 340px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .entity .head {
+      padding: 14px 18px 10px;
+      background: linear-gradient(180deg, var(--head) 0%, #ecf3fb 100%);
+      border-bottom: 1px solid #c8d6e8;
+    }
+
+    .entity .head h3 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      color: #173155;
+    }
+
+    .entity .head p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+
+    .entity ul {
+      margin: 0;
+      padding: 14px 18px 16px 28px;
+      list-style: none;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .entity li::before {
+      content: "• ";
+      color: #5174a1;
+      font-weight: 700;
+    }
+
+    .tiny {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .link {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .relation {
+      font-size: 17px;
+      font-weight: 700;
+      fill: #375172;
+    }
+
+    .caption {
+      position: absolute;
+      left: 80px;
+      bottom: 40px;
+      font-size: 16px;
+      color: #5b6b82;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="title">校园活动系统数据库 E-R 图（简明版）</div>
+    <div class="subtitle">依据 localhost_bishe 数据源中的 campus_activity_v2 数据库整理，保留主键、外键及核心业务字段</div>
+
+    <div class="legend">
+      图例：<br />
+      PK = 主键　FK = 外键<br />
+      1:1 = 一对一　1:N = 一对多　M:N = 多对多<br />
+      中间表用于表达收藏、报名、分类关联、关注等业务关系
+    </div>
+
+    <div class="section left">用户与账户侧</div>
+    <div class="section middle">活动核心链路</div>
+    <div class="section right">分类与审核侧</div>
+
+    <svg class="links" viewBox="0 0 1900 1520" aria-hidden="true">
+      <path class="link" d="M240 310 L240 370" />
+      <text class="relation" x="188" y="352">1:N</text>
+
+      <path class="link" d="M240 570 L240 640" />
+      <text class="relation" x="188" y="620">1:1</text>
+
+      <path class="link" d="M240 840 L240 910" />
+      <text class="relation" x="188" y="892">1:N</text>
+
+      <path class="link" d="M410 470 C520 470, 560 270, 700 270" />
+      <text class="relation" x="510" y="388">1:1</text>
+
+      <path class="link" d="M410 470 C560 470, 610 480, 700 480" />
+      <text class="relation" x="532" y="452">1:N</text>
+
+      <path class="link" d="M860 570 L860 640" />
+      <text class="relation" x="820" y="620">1:N</text>
+
+      <path class="link" d="M860 840 L860 910" />
+      <text class="relation" x="820" y="892">1:N</text>
+
+      <path class="link" d="M410 520 C560 520, 610 790, 700 790" />
+      <text class="relation" x="540" y="694">1:N</text>
+
+      <path class="link" d="M410 540 C520 540, 590 1060, 700 1060" />
+      <text class="relation" x="530" y="1000">1:N</text>
+
+      <path class="link" d="M870 380 C1010 380, 1070 270, 1320 270" />
+      <text class="relation" x="1090" y="306">M:N</text>
+
+      <path class="link" d="M1210 270 C1270 270, 1270 480, 1320 480" />
+      <text class="relation" x="1236" y="388">1:N</text>
+
+      <path class="link" d="M1040 480 L1320 480" />
+      <text class="relation" x="1140" y="456">M:N</text>
+
+      <path class="link" d="M1040 490 C1150 490, 1180 790, 1320 790" />
+      <text class="relation" x="1150" y="674">1:1</text>
+
+      <path class="link" d="M1040 520 C1160 520, 1200 1060, 1320 1060" />
+      <text class="relation" x="1160" y="990">1:N</text>
+
+      <path class="link" d="M410 500 C650 500, 1130 790, 1320 790" />
+      <text class="relation" x="880" y="676">1:N</text>
+
+      <path class="link" d="M410 520 C630 520, 1090 1060, 1320 1060" />
+      <text class="relation" x="860" y="988">1:N</text>
+
+      <path class="link" d="M410 560 C560 560, 620 1320, 740 1320" />
+      <text class="relation" x="538" y="1250">1:N</text>
+
+      <path class="link" d="M240 1180 L740 1180 L740 1260" />
+      <text class="relation" x="492" y="1160">1:N</text>
+    </svg>
+
+    <div class="entity" style="left: 70px; top: 160px; height: 150px;">
+      <div class="head">
+        <h3>认证令牌</h3>
+        <p>auth_tokens</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK user_id</li>
+        <li>令牌类型、过期时间、是否撤销</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 70px; top: 370px; height: 200px;">
+      <div class="head">
+        <h3>用户</h3>
+        <p>users</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>用户名、微信openid、手机号</li>
+        <li>角色 role、状态 status</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 70px; top: 640px; height: 200px;">
+      <div class="head">
+        <h3>学生资料</h3>
+        <p>student_profiles</p>
+      </div>
+      <ul>
+        <li>PK/FK user_id</li>
+        <li>学号、真实姓名</li>
+        <li>学院、专业</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 70px; top: 910px; height: 170px;">
+      <div class="head">
+        <h3>登录日志</h3>
+        <p>login_logs</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK user_id</li>
+        <li>登录结果、登录时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 700px; top: 160px; height: 150px;">
+      <div class="head">
+        <h3>组织者资料</h3>
+        <p>organizer_profiles</p>
+      </div>
+      <ul>
+        <li>PK/FK user_id</li>
+        <li>组织名称、组织类型</li>
+        <li>认证状态、联系电话</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 700px; top: 380px; height: 190px;">
+      <div class="head">
+        <h3>活动</h3>
+        <p>activities</p>
+      </div>
+      <ul>
+        <li>PK id；FK organizer_id、publisher_id</li>
+        <li>活动标题、开始时间、结束时间</li>
+        <li>人数上限、活动状态、可见性</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 700px; top: 640px; height: 200px;">
+      <div class="head">
+        <h3>报名记录</h3>
+        <p>activity_registrations</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK activity_id、user_id</li>
+        <li>报名状态、报名时间、签到时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 700px; top: 910px; height: 170px;">
+      <div class="head">
+        <h3>收藏</h3>
+        <p>activity_favorites</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK activity_id、user_id</li>
+        <li>创建时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 1320px; top: 160px; height: 180px;">
+      <div class="head">
+        <h3>分类</h3>
+        <p>activity_categories</p>
+      </div>
+      <ul>
+        <li>PK id；FK parent_id</li>
+        <li>分类名称、排序号</li>
+        <li>状态 <span class="tiny">（支持父子分类）</span></li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 1320px; top: 390px; height: 170px;">
+      <div class="head">
+        <h3>活动分类关联</h3>
+        <p>activity_category_rel</p>
+      </div>
+      <ul>
+        <li>PK/FK activity_id</li>
+        <li>PK/FK category_id</li>
+        <li>创建时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 1320px; top: 660px; height: 180px;">
+      <div class="head">
+        <h3>当前审核</h3>
+        <p>activity_reviews</p>
+      </div>
+      <ul>
+        <li>PK/FK activity_id</li>
+        <li>FK reviewer_id</li>
+        <li>审核状态、审核时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 1320px; top: 930px; height: 170px;">
+      <div class="head">
+        <h3>审核日志</h3>
+        <p>activity_audit_logs</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK activity_id、operator_id</li>
+        <li>操作类型、创建时间</li>
+      </ul>
+    </div>
+
+    <div class="entity" style="left: 740px; top: 1180px; height: 160px;">
+      <div class="head">
+        <h3>关注组织者</h3>
+        <p>organizer_follows</p>
+      </div>
+      <ul>
+        <li>PK id</li>
+        <li>FK organizer_id、user_id</li>
+        <li>创建时间</li>
+      </ul>
+    </div>
+
+    <div class="caption">说明：本图以 users 为中心实体，activities 为业务主表，展示用户、分类、报名、审核、收藏与关注等核心关系。</div>
+  </div>
+</body>
+</html>

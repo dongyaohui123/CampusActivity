@@ -2,7 +2,7 @@ page {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f7f8fa;
+  background: linear-gradient(180deg, #eaf2ff 0%, #f5f7fb 260rpx, #f5f7fb 100%);
 }
 
 .mine-scroll {
@@ -11,21 +11,25 @@ page {
 
 .profile-header {
   margin: 24rpx;
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   padding: 22rpx;
-  background: #ffffff;
-  border: 1rpx solid #edf1f6;
+  background: linear-gradient(160deg, #2f6cf3 0%, #3f8cff 55%, #4bb7ff 100%);
+  border: 1rpx solid #2f6cf3;
+  box-shadow: 0 12rpx 32rpx rgba(47, 108, 243, 0.3);
 }
 
 .auth-card {
   display: flex;
   flex-direction: column;
   gap: 12rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  padding: 18rpx;
 }
 
 .auth-switch {
   display: flex;
-  background: #f2f4f7;
+  background: #eaf0fa;
   border-radius: 10rpx;
   padding: 4rpx;
 }
@@ -56,33 +60,35 @@ page {
 
 .auth-btn {
   margin-top: 6rpx;
-  background: #2563eb;
+  background: linear-gradient(135deg, #2f6cf3, #4b8fff);
   color: #ffffff;
+  border: none;
 }
 
 .auth-tip {
   font-size: 22rpx;
-  color: #9ca3af;
+  color: #8b96ab;
   text-align: center;
   margin-top: 4rpx;
 }
 
 .user-panel {
-  padding: 6rpx 0;
+  padding: 10rpx 8rpx 6rpx;
 }
 
 .user-name {
   font-size: 36rpx;
   font-weight: 600;
-  color: #111827;
+  color: #ffffff;
 }
 
 .role-tag {
-  background: #eef2ff;
-  color: #1d4ed8;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
   border-radius: 20rpx;
   font-size: 22rpx;
   padding: 6rpx 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.45);
 }
 
 .count-row {
@@ -100,28 +106,30 @@ page {
   font-size: 40rpx;
   font-weight: 700;
   line-height: 1.2;
-  color: #111827;
+  color: #ffffff;
 }
 
 .count-label {
   font-size: 22rpx;
   margin-top: 8rpx;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .menu-card {
   margin: 0 24rpx 24rpx;
-  border-radius: 12rpx;
+  border-radius: 18rpx;
   background: #fff;
   overflow: hidden;
-  border: 1rpx solid #edf1f6;
+  border: 1rpx solid #e4ebf5;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
 }
 
 .menu-item {
   padding: 24rpx;
-  border-bottom: 1rpx solid #f3f4f6;
+  border-bottom: 1rpx solid #eef2f7;
   color: #1f2937;
   font-size: 28rpx;
+  font-weight: 500;
 }
 
 .menu-item:last-child {
@@ -131,4 +139,3 @@ page {
 .menu-item.danger {
   color: #ef4444;
 }
-

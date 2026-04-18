@@ -84,15 +84,20 @@ Page({
   applyFilter() {
     const keyword = String(this.data.keyword || "").trim().toLowerCase();
     const selectedCategory = this.data.selectedCategory;
+    // 从全量名单中进行过滤
     const displayList = this.data.fullList.filter((item) => {
+      // 关键词匹配（标题、简介、地点里包含这个词吗？）
       const passKeyword =
         !keyword ||
         (item.title || "").toLowerCase().includes(keyword) ||
         (item.summary || "").toLowerCase().includes(keyword) ||
         (item.location || "").toLowerCase().includes(keyword);
+      //分类匹配（是选中的分类吗？）
       const passCategory = selectedCategory === "ALL" || item.categoryKey === selectedCategory;
+      //两项都满足才能通过
       return passKeyword && passCategory;
     });
+    // 更新到屏幕上
     this.setData({ displayList });
   },
 

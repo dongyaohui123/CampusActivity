@@ -1,0 +1,23 @@
+%%{init: {"flowchart": {"curve": "stepBefore", "nodeSpacing": 38, "rankSpacing": 62}}}%%
+flowchart LR
+    A["管理员端"]
+
+    A --> B["审核管理"]
+    A --> C["活动监管"]
+    A --> D["审核结果处理"]
+
+    B --> B1["待审活动列表"]
+    B --> B2["审核意见填写"]
+    B --> B3["活动信息查看"]
+
+    C --> C1["活动ID查看"]
+    C --> C2["组织者查看"]
+    C --> C3["活动时间查看"]
+    C --> C4["审核状态查看"]
+
+    D --> D1["审核通过"]
+    D --> D2["审核驳回"]
+    D --> D3["结果反馈"]
+
+    classDef box fill:#ffffff,stroke:#475569,color:#111827,stroke-width:1px;
+    class A,B,C,D,B1,B2,B3,C1,C2,C3,C4,D1,D2,D3 box;
