@@ -1,4 +1,4 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="page-scroll" scroll-y type="list">
   <view class="page-body">
     <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="card">
@@ -6,51 +6,119 @@
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card">
-      <view class="title mb-16"><text wx:if="{{editingActivityId}}">{{i18n.editActivity}}</text><text wx:else>{{i18n.createActivity}}</text></view>
+      <view class="title mb-16">
+        <text wx:if="{{editingActivityId}}">{{i18n.editActivity}}</text>
+        <text wx:else>{{i18n.createActivity}}</text>
+      </view>
 
-      <view class="label">{{i18n.titleLabel}} {{i18n.required}}</view>
-      <input class="input mb-12" data-field="title" value="{{form.title}}" bindinput="onFormInput" placeholder="{{i18n.phTitle}}" />
-      <view class="label">{{i18n.summaryLabel}}</view>
-      <input class="input mb-12" data-field="summary" value="{{form.summary}}" bindinput="onFormInput" placeholder="{{i18n.phSummary}}" />
-      <view class="label">{{i18n.locationLabel}} {{i18n.required}}</view>
-      <input class="input mb-12" data-field="location" value="{{form.location}}" bindinput="onFormInput" placeholder="{{i18n.phLocation}}" />
-      <view class="label">{{i18n.startTimeLabel}} {{i18n.required}}</view>
-      <input class="input mb-12" data-field="startTime" value="{{form.startTime}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
-      <view class="label">{{i18n.endTimeLabel}} {{i18n.required}}</view>
-      <input class="input mb-12" data-field="endTime" value="{{form.endTime}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
-      <view class="label">{{i18n.deadlineLabel}}</view>
-      <input class="input mb-12" data-field="registrationDeadline" value="{{form.registrationDeadline}}" bindinput="onFormInput" placeholder="YYYY-MM-DDTHH:mm:ss" />
-      <view class="label">{{i18n.maxParticipantsLabel}} {{i18n.required}}</view>
-      <input class="input mb-12" type="number" data-field="maxParticipants" value="{{form.maxParticipants}}" bindinput="onFormInput" />
-      <view class="label">{{i18n.visibilityLabel}}</view>
-      <picker mode="selector" range="{{visibilityOptions}}" value="{{form.visibilityIndex}}" bindchange="onVisibilityChange"><view class="picker mb-12">{{visibilityOptions[form.visibilityIndex]}}</view></picker>
-      <view class="row-between mb-16"><text>{{i18n.featuredLabel}}</text><switch checked="{{form.featured}}" bindchange="onFeaturedChange" /></view>
+      <van-field
+        data-field="title"
+        label="{{i18n.titleLabel}} {{i18n.required}}"
+        value="{{form.title}}"
+        bind:change="onFormInput"
+        placeholder="{{i18n.phTitle}}"
+      />
+      <van-field
+        data-field="summary"
+        label="{{i18n.summaryLabel}}"
+        value="{{form.summary}}"
+        bind:change="onFormInput"
+        placeholder="{{i18n.phSummary}}"
+      />
+      <van-field
+        data-field="location"
+        label="{{i18n.locationLabel}} {{i18n.required}}"
+        value="{{form.location}}"
+        bind:change="onFormInput"
+        placeholder="{{i18n.phLocation}}"
+      />
+      <van-field
+        data-field="startTime"
+        label="{{i18n.startTimeLabel}} {{i18n.required}}"
+        value="{{form.startTime}}"
+        bind:change="onFormInput"
+        placeholder="YYYY-MM-DDTHH:mm:ss"
+      />
+      <van-field
+        data-field="endTime"
+        label="{{i18n.endTimeLabel}} {{i18n.required}}"
+        value="{{form.endTime}}"
+        bind:change="onFormInput"
+        placeholder="YYYY-MM-DDTHH:mm:ss"
+      />
+      <van-field
+        data-field="registrationDeadline"
+        label="{{i18n.deadlineLabel}}"
+        value="{{form.registrationDeadline}}"
+        bind:change="onFormInput"
+        placeholder="YYYY-MM-DDTHH:mm:ss"
+      />
+      <van-field
+        data-field="maxParticipants"
+        type="number"
+        label="{{i18n.maxParticipantsLabel}} {{i18n.required}}"
+        value="{{form.maxParticipants}}"
+        bind:change="onFormInput"
+      />
+      <van-field
+        label="{{i18n.visibilityLabel}}"
+        value="{{visibilityOptions[form.visibilityIndex]}}"
+        readonly
+        is-link
+        bind:click="onOpenVisibilityPicker"
+        bind:click-input="onOpenVisibilityPicker"
+      />
 
-      <view class="row gap-12">
-        <button type="primary" bindtap="onSubmitTap"><text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text><text wx:else>{{i18n.createActivity}}</text></button>
-        <button bindtap="resetForm">{{i18n.reset}}</button>
+      <view class="switch-row">
+        <text>{{i18n.featuredLabel}}</text>
+        <van-switch checked="{{form.featured}}" bind:change="onFeaturedChange" />
+      </view>
+
+      <view class="row gap-12 mt-16">
+        <van-button type="primary" bind:click="onSubmitTap">
+          <text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text>
+          <text wx:else>{{i18n.createActivity}}</text>
+        </van-button>
+        <van-button plain bind:click="resetForm">{{i18n.reset}}</van-button>
       </view>
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card">
       <view class="title mb-12">{{i18n.submitNote}}</view>
-      <input class="input" value="{{reviewComment}}" bindinput="onReviewCommentInput" placeholder="{{i18n.submitCommentPlaceholder}}" />
+      <van-field
+        value="{{reviewComment}}"
+        bind:change="onReviewCommentInput"
+        placeholder="{{i18n.submitCommentPlaceholder}}"
+      />
     </view>
 
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <block wx:for="{{activities}}" wx:key="id">
       <view class="card">
-        <view class="title mb-12">{{item.title}}</view>
-        <view class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
-        <view class="muted mb-12">{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}</view>
-        <view class="row gap-12">
-          <button size="mini" data-id="{{item.id}}" bindtap="onEditTap">{{i18n.edit}}</button>
-          <button size="mini" type="primary" data-id="{{item.id}}" bindtap="onSubmitReviewTap">{{i18n.submitReview}}</button>
-        </view>
+        <van-card title="{{item.title}}" desc="{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}">
+          <view slot="tags" class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
+          <view slot="footer" class="row gap-12">
+            <van-button size="small" plain data-id="{{item.id}}" bind:click="onEditTap">{{i18n.edit}}</van-button>
+            <van-button size="small" type="primary" data-id="{{item.id}}" bind:click="onSubmitReviewTap">{{i18n.submitReview}}</van-button>
+          </view>
+        </van-card>
       </view>
     </block>
 
-    <view wx:if="{{!loading && activities.length === 0 && operatorRole === 'ORGANIZER'}}" class="empty">{{i18n.empty}}</view>
+    <van-empty wx:if="{{!loading && activities.length === 0 && operatorRole === 'ORGANIZER'}}" image="search" description="{{i18n.empty}}" />
   </view>
 </scroll-view>
+
+<van-popup show="{{showVisibilityPicker}}" position="bottom" round bind:close="onCloseVisibilityPicker">
+  <van-picker
+    show-toolbar
+    columns="{{visibilityOptions}}"
+    default-index="{{form.visibilityIndex}}"
+    bind:confirm="onVisibilityConfirm"
+    bind:cancel="onVisibilityCancel"
+  />
+</van-popup>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

@@ -21,14 +21,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+/**
+ * UserServiceImpl服务实现。
+ */
 @Service
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
+    /**
+     * 构造函数。
+     *
+     * @param userMapper 用户数据访问
+     */
     public UserServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
     }
 
+    /**
+     * 创建用户。
+     *
+     * @param request 创建请求
+     * @return 创建后的用户
+     */
     @Override
     @Transactional
     public User createUser(CreateUserRequest request) {
@@ -52,6 +66,13 @@ public class UserServiceImpl implements UserService {
         return sanitizeUser(user);
     }
 
+    /**
+     * 更新用户。
+     *
+     * @param id 用户 ID
+     * @param request 更新请求
+     * @return 更新后的用户
+     */
     @Override
     @Transactional
     public User updateUser(Long id, UpdateUserRequest request) {
@@ -103,6 +124,11 @@ public class UserServiceImpl implements UserService {
         return sanitizeUser(existing);
     }
 
+    /**
+     * 禁用用户。
+     *
+     * @param id 用户 ID
+     */
     @Override
     @Transactional
     public void disableUser(Long id) {
@@ -114,6 +140,12 @@ public class UserServiceImpl implements UserService {
         userMapper.updateById(existing);
     }
 
+    /**
+     * 查询用户详情。
+     *
+     * @param id 用户 ID
+     * @return 用户详情
+     */
     @Override
     public User getUserById(Long id) {
         User user = userMapper.selectById(id);
@@ -123,6 +155,16 @@ public class UserServiceImpl implements UserService {
         return sanitizeUser(user);
     }
 
+    /**
+     * 按条件分页查询用户。
+     *
+     * @param username 用户名筛选
+     * @param status 状态筛选
+     * @param role 角色筛选
+     * @param page 页码
+     * @param size 每页大小
+     * @return 用户分页数据
+     */
     @Override
     public PageResponse<User> listUsers(String username, UserStatus status, UserRole role, long page, long size) {
         long safePage = Math.max(page, 1);
@@ -140,6 +182,9 @@ public class UserServiceImpl implements UserService {
         return new PageResponse<>(result.getCurrent(), result.getSize(), result.getTotal(), result.getPages(), records);
     }
 
+    /**
+     * 判断请求中是否包含可更新字段。
+     */
     private boolean hasAnyUpdatableField(UpdateUserRequest request) {
         return request.getUsername() != null
                 || request.getPasswordHash() != null
@@ -153,6 +198,9 @@ public class UserServiceImpl implements UserService {
                 || request.getForcePasswordChange() != null;
     }
 
+    /**
+     * 脱敏用户敏感字段。
+     */
     private User sanitizeUser(User user) {
         User sanitized = new User();
         BeanUtils.copyProperties(user, sanitized);
@@ -160,6 +208,9 @@ public class UserServiceImpl implements UserService {
         return sanitized;
     }
 
+    /**
+     * 将唯一约束异常映射为业务异常。
+     */
     private BusinessException mapConstraintToBusinessException(Exception ex, String fallbackMessage) {
         String message = ex.getMessage();
         if (message != null) {

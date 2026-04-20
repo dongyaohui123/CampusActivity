@@ -19,16 +19,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * V1AdminReviewController控制器。
+ */
 @Validated
 @RestController
 @RequestMapping("/api/v1/admin/reviews")
 public class V1AdminReviewController {
     private final V1AdminReviewService adminReviewService;
 
+    /**
+     * 构造函数。
+     *
+     * @param adminReviewService 审核服务
+     */
     public V1AdminReviewController(V1AdminReviewService adminReviewService) {
         this.adminReviewService = adminReviewService;
     }
 
+    /**
+     * 查询待审核活动列表。
+     *
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 待审核活动列表
+     */
     @GetMapping("/pending")
     public ApiResponse<List<PendingReviewActivityView>> listPendingReviews(
             @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
@@ -37,6 +52,15 @@ public class V1AdminReviewController {
         return ApiResponse.success(adminReviewService.listPendingReviews(operatorUserId, operatorRole));
     }
 
+    /**
+     * 审核通过活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 审核通过请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 最新审核记录
+     */
     @PostMapping("/{activityId}/approve")
     public ApiResponse<ActivityReview> approve(
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
@@ -49,6 +73,15 @@ public class V1AdminReviewController {
                 adminReviewService.approve(activityId, safeRequest, operatorUserId, operatorRole));
     }
 
+    /**
+     * 审核驳回活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 审核驳回请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 最新审核记录
+     */
     @PostMapping("/{activityId}/reject")
     public ApiResponse<ActivityReview> reject(
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,

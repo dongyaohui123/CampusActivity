@@ -9,14 +9,29 @@ import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import org.springframework.stereotype.Service;
 
+/**
+ * OperatorPermissionServiceImpl服务实现。
+ */
 @Service
 public class OperatorPermissionServiceImpl implements OperatorPermissionService {
     private final UserMapper userMapper;
 
+    /**
+     * 构造函数。
+     *
+     * @param userMapper 用户数据访问
+     */
     public OperatorPermissionServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
     }
 
+    /**
+     * 校验操作人身份与角色。
+     *
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 操作人实体
+     */
     @Override
     public User verifyOperator(Long operatorUserId, UserRole operatorRole) {
         if (operatorUserId == null || operatorRole == null) {
@@ -35,6 +50,12 @@ public class OperatorPermissionServiceImpl implements OperatorPermissionService 
         return operator;
     }
 
+    /**
+     * 要求操作人具备指定角色。
+     *
+     * @param operator 操作人
+     * @param requiredRole 要求角色
+     */
     @Override
     public void requireRole(User operator, UserRole requiredRole) {
         if (!requiredRole.equals(operator.getRole())) {
@@ -42,6 +63,12 @@ public class OperatorPermissionServiceImpl implements OperatorPermissionService 
         }
     }
 
+    /**
+     * 要求操作人是本人或管理员。
+     *
+     * @param operator 操作人
+     * @param targetUserId 目标用户 ID
+     */
     @Override
     public void requireSelfOrAdmin(User operator, Long targetUserId) {
         if (!operator.getId().equals(targetUserId) && !UserRole.ADMIN.equals(operator.getRole())) {
@@ -49,6 +76,12 @@ public class OperatorPermissionServiceImpl implements OperatorPermissionService 
         }
     }
 
+    /**
+     * 要求操作人是本人。
+     *
+     * @param operator 操作人
+     * @param targetUserId 目标用户 ID
+     */
     @Override
     public void requireSelf(User operator, Long targetUserId) {
         if (!operator.getId().equals(targetUserId)) {

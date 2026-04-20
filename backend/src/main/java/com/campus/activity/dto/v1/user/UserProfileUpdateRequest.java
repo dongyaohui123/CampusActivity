@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
+/**
+ * UserProfileUpdateRequest请求参数对象。
+ */
 public class UserProfileUpdateRequest {
     @Size(max = 100, message = "nickname length must be <= 100")
     private String nickname;

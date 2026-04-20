@@ -37,6 +37,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+/**
+ * V1OrganizerActivityServiceImpl服务实现。
+ */
 @Service
 public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityService {
     private final ActivityMapper activityMapper;
@@ -46,6 +49,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     private final UserMapper userMapper;
     private final OperatorPermissionService permissionService;
 
+    /**
+     * 构造函数。
+     */
     public V1OrganizerActivityServiceImpl(
             ActivityMapper activityMapper,
             ActivityReviewMapper reviewMapper,
@@ -62,6 +68,14 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         this.permissionService = permissionService;
     }
 
+    /**
+     * 主办方创建活动。
+     *
+     * @param request 创建请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 活动信息
+     */
     @Override
     @Transactional
     public Activity createActivity(OrganizerActivityCreateRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -89,6 +103,15 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return activity;
     }
 
+    /**
+     * 主办方更新活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 更新请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 活动信息
+     */
     @Override
     @Transactional
     public Activity updateActivity(Long activityId, OrganizerActivityUpdateRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -147,6 +170,15 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return activity;
     }
 
+    /**
+     * 主办方提交审核。
+     *
+     * @param activityId 活动 ID
+     * @param request 提交审核请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 活动信息
+     */
     @Override
     @Transactional
     public Activity submitForReview(Long activityId, SubmitReviewRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -187,6 +219,16 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return activity;
     }
 
+    /**
+     * 查询主办方活动列表。
+     *
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @param keyword 关键字筛选
+     * @param startFrom 开始时间下界
+     * @param startTo 开始时间上界
+     * @return 活动列表
+     */
     @Override
     public List<ActivityListItemView> listOwnActivities(
             Long operatorUserId,
@@ -200,6 +242,15 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return activityMapper.selectActivityList(null, null, operator.getId(), keyword, startFrom, startTo);
     }
 
+    /**
+     * 查询活动报名用户列表。
+     *
+     * @param activityId 活动 ID
+     * @param status 报名状态筛选
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 报名用户列表
+     */
     @Override
     public List<ActivityRegistrationUserView> listActivityRegistrations(
             Long activityId,
@@ -249,6 +300,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return result;
     }
 
+    /**
+     * 获取主办方名下活动。
+     */
     private Activity getOwnedActivityOrThrow(Long activityId, Long organizerId) {
         Activity activity = activityMapper.selectById(activityId);
         if (activity == null) {
@@ -260,6 +314,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         return activity;
     }
 
+    /**
+     * 判断是否存在可更新字段。
+     */
     private boolean hasAnyUpdatableField(OrganizerActivityUpdateRequest request) {
         return StringUtils.hasText(request.getTitle())
                 || StringUtils.hasText(request.getSummary())
@@ -274,6 +331,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
                 || request.getFeatured() != null;
     }
 
+    /**
+     * 校验活动时间窗口。
+     */
     private void validateActivityTime(LocalDateTime start, LocalDateTime end, LocalDateTime registrationDeadline) {
         if (start == null || end == null) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "startTime and endTime are required");

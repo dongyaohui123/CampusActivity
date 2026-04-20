@@ -4,6 +4,9 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * CampusActivityBackendApplication模块入口或通用类。
+ */
 @SpringBootApplication
 @MapperScan("com.campus.activity.mapper")
 public class CampusActivityBackendApplication {

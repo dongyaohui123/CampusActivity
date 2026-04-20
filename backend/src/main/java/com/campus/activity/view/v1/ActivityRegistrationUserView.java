@@ -3,6 +3,9 @@ package com.campus.activity.view.v1;
 import com.campus.activity.enums.RegistrationStatus;
 import java.time.LocalDateTime;
 
+/**
+ * ActivityRegistrationUserView页面视图对象。
+ */
 public class ActivityRegistrationUserView {
     private Long registrationId;
     private Long userId;

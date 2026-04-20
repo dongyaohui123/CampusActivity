@@ -1,4 +1,4 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="page-scroll" scroll-y type="list">
   <view class="page-body">
     <view wx:if="{{operatorRole !== 'ADMIN'}}" class="card">
@@ -7,24 +7,31 @@
 
     <view wx:if="{{operatorRole === 'ADMIN'}}" class="card">
       <view class="title mb-12">{{i18n.reviewCommentTitle}}</view>
-      <input class="input" value="{{reviewComment}}" bindinput="onCommentInput" placeholder="{{i18n.reviewCommentPlaceholder}}" />
+      <van-field
+        value="{{reviewComment}}"
+        placeholder="{{i18n.reviewCommentPlaceholder}}"
+        bind:change="onCommentInput"
+      />
     </view>
 
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <block wx:for="{{pendingList}}" wx:key="activityId">
       <view class="card">
-        <view class="title mb-12">{{item.title}}</view>
-        <view class="muted mb-12">{{i18n.activityIdLabel}}: {{item.activityId}} / {{i18n.organizerLabel}}: {{item.organizerId}}</view>
-        <view class="muted mb-12">{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}</view>
-        <view class="muted mb-12">{{i18n.reviewStatusLabel}}: {{item.reviewStatus}}</view>
-        <view class="row gap-12">
-          <button type="primary" size="mini" data-id="{{item.activityId}}" bindtap="onApproveTap">{{i18n.approve}}</button>
-          <button size="mini" data-id="{{item.activityId}}" bindtap="onRejectTap">{{i18n.reject}}</button>
-        </view>
+        <van-card title="{{item.title}}" desc="{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}">
+          <view slot="tags" class="muted mb-12">{{i18n.activityIdLabel}}: {{item.activityId}} / {{i18n.organizerLabel}}: {{item.organizerId}}</view>
+          <view slot="footer" class="row gap-12">
+            <view class="muted">{{i18n.reviewStatusLabel}}: {{item.reviewStatus}}</view>
+            <van-button type="primary" size="small" data-id="{{item.activityId}}" bind:click="onApproveTap">{{i18n.approve}}</van-button>
+            <van-button plain size="small" data-id="{{item.activityId}}" bind:click="onRejectTap">{{i18n.reject}}</van-button>
+          </view>
+        </van-card>
       </view>
     </block>
 
-    <view wx:if="{{!loading && pendingList.length === 0 && operatorRole === 'ADMIN'}}" class="empty">{{i18n.empty}}</view>
+    <van-empty wx:if="{{!loading && pendingList.length === 0 && operatorRole === 'ADMIN'}}" image="search" description="{{i18n.empty}}" />
   </view>
 </scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

@@ -1,4 +1,4 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{false}}" color="#111111" background="#f7f8fa"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="home-scroll" scroll-y type="list">
   <view class="page-body with-bottom-nav">
@@ -17,39 +17,36 @@
     </view>
 
     <view class="card quick-card">
-      <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
-        <view class="quick-icon orange">M</view>
-        <text class="quick-text">{{i18n.myActivity}}</text>
-      </view>
-      <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
-        <view class="quick-icon blue">O</view>
-        <text class="quick-text">{{i18n.myOrg}}</text>
-      </view>
-      <view class="quick-item" data-action="publish" bindtap="onQuickTap">
-        <view class="quick-icon cyan">P</view>
-        <text class="quick-text">{{i18n.publish}}</text>
-      </view>
+      <van-grid border="{{false}}" column-num="3">
+        <van-grid-item icon="friends-o" text="{{i18n.myActivity}}" data-action="myActivity" bind:click="onQuickTap" />
+        <van-grid-item icon="cluster-o" text="{{i18n.myOrg}}" data-action="myOrg" bind:click="onQuickTap" />
+        <van-grid-item icon="plus" text="{{i18n.publish}}" data-action="publish" bind:click="onQuickTap" />
+      </van-grid>
     </view>
 
     <view class="section-title row-between">
       <text>{{i18n.recommend}}</text>
     </view>
 
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <block wx:for="{{recommendList}}" wx:key="id">
-      <view class="card activity-row" bindtap="goDetail" data-id="{{item.id}}">
-        <image class="cover" src="{{item.cover}}" mode="aspectFill" />
-        <view class="activity-main">
-          <view class="name">{{item.title}}</view>
-          <view class="meta">{{item.locationDisplay}}</view>
-          <view class="meta">{{item.startDisplay}}</view>
-        </view>
+      <view class="card activity-card-wrap" bindtap="goDetail" data-id="{{item.id}}">
+        <van-card thumb="{{item.cover}}" title="{{item.title}}" desc="{{item.locationDisplay}}">
+          <view slot="tags" class="card-time">{{item.startDisplay}}</view>
+        </van-card>
       </view>
     </block>
 
-    <view wx:if="{{!loading && recommendList.length === 0}}" class="empty">{{i18n.emptyRecommend}}</view>
+    <van-empty wx:if="{{!loading && recommendList.length === 0}}" image="search" description="{{i18n.emptyRecommend}}" />
   </view>
 </scroll-view>
 
-<bottom-nav active="home" bind:change="onBottomTabChange"></bottom-nav>
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom>
+  <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
+  <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
+  <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>
+</van-tabbar>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 活动管理控制器（旧版接口）。
+ */
 @Validated
 @RestController
 @RequestMapping("/api/activities")
@@ -35,11 +38,24 @@ public class ActivityController {
         this.activityService = activityService;
     }
 
+    /**
+     * 创建活动。
+     *
+     * @param request 创建请求参数
+     * @return 创建后的活动信息
+     */
     @PostMapping
     public ApiResponse<Activity> createActivity(@Valid @RequestBody CreateActivityRequest request) {
         return ApiResponse.success("activity created", activityService.createActivity(request));
     }
 
+    /**
+     * 更新活动。
+     *
+     * @param id 活动 ID
+     * @param request 更新请求参数
+     * @return 更新后的活动信息
+     */
     @PutMapping("/{id}")
     public ApiResponse<Activity> updateActivity(
             @PathVariable("id") @Min(value = 1, message = "id must be >= 1") Long id,
@@ -48,6 +64,13 @@ public class ActivityController {
         return ApiResponse.success("activity updated", activityService.updateActivity(id, request));
     }
 
+    /**
+     * 取消活动。
+     *
+     * @param id 活动 ID
+     * @param request 取消请求参数
+     * @return 是否处理成功
+     */
     @DeleteMapping("/{id}")
     public ApiResponse<Boolean> cancelActivity(
             @PathVariable("id") @Min(value = 1, message = "id must be >= 1") Long id,
@@ -57,6 +80,12 @@ public class ActivityController {
         return ApiResponse.success("activity cancelled", Boolean.TRUE);
     }
 
+    /**
+     * 按 ID 查询活动详情。
+     *
+     * @param id 活动 ID
+     * @return 活动详情
+     */
     @GetMapping("/{id}")
     public ApiResponse<Activity> getActivityById(
             @PathVariable("id") @Min(value = 1, message = "id must be >= 1") Long id
@@ -64,6 +93,17 @@ public class ActivityController {
         return ApiResponse.success(activityService.getActivityById(id));
     }
 
+    /**
+     * 按条件分页前置查询活动列表（不含分页参数）。
+     *
+     * @param status 活动状态筛选
+     * @param visibility 可见性筛选
+     * @param organizerId 主办方用户 ID 筛选
+     * @param keyword 标题/摘要关键字
+     * @param startFrom 活动开始时间下界
+     * @param startTo 活动开始时间上界
+     * @return 活动列表
+     */
     @GetMapping("/list")
     public ApiResponse<List<ActivityListItemView>> listActivities(
             @RequestParam(value = "status", required = false) ActivityStatus status,

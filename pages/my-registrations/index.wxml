@@ -1,19 +1,32 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="list-scroll" scroll-y type="list">
   <view class="page-body">
-    <view wx:if="{{!loginUser}}" class="card"><view class="muted">{{i18n.loginHint}}</view></view>
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
+    <van-empty wx:if="{{!loginUser}}" image="search" description="{{i18n.loginHint}}" />
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <block wx:for="{{registrations}}" wx:key="registrationId">
       <view class="card">
-        <view class="title mb-12">{{item.activityTitleDisplay}}</view>
-        <view class="muted mb-12">{{i18n.locationLabel}}: {{item.location || '-'}}</view>
-        <view class="muted mb-12">{{i18n.timeLabel}}: {{item.activityStartDisplay}} ~ {{item.activityEndDisplay}}</view>
-        <view class="muted mb-12">{{i18n.statusLabel}}: {{item.registrationStatus}}</view>
-        <button wx:if="{{item.registrationStatus === 'REGISTERED' || item.registrationStatus === 'CHECKED_IN'}}" size="mini" bindtap="onCancelTap" data-id="{{item.registrationId}}">{{i18n.cancelRegister}}</button>
+        <van-card title="{{item.activityTitleDisplay}}" desc="{{item.location || '-'}}">
+          <view slot="tags" class="card-time">{{i18n.timeLabel}}: {{item.activityStartDisplay}} ~ {{item.activityEndDisplay}}</view>
+          <view slot="footer" class="card-footer">
+            <view class="muted">{{i18n.statusLabel}}: {{item.registrationStatus}}</view>
+            <van-button
+              wx:if="{{item.registrationStatus === 'REGISTERED' || item.registrationStatus === 'CHECKED_IN'}}"
+              size="small"
+              plain
+              data-id="{{item.registrationId}}"
+              bind:click="onCancelTap"
+            >
+              {{i18n.cancelRegister}}
+            </van-button>
+          </view>
+        </van-card>
       </view>
     </block>
 
-    <view wx:if="{{!loading && registrations.length === 0 && loginUser}}" class="empty">{{i18n.empty}}</view>
+    <van-empty wx:if="{{!loading && registrations.length === 0 && loginUser}}" image="search" description="{{i18n.empty}}" />
   </view>
 </scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

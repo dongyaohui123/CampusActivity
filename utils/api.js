@@ -1,19 +1,19 @@
 const { request } = require("./request");
 const { getOperatorContext } = require("./operator-context");
 
-function login(username, password) {
+function login(account, password) {
   return request({
     path: "/api/v1/auth/login",
     method: "POST",
     data: {
-      username: String(username || "").trim(),
+      username: String(account || "").trim(),
       password: String(password || ""),
     },
     withOperator: false,
   });
 }
 
-function registerUser(username, password, nickname) {
+function registerUser(username, password, nickname, phone) {
   return request({
     path: "/api/v1/auth/register",
     method: "POST",
@@ -21,6 +21,7 @@ function registerUser(username, password, nickname) {
       username: String(username || "").trim(),
       password: String(password || ""),
       nickname: String(nickname || "").trim(),
+      phone: String(phone || "").trim(),
     },
     withOperator: false,
   });
@@ -47,7 +48,7 @@ function getMyRegistrations(userId) {
   const ctx = getOperatorContext();
   const targetUserId = Number(userId || ctx.operatorUserId);
   if (!Number.isFinite(targetUserId) || targetUserId <= 0) {
-    return Promise.reject({ message: "\u8bf7\u5148\u767b\u5f55" });
+    return Promise.reject({ message: "请先登录" });
   }
   return request({
     path: `/api/v1/users/${targetUserId}/registrations`,

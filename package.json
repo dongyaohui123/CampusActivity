@@ -1,0 +1,14 @@
+{
+  "name": "campusactivity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CampusActivity WeChat Mini Program",
+  "main": "app.js",
+  "scripts": {
+    "build:npm": "echo \"请在微信开发者工具执行: 工具 -> 构建 npm\""
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@vant/weapp": "1.11.7"
+  }
+}

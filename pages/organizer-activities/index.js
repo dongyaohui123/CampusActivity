@@ -5,6 +5,7 @@ const {
   submitActivityReview,
 } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
+const feedback = require("../../utils/feedback");
 
 const VISIBILITY_OPTIONS = ["PUBLIC", "PRIVATE"];
 
@@ -51,49 +52,54 @@ function emptyForm() {
 Page({
   data: {
     i18n: {
-      navTitle: "\u7ec4\u7ec7\u8005\u6d3b\u52a8\u7ba1\u7406",
-      roleHintPrefix: "\u5f53\u524d\u89d2\u8272\u4e3a",
-      roleHintSuffix: "\u8bf7\u5728\u9996\u9875\u5207\u6362\u4e3a ORGANIZER \u540e\u518d\u64cd\u4f5c\u3002",
-      editActivity: "\u7f16\u8f91\u6d3b\u52a8",
-      createActivity: "\u521b\u5efa\u6d3b\u52a8",
-      titleLabel: "\u6807\u9898",
-      summaryLabel: "\u6458\u8981",
-      locationLabel: "\u5730\u70b9",
-      startTimeLabel: "\u5f00\u59cb\u65f6\u95f4",
-      endTimeLabel: "\u7ed3\u675f\u65f6\u95f4",
-      deadlineLabel: "\u62a5\u540d\u622a\u6b62\u65f6\u95f4",
-      maxParticipantsLabel: "\u4eba\u6570\u4e0a\u9650",
-      visibilityLabel: "\u53ef\u89c1\u6027",
-      featuredLabel: "\u63a8\u8350\u6d3b\u52a8\uff08featured\uff09",
-      updateActivity: "\u66f4\u65b0\u6d3b\u52a8",
-      reset: "\u91cd\u7f6e",
-      submitNote: "\u63d0\u5ba1\u5907\u6ce8\uff08\u53ef\u9009\uff09",
-      submitCommentPlaceholder: "\u63d0\u5ba1\u5907\u6ce8",
-      loading: "\u52a0\u8f7d\u4e2d...",
-      statusLabel: "\u72b6\u6001",
-      reviewLabel: "\u5ba1\u6838",
-      timeLabel: "\u65f6\u95f4",
-      edit: "\u7f16\u8f91",
-      submitReview: "\u63d0\u5ba1",
-      empty: "\u6682\u65e0\u6d3b\u52a8",
-      phTitle: "\u4f8b\u5982\uff1a\u6821\u56ed\u6b4c\u624b\u5927\u8d5b",
-      phSummary: "\u4e00\u53e5\u8bdd\u6458\u8981",
-      phLocation: "\u4f8b\u5982\uff1a\u5927\u5b66\u751f\u6d3b\u52a8\u4e2d\u5fc3",
+      navTitle: "组织者活动管理",
+      roleHintPrefix: "当前角色为",
+      roleHintSuffix: "请在首页切换为组织者后再操作。",
+      editActivity: "编辑活动",
+      createActivity: "创建活动",
+      titleLabel: "标题",
+      summaryLabel: "摘要",
+      locationLabel: "地点",
+      startTimeLabel: "开始时间",
+      endTimeLabel: "结束时间",
+      deadlineLabel: "报名截止时间",
+      maxParticipantsLabel: "人数上限",
+      visibilityLabel: "可见性",
+      featuredLabel: "推荐活动（是否推荐）",
+      updateActivity: "更新活动",
+      reset: "重置",
+      submitNote: "提审备注（可选）",
+      submitCommentPlaceholder: "提审备注",
+      loading: "加载中...",
+      statusLabel: "状态",
+      reviewLabel: "审核",
+      timeLabel: "时间",
+      edit: "编辑",
+      submitReview: "提审",
+      empty: "暂无活动",
+      phTitle: "例如：校园歌手大赛",
+      phSummary: "一句话摘要",
+      phLocation: "例如：大学生活动中心",
       required: "*",
     },
     operatorRole: "STUDENT",
     loading: false,
     activities: [],
     editingActivityId: null,
-    reviewComment: "submit from miniapp",
+    reviewComment: "来自小程序的提审备注",
     form: emptyForm(),
     visibilityOptions: VISIBILITY_OPTIONS,
+    showVisibilityPicker: false,
   },
 
   onShow() {
     const { operatorRole } = getOperatorContext();
     this.setData({ operatorRole });
     if (operatorRole === "ORGANIZER") this.loadActivities();
+  },
+
+  onClickNavLeft() {
+    wx.navigateBack({ delta: 1 });
   },
 
   async loadActivities() {
@@ -109,12 +115,25 @@ Page({
   },
 
   onFormInput(event) {
-    this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail.value });
+    this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail });
   },
+  onOpenVisibilityPicker() { this.setData({ showVisibilityPicker: true }); },
+  onCloseVisibilityPicker() { this.setData({ showVisibilityPicker: false }); },
   onVisibilityChange(event) { this.setData({ "form.visibilityIndex": Number(event.detail.value) }); },
-  onFeaturedChange(event) { this.setData({ "form.featured": Boolean(event.detail.value) }); },
-  onReviewCommentInput(event) { this.setData({ reviewComment: event.detail.value }); },
-  resetForm() { this.setData({ editingActivityId: null, form: emptyForm() }); },
+  onVisibilityConfirm(event) {
+    const rawIndex = Array.isArray(event.detail.index) ? event.detail.index[0] : event.detail.index;
+    const index = Number(rawIndex);
+    this.setData({
+      "form.visibilityIndex": Number.isFinite(index) ? index : 0,
+      showVisibilityPicker: false,
+    });
+  },
+  onVisibilityCancel() {
+    this.setData({ showVisibilityPicker: false });
+  },
+  onFeaturedChange(event) { this.setData({ "form.featured": Boolean(event.detail) }); },
+  onReviewCommentInput(event) { this.setData({ reviewComment: event.detail }); },
+  resetForm() { this.setData({ editingActivityId: null, form: emptyForm(), showVisibilityPicker: false }); },
 
   onEditTap(event) {
     const activityId = Number(event.currentTarget.dataset.id);
@@ -141,17 +160,21 @@ Page({
   },
 
   async onSubmitTap() {
-    if (this.data.operatorRole !== "ORGANIZER") return wx.showToast({ title: "\u8BF7\u5148\u5207\u6362\u4E3A ORGANIZER", icon: "none" });
+    if (this.data.operatorRole !== "ORGANIZER") return feedback.error("请先切换为组织者");
     const payload = this.buildPayload();
-    if (!payload.title || !payload.location || !payload.startTime || !payload.endTime) return wx.showToast({ title: "\u6807\u9898\u3001\u5730\u70B9\u3001\u5F00\u59CB\u548C\u7ED3\u675F\u65F6\u95F4\u5FC5\u586B", icon: "none" });
-    if (!Number.isFinite(payload.maxParticipants) || payload.maxParticipants < 0) return wx.showToast({ title: "\u4EBA\u6570\u5FC5\u987B\u4E3A\u975E\u8D1F\u6570", icon: "none" });
+    if (!payload.title || !payload.location || !payload.startTime || !payload.endTime) {
+      return feedback.error("标题、地点、开始和结束时间必填");
+    }
+    if (!Number.isFinite(payload.maxParticipants) || payload.maxParticipants < 0) {
+      return feedback.error("人数必须为非负数");
+    }
     try {
       if (this.data.editingActivityId) {
         await updateOrganizerActivity(this.data.editingActivityId, payload);
-        wx.showToast({ title: "\u6D3B\u52A8\u5DF2\u66F4\u65B0", icon: "success" });
+        feedback.success("活动已更新");
       } else {
         await createOrganizerActivity(payload);
-        wx.showToast({ title: "\u6D3B\u52A8\u5DF2\u521B\u5EFA", icon: "success" });
+        feedback.success("活动已创建");
       }
       this.resetForm();
       await this.loadActivities();
@@ -161,7 +184,7 @@ Page({
   async onSubmitReviewTap(event) {
     try {
       await submitActivityReview(Number(event.currentTarget.dataset.id), this.data.reviewComment);
-      wx.showToast({ title: "\u63D0\u5BA1\u6210\u529F", icon: "success" });
+      feedback.success("提审成功");
       await this.loadActivities();
     } catch (e) {}
   },

@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+/**
+ * V1UserServiceImpl服务实现。
+ */
 @Service
 public class V1UserServiceImpl implements V1UserService {
     private final UserMapper userMapper;
@@ -31,6 +34,9 @@ public class V1UserServiceImpl implements V1UserService {
     private final ActivityMapper activityMapper;
     private final OperatorPermissionService permissionService;
 
+    /**
+     * 构造函数。
+     */
     public V1UserServiceImpl(
             UserMapper userMapper,
             ActivityRegistrationMapper registrationMapper,
@@ -43,6 +49,14 @@ public class V1UserServiceImpl implements V1UserService {
         this.permissionService = permissionService;
     }
 
+    /**
+     * 查询用户资料。
+     *
+     * @param userId 目标用户 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 用户资料
+     */
     @Override
     public User getUserProfile(Long userId, Long operatorUserId, UserRole operatorRole) {
         User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
@@ -56,6 +70,15 @@ public class V1UserServiceImpl implements V1UserService {
         return user;
     }
 
+    /**
+     * 更新用户资料。
+     *
+     * @param userId 目标用户 ID
+     * @param request 更新请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 更新后的用户资料
+     */
     @Override
     @Transactional
     public User updateUserProfile(Long userId, UserProfileUpdateRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -88,6 +111,14 @@ public class V1UserServiceImpl implements V1UserService {
         return user;
     }
 
+    /**
+     * 查询用户报名记录。
+     *
+     * @param userId 目标用户 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 报名记录列表
+     */
     @Override
     public List<RegistrationRecordView> getUserRegistrations(Long userId, Long operatorUserId, UserRole operatorRole) {
         User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
@@ -130,6 +161,9 @@ public class V1UserServiceImpl implements V1UserService {
         return result;
     }
 
+    /**
+     * 判断是否存在可更新字段。
+     */
     private boolean hasAnyUpdatableField(UserProfileUpdateRequest request) {
         return StringUtils.hasText(request.getNickname())
                 || StringUtils.hasText(request.getAvatarUrl())

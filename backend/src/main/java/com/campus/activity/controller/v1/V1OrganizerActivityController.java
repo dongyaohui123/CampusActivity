@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 主办方活动管理控制器（v1）。
+ */
 @Validated
 @RestController
 @RequestMapping("/api/v1/organizer/activities")
@@ -35,6 +38,14 @@ public class V1OrganizerActivityController {
         this.organizerActivityService = organizerActivityService;
     }
 
+    /**
+     * 主办方创建活动。
+     *
+     * @param request 创建参数
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @return 创建后的活动
+     */
     @PostMapping
     public ApiResponse<Activity> createActivity(
             @Valid @RequestBody OrganizerActivityCreateRequest request,
@@ -45,6 +56,15 @@ public class V1OrganizerActivityController {
                 organizerActivityService.createActivity(request, operatorUserId, operatorRole));
     }
 
+    /**
+     * 主办方更新活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 更新参数
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @return 更新后的活动
+     */
     @PutMapping("/{activityId}")
     public ApiResponse<Activity> updateActivity(
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
@@ -56,6 +76,15 @@ public class V1OrganizerActivityController {
                 organizerActivityService.updateActivity(activityId, request, operatorUserId, operatorRole));
     }
 
+    /**
+     * 提交活动审核。
+     *
+     * @param activityId 活动 ID
+     * @param request 提交说明，允许为空
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @return 提交后的活动
+     */
     @PostMapping("/{activityId}/submit-review")
     public ApiResponse<Activity> submitForReview(
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
@@ -68,6 +97,16 @@ public class V1OrganizerActivityController {
                 organizerActivityService.submitForReview(activityId, safeRequest, operatorUserId, operatorRole));
     }
 
+    /**
+     * 查询当前主办方名下活动列表。
+     *
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @param keyword 关键字筛选
+     * @param startFrom 活动开始时间下界
+     * @param startTo 活动开始时间上界
+     * @return 主办方活动列表
+     */
     @GetMapping
     public ApiResponse<List<ActivityListItemView>> listOwnActivities(
             @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
@@ -83,6 +122,15 @@ public class V1OrganizerActivityController {
         ));
     }
 
+    /**
+     * 查询活动报名用户列表。
+     *
+     * @param activityId 活动 ID
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @param status 报名状态筛选
+     * @return 报名用户列表
+     */
     @GetMapping("/{activityId}/registrations")
     public ApiResponse<List<ActivityRegistrationUserView>> listActivityRegistrations(
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,

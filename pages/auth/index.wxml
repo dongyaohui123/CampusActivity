@@ -1,0 +1,169 @@
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onBackTap" />
+
+<scroll-view class="auth-scroll" scroll-y type="list">
+  <view class="auth-page">
+    <view class="brand-block">
+      <view class="brand-logo">
+        <view class="logo-outer"></view>
+        <view class="logo-inner"></view>
+        <view class="logo-bar"></view>
+        <view class="logo-dot"></view>
+      </view>
+      <view class="brand-title">校园活动平台</view>
+      <view class="brand-sub">Campus Activity Management</view>
+    </view>
+
+    <view class="auth-card">
+      <view class="tab-wrap">
+        <view class="tab-item {{activeTab === 'login' ? 'active' : ''}}" data-tab="login" bindtap="onTabTap">登录</view>
+        <view class="tab-item {{activeTab === 'register' ? 'active' : ''}}" data-tab="register" bindtap="onTabTap">注册</view>
+      </view>
+
+      <view class="panel" hidden="{{activeTab !== 'login'}}">
+        <view class="panel-title">登录</view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="contact-o" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="loginAccount"
+            value="{{loginAccount}}"
+            bindinput="onInput"
+            placeholder="{{i18n.loginAccountPlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+        </view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="password"
+            value="{{password}}"
+            bindinput="onInput"
+            password="{{!showLoginPassword}}"
+            placeholder="{{i18n.passwordPlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+          <button class="eye-btn" data-target="showLoginPassword" bindtap="onTogglePassword">
+            <van-icon class-prefix="van-icon" name="{{showLoginPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+          </button>
+        </view>
+
+        <view class="assist-row">
+          <view class="remember-wrap" bindtap="onRememberTap">
+            <view class="remember-switch {{rememberMe ? 'on' : ''}}">
+              <view class="remember-dot"></view>
+            </view>
+            <text class="remember-text">{{i18n.rememberMe}}</text>
+          </view>
+          <text class="action-link" bindtap="onForgotTap">{{i18n.forgotPassword}}</text>
+        </view>
+      </view>
+
+      <view class="panel" hidden="{{activeTab !== 'register'}}">
+        <view class="panel-title">注册</view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="user-o" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="nickname"
+            value="{{nickname}}"
+            bindinput="onInput"
+            placeholder="{{i18n.nicknamePlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+        </view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="contact-o" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="username"
+            value="{{username}}"
+            bindinput="onInput"
+            placeholder="{{i18n.usernamePlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+        </view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="phone-o" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="phone"
+            value="{{phone}}"
+            bindinput="onInput"
+            type="number"
+            maxlength="11"
+            placeholder="{{i18n.phonePlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+        </view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="password"
+            value="{{password}}"
+            bindinput="onInput"
+            password="{{!showRegisterPassword}}"
+            placeholder="{{i18n.passwordPlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+          <button class="eye-btn" data-target="showRegisterPassword" bindtap="onTogglePassword">
+            <van-icon class-prefix="van-icon" name="{{showRegisterPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+          </button>
+        </view>
+
+        <view class="field-row">
+          <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
+          <input
+            class="field-input"
+            data-field="confirmPassword"
+            value="{{confirmPassword}}"
+            bindinput="onInput"
+            password="{{!showConfirmPassword}}"
+            placeholder="{{i18n.confirmPasswordPlaceholder}}"
+            placeholder-class="auth-placeholder"
+          />
+          <button class="eye-btn" data-target="showConfirmPassword" bindtap="onTogglePassword">
+            <van-icon class-prefix="van-icon" name="{{showConfirmPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+          </button>
+        </view>
+      </view>
+
+      <button class="primary-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="onSubmitTap">
+        <text>{{activeTab === 'register' ? i18n.registerBtn : i18n.loginBtn}}</text>
+        <text class="btn-arrow">→</text>
+      </button>
+
+      <view class="divider">或</view>
+
+      <button class="social-btn" data-provider="wechat" bindtap="onSocialTap">
+        <van-icon class-prefix="van-icon" name="wechat" custom-class="social-icon wechat" />
+        <text class="social-text">微信登录</text>
+      </button>
+
+      <button class="social-btn" data-provider="qq" bindtap="onSocialTap">
+        <van-icon class-prefix="van-icon" name="qq" custom-class="social-icon qq" />
+        <text class="social-text">QQ 登录</text>
+      </button>
+
+      <view class="foot-row" hidden="{{activeTab !== 'login'}}">
+        <text>还没有账号？</text>
+        <text class="switch-link" data-tab="register" bindtap="onTabTap">立即注册</text>
+      </view>
+
+      <view class="foot-row" hidden="{{activeTab !== 'register'}}">
+        <text>已有账号？</text>
+        <text class="switch-link" data-tab="login" bindtap="onTabTap">立即登录</text>
+      </view>
+    </view>
+  </view>
+</scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

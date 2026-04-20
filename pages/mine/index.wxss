@@ -2,96 +2,84 @@ page {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #eaf2ff 0%, #f5f7fb 260rpx, #f5f7fb 100%);
+  background: #f5f6f8;
 }
 
 .mine-scroll {
   flex: 1;
 }
 
+.mine-page {
+  padding-top: 12rpx;
+}
+
 .profile-header {
   margin: 24rpx;
-  border-radius: 24rpx;
-  padding: 22rpx;
-  background: linear-gradient(160deg, #2f6cf3 0%, #3f8cff 55%, #4bb7ff 100%);
-  border: 1rpx solid #2f6cf3;
-  box-shadow: 0 12rpx 32rpx rgba(47, 108, 243, 0.3);
+  border-radius: 28rpx;
+  padding: 26rpx 24rpx 28rpx;
+  background: linear-gradient(128deg, #2f7cf5 0%, #4ba8ff 100%);
+  box-shadow: 0 14rpx 36rpx rgba(47, 124, 245, 0.24);
 }
 
-.auth-card {
+.header-top {
   display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16rpx;
-  padding: 18rpx;
+  align-items: center;
 }
 
-.auth-switch {
-  display: flex;
-  background: #eaf0fa;
-  border-radius: 10rpx;
-  padding: 4rpx;
-}
-
-.auth-tab {
-  flex: 1;
-  text-align: center;
-  font-size: 26rpx;
-  color: #6b7280;
-  padding: 12rpx 0;
-  border-radius: 8rpx;
-}
-
-.auth-tab.active {
+.avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
   background: #ffffff;
-  color: #111827;
+  border: 6rpx solid rgba(255, 255, 255, 0.35);
+  color: #2f7cf5;
+  font-size: 24rpx;
   font-weight: 600;
-}
-
-.auth-input {
-  background: #f8fafc;
-  color: #111827;
-  border-radius: 10rpx;
-  border: 1rpx solid #e5e7eb;
-  padding: 14rpx 16rpx;
-  font-size: 26rpx;
-}
-
-.auth-btn {
-  margin-top: 6rpx;
-  background: linear-gradient(135deg, #2f6cf3, #4b8fff);
-  color: #ffffff;
-  border: none;
-}
-
-.auth-tip {
-  font-size: 22rpx;
-  color: #8b96ab;
   text-align: center;
-  margin-top: 4rpx;
+  line-height: 92rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 10rpx;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.user-panel {
-  padding: 10rpx 8rpx 6rpx;
+.user-meta {
+  flex: 1;
+  min-width: 0;
+  margin-left: 18rpx;
 }
 
 .user-name {
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 600;
   color: #ffffff;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.role-tag {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border-radius: 20rpx;
+.user-desc {
+  margin-top: 8rpx;
   font-size: 22rpx;
-  padding: 6rpx 12rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
+}
+
+.settings-tag {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 24rpx;
 }
 
 .count-row {
+  margin-top: 26rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,7 +91,7 @@ page {
 }
 
 .count-num {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 700;
   line-height: 1.2;
   color: #ffffff;
@@ -112,30 +100,57 @@ page {
 .count-label {
   font-size: 22rpx;
   margin-top: 8rpx;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.entry-card {
+  margin: -12rpx 24rpx 0;
+  border-radius: 20rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 26rpx rgba(31, 45, 61, 0.09);
+  border: 1rpx solid #edf0f5;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.entry-item {
+  flex: 1;
+  padding: 24rpx 20rpx 22rpx;
+}
+
+.entry-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.entry-desc {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #7a8699;
+  line-height: 1.35;
+}
+
+.entry-divider {
+  width: 1rpx;
+  margin: 20rpx 0;
+  background: #eceff4;
 }
 
 .menu-card {
-  margin: 0 24rpx 24rpx;
-  border-radius: 18rpx;
-  background: #fff;
+  margin: 22rpx 0 24rpx;
+}
+
+.menu-card .van-cell-group--inset {
+  margin: 0 24rpx !important;
+  border-radius: 20rpx !important;
   overflow: hidden;
-  border: 1rpx solid #e4ebf5;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10rpx 26rpx rgba(31, 45, 61, 0.07);
 }
 
-.menu-item {
-  padding: 24rpx;
-  border-bottom: 1rpx solid #eef2f7;
-  color: #1f2937;
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.menu-item:last-child {
-  border-bottom: none;
-}
-
-.menu-item.danger {
-  color: #ef4444;
+.menu-card .van-cell {
+  padding-top: 30rpx !important;
+  padding-bottom: 30rpx !important;
+  font-size: 29rpx !important;
 }

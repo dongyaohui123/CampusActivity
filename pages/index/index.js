@@ -1,11 +1,12 @@
 const { listPublicActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
+const feedback = require("../../utils/feedback");
 
 const DEFAULT_COVER = "https://picsum.photos/640/360?random=9";
 
 function formatDisplayDate(value) {
   if (!value) {
-    return "\u65f6\u95f4\u5f85\u5b9a";
+    return "时间待定";
   }
   return String(value).replace("T", " ").slice(5, 16);
 }
@@ -15,21 +16,21 @@ function mapActivity(item) {
     ...item,
     cover: item.coverUrl || DEFAULT_COVER,
     startDisplay: formatDisplayDate(item.startTime),
-    locationDisplay: item.location || "\u5730\u70b9\u5f85\u5b9a",
+    locationDisplay: item.location || "地点待定",
   };
 }
 
 Page({
   data: {
     i18n: {
-      navTitle: "\u9996\u9875",
-      myActivity: "\u6211\u7684\u6d3b\u52a8",
-      myOrg: "\u6211\u7684\u7ec4\u7ec7",
-      publish: "\u53d1\u5e03\u6d3b\u52a8",
-      recommend: "\u63a8\u8350\u6d3b\u52a8",
-      loading: "\u52a0\u8f7d\u4e2d...",
-      emptyRecommend: "\u6682\u65e0\u63a8\u8350\u6d3b\u52a8",
-      bannerSub: "\u6821\u56ed\u6d3b\u52a8\u4e00\u7ad9\u5f0f\u670d\u52a1",
+      navTitle: "首页",
+      myActivity: "我的活动",
+      myOrg: "我的组织",
+      publish: "发布活动",
+      recommend: "推荐活动",
+      loading: "加载中...",
+      emptyRecommend: "暂无推荐活动",
+      bannerSub: "校园活动一站式服务",
     },
     banners: [
       "https://picsum.photos/980/420?random=31",
@@ -38,6 +39,7 @@ Page({
     ],
     recommendList: [],
     loading: false,
+    bottomActive: "home",
   },
 
   onShow() {
@@ -68,7 +70,7 @@ Page({
     const action = event.currentTarget.dataset.action;
     const loginUser = getLoginUser();
     if (!loginUser) {
-      wx.showToast({ title: "\u8bf7\u5148\u5728\u6211\u7684\u9875\u767b\u5f55", icon: "none" });
+      feedback.error("请先在我的页登录");
       return;
     }
 
@@ -79,7 +81,7 @@ Page({
 
     if (action === "myOrg" || action === "publish") {
       if (loginUser.role !== "ORGANIZER") {
-        wx.showToast({ title: "\u4ec5\u7ec4\u7ec7\u8005\u53ef\u4f7f\u7528", icon: "none" });
+        feedback.error("仅组织者可使用");
         return;
       }
       wx.navigateTo({ url: "/pages/organizer-activities/index" });
@@ -87,7 +89,7 @@ Page({
   },
 
   onBottomTabChange(event) {
-    const tab = event.detail.tab;
+    const tab = event.detail;
     if (tab === "home") {
       return;
     }

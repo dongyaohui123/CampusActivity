@@ -17,6 +17,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
+/**
+ * V1PublicActivityServiceImpl服务实现。
+ */
 @Service
 public class V1PublicActivityServiceImpl implements V1PublicActivityService {
     private static final Set<ActivityStatus> PUBLIC_STATUS = Set.of(
@@ -30,11 +33,25 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
     private final ActivityMapper activityMapper;
     private final ActivityReviewMapper reviewMapper;
 
+    /**
+     * 构造函数。
+     *
+     * @param activityMapper 活动数据访问
+     * @param reviewMapper 审核数据访问
+     */
     public V1PublicActivityServiceImpl(ActivityMapper activityMapper, ActivityReviewMapper reviewMapper) {
         this.activityMapper = activityMapper;
         this.reviewMapper = reviewMapper;
     }
 
+    /**
+     * 查询公开活动列表。
+     *
+     * @param keyword 关键字筛选
+     * @param startFrom 活动开始时间下界
+     * @param startTo 活动开始时间上界
+     * @return 符合公开条件的活动列表
+     */
     @Override
     public List<ActivityListItemView> listPublicActivities(String keyword, LocalDateTime startFrom, LocalDateTime startTo) {
         List<ActivityListItemView> raw = activityMapper.selectActivityList(
@@ -51,6 +68,12 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 查询公开活动详情。
+     *
+     * @param activityId 活动 ID
+     * @return 活动详情
+     */
     @Override
     public Activity getPublicActivityDetail(Long activityId) {
         Activity activity = activityMapper.selectById(activityId);

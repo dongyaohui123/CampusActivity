@@ -2,6 +2,9 @@ package com.campus.activity.dto.v1.review;
 
 import jakarta.validation.constraints.Size;
 
+/**
+ * ReviewApproveRequest请求参数对象。
+ */
 public class ReviewApproveRequest {
     @Size(max = 500, message = "comment length must be <= 500")
     private String comment;

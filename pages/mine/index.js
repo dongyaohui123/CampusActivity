@@ -1,37 +1,84 @@
-const { login, registerUser, getMyRegistrations, listOrganizerActivities } = require("../../utils/api");
-const { getLoginUser, setLoginUser, clearLoginUser } = require("../../utils/auth");
+const { getMyRegistrations, listOrganizerActivities } = require("../../utils/api");
+const { getLoginUser, clearLoginUser } = require("../../utils/auth");
+const feedback = require("../../utils/feedback");
 
 function formatCount(value) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function getAvatarText(loginUser) {
+  if (!loginUser) return "访客";
+  const base = String(loginUser.nickname || loginUser.username || "用户").trim();
+  return base.slice(0, 2) || "用户";
+}
+
+function getGuestQuickEntries(i18n) {
+  return {
+    primary: {
+      title: i18n.goLogin,
+      desc: i18n.goLoginDesc,
+      action: "login",
+    },
+    secondary: {
+      title: i18n.helpCenter,
+      desc: i18n.helpDesc,
+      action: "help",
+    },
+  };
+}
+
+function getLoginQuickEntries(i18n, loginUser) {
+  const secondary =
+    loginUser && loginUser.role === "ADMIN"
+      ? { title: i18n.reviewManage, desc: i18n.reviewDesc, action: "review" }
+      : { title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" };
+  return {
+    primary: {
+      title: i18n.myActivity,
+      desc: i18n.myActivityDesc,
+      action: "myActivity",
+    },
+    secondary,
+  };
+}
+
 Page({
   data: {
     i18n: {
-      navTitle: "\u6211\u7684",
-      login: "\u767b\u5f55",
-      register: "\u6ce8\u518c",
-      username: "\u7528\u6237\u540d",
-      password: "\u5bc6\u7801",
-      nickname: "\u6635\u79f0",
-      registerAndLogin: "\u6ce8\u518c\u5e76\u767b\u5f55",
-      wechatLater: "\u540e\u7eed\u53ef\u63a5\u5165\u5fae\u4fe1\u767b\u5f55",
-      participatedCount: "\u53c2\u4e0e\u6d3b\u52a8\u6570",
-      initiatedCount: "\u53d1\u8d77\u6d3b\u52a8\u6570",
-      managedOrgCount: "\u7ba1\u7406\u7ec4\u7ec7\u6570",
-      myActivity: "\u6211\u7684\u6d3b\u52a8",
-      myOrg: "\u6211\u7684\u7ec4\u7ec7",
-      reviewManage: "\u5ba1\u6838\u7ba1\u7406",
-      helpCenter: "\u5e2e\u52a9\u4e2d\u5fc3",
-      contact: "\u8054\u7cfb\u5ba2\u670d",
-      logout: "\u9000\u51fa\u767b\u5f55",
+      navTitle: "我的",
+      guestName: "未登录用户",
+      guestDesc: "你还未登录，请前往登录页完成认证",
+      welcomeBack: "欢迎回来，开始你的校园活动管理",
+      setting: "设置",
+      goLogin: "去登录",
+      goLoginDesc: "登录后查看我的活动记录",
+      participatedCount: "参与活动数",
+      initiatedCount: "发起活动数",
+      managedOrgCount: "管理组织数",
+      myActivity: "我的活动",
+      myActivityDesc: "查看活动报名与状态",
+      myOrg: "我的组织",
+      myOrgDesc: "管理组织与发起活动",
+      reviewManage: "审核管理",
+      reviewDesc: "处理活动审核任务",
+      helpCenter: "帮助中心",
+      helpDesc: "常见问题与使用指引",
+      contact: "联系客服",
+      logout: "退出登录",
     },
     loginUser: null,
-    authMode: "login",
-    username: "",
-    password: "",
-    registerNickname: "",
-    loading: false,
+    avatarText: "访客",
+    quickPrimary: {
+      title: "去登录",
+      desc: "登录后查看我的活动记录",
+      action: "login",
+    },
+    quickSecondary: {
+      title: "帮助中心",
+      desc: "常见问题与使用指引",
+      action: "help",
+    },
+    bottomActive: "mine",
     stats: {
       participatedCount: 0,
       initiatedCount: 0,
@@ -45,7 +92,14 @@ Page({
 
   restoreLoginState() {
     const loginUser = getLoginUser();
-    this.setData({ loginUser });
+    const { i18n } = this.data;
+    const quickEntries = loginUser ? getLoginQuickEntries(i18n, loginUser) : getGuestQuickEntries(i18n);
+    this.setData({
+      loginUser,
+      avatarText: getAvatarText(loginUser),
+      quickPrimary: quickEntries.primary,
+      quickSecondary: quickEntries.secondary,
+    });
     if (loginUser) {
       this.loadStats();
       return;
@@ -53,64 +107,73 @@ Page({
     this.setData({ stats: { participatedCount: 0, initiatedCount: 0, managedOrgCount: 0 } });
   },
 
-  onAuthModeChange(event) {
-    this.setData({ authMode: event.currentTarget.dataset.mode });
+  onQuickActionTap(event) {
+    const action = event.currentTarget.dataset.action;
+    this.handleAction(action);
   },
 
-  onInput(event) {
-    const field = event.currentTarget.dataset.field;
-    this.setData({ [field]: event.detail.value });
+  onMenuTap(event) {
+    const action = event.currentTarget.dataset.action;
+    this.handleAction(action);
   },
 
-  async onLoginTap() {
-    const username = String(this.data.username || "").trim();
-    const password = String(this.data.password || "");
-    if (!username || !password) {
-      wx.showToast({ title: "\u8bf7\u8f93\u5165\u7528\u6237\u540d\u548c\u5bc6\u7801", icon: "none" });
+  handleAction(action) {
+    const loginUser = this.data.loginUser;
+    if (action === "help") {
+      feedback.info("帮助中心开发中");
       return;
     }
-    this.setData({ loading: true });
-    try {
-      const user = await login(username, password);
-      const loginUser = setLoginUser(user);
-      this.setData({ loginUser, password: "" });
-      wx.showToast({ title: "\u767b\u5f55\u6210\u529f", icon: "success" });
-      await this.loadStats();
-    } finally {
-      this.setData({ loading: false });
+    if (action === "contact") {
+      feedback.info("联系客服：400-000-0000");
+      return;
+    }
+    if (action === "login") {
+      this.goToAuth();
+      return;
+    }
+
+    if (!loginUser) {
+      this.goToAuth();
+      return;
+    }
+
+    if (action === "myActivity") {
+      wx.navigateTo({ url: "/pages/my-registrations/index" });
+      return;
+    }
+    if (action === "myOrg") {
+      if (loginUser.role !== "ORGANIZER") {
+        feedback.error("仅组织者可查看");
+        return;
+      }
+      wx.navigateTo({ url: "/pages/organizer-activities/index" });
+      return;
+    }
+    if (action === "review") {
+      if (loginUser.role !== "ADMIN") {
+        feedback.error("仅管理员可使用");
+        return;
+      }
+      wx.navigateTo({ url: "/pages/admin-review/index" });
     }
   },
 
-  async onRegisterTap() {
-    const username = String(this.data.username || "").trim();
-    const password = String(this.data.password || "");
-    const nickname = String(this.data.registerNickname || "").trim();
-    if (!username || !password || !nickname) {
-      wx.showToast({ title: "\u8bf7\u5b8c\u6574\u586b\u5199\u7528\u6237\u540d\u3001\u5bc6\u7801\u3001\u6635\u79f0", icon: "none" });
-      return;
-    }
-    this.setData({ loading: true });
-    try {
-      const user = await registerUser(username, password, nickname);
-      const loginUser = setLoginUser(user);
-      this.setData({ loginUser, password: "", registerNickname: "", authMode: "login" });
-      wx.showToast({ title: "\u6ce8\u518c\u6210\u529f\u5e76\u5df2\u767b\u5f55", icon: "success" });
-      await this.loadStats();
-    } finally {
-      this.setData({ loading: false });
-    }
+  goToAuth() {
+    wx.navigateTo({ url: "/pages/auth/index?mode=login" });
   },
 
   onLogoutTap() {
     clearLoginUser();
+    const { i18n } = this.data;
+    const quickEntries = getGuestQuickEntries(i18n);
     this.setData({
       loginUser: null,
-      username: "",
-      password: "",
-      registerNickname: "",
+      avatarText: "访客",
+      quickPrimary: quickEntries.primary,
+      quickSecondary: quickEntries.secondary,
       stats: { participatedCount: 0, initiatedCount: 0, managedOrgCount: 0 },
     });
-    wx.showToast({ title: "\u5df2\u9000\u51fa\u767b\u5f55", icon: "success" });
+    feedback.success("已退出登录");
   },
 
   async loadStats() {
@@ -146,29 +209,14 @@ Page({
     });
   },
 
-  onMenuTap(event) {
-    const action = event.currentTarget.dataset.action;
-    const loginUser = this.data.loginUser;
-    if (!loginUser) {
-      wx.showToast({ title: "\u8bf7\u5148\u767b\u5f55", icon: "none" });
+  onBottomTabChange(event) {
+    const tab = event.detail;
+    if (tab === "home") {
+      wx.reLaunch({ url: "/pages/index/index" });
       return;
     }
-    if (action === "myActivity") return wx.navigateTo({ url: "/pages/my-registrations/index" });
-    if (action === "myOrg") {
-      if (loginUser.role !== "ORGANIZER") return wx.showToast({ title: "\u4ec5\u7ec4\u7ec7\u8005\u53ef\u67e5\u770b", icon: "none" });
-      return wx.navigateTo({ url: "/pages/organizer-activities/index" });
+    if (tab === "find") {
+      wx.reLaunch({ url: "/pages/activity-list/index" });
     }
-    if (action === "review") {
-      if (loginUser.role !== "ADMIN") return wx.showToast({ title: "\u4ec5\u7ba1\u7406\u5458\u53ef\u4f7f\u7528", icon: "none" });
-      return wx.navigateTo({ url: "/pages/admin-review/index" });
-    }
-    if (action === "help") return wx.showToast({ title: "\u5e2e\u52a9\u4e2d\u5fc3\u5f00\u53d1\u4e2d", icon: "none" });
-    if (action === "contact") return wx.showToast({ title: "\u8054\u7cfb\u5ba2\u670d\uff1a400-000-0000", icon: "none" });
-  },
-
-  onBottomTabChange(event) {
-    const tab = event.detail.tab;
-    if (tab === "home") return wx.reLaunch({ url: "/pages/index/index" });
-    if (tab === "find") return wx.reLaunch({ url: "/pages/activity-list/index" });
   },
 });

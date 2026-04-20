@@ -1,45 +1,63 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{false}}" color="#111111" background="#f7f8fa"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="mine-scroll" scroll-y type="list">
-  <view class="with-bottom-nav">
+  <view class="with-bottom-nav mine-page">
     <view class="profile-header">
-      <view wx:if="{{!loginUser}}" class="auth-card">
-        <view class="auth-switch">
-          <view class="auth-tab {{authMode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="onAuthModeChange">{{i18n.login}}</view>
-          <view class="auth-tab {{authMode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="onAuthModeChange">{{i18n.register}}</view>
+      <view class="header-top">
+        <view class="avatar">{{avatarText}}</view>
+        <view class="user-meta">
+          <view class="user-name">{{loginUser ? (loginUser.nickname || loginUser.username) : i18n.guestName}}</view>
+          <view class="user-desc">{{loginUser ? i18n.welcomeBack : i18n.guestDesc}}</view>
         </view>
-
-        <input class="auth-input" data-field="username" value="{{username}}" bindinput="onInput" placeholder="{{i18n.username}}" />
-        <input class="auth-input" password data-field="password" value="{{password}}" bindinput="onInput" placeholder="{{i18n.password}}" />
-        <input wx:if="{{authMode === 'register'}}" class="auth-input" data-field="registerNickname" value="{{registerNickname}}" bindinput="onInput" placeholder="{{i18n.nickname}}" />
-
-        <button wx:if="{{authMode === 'login'}}" class="auth-btn" loading="{{loading}}" bindtap="onLoginTap">{{i18n.login}}</button>
-        <button wx:if="{{authMode === 'register'}}" class="auth-btn" loading="{{loading}}" bindtap="onRegisterTap">{{i18n.registerAndLogin}}</button>
-        <view class="auth-tip">{{i18n.wechatLater}}</view>
+        <view class="settings-tag">{{i18n.setting}}</view>
       </view>
 
-      <view wx:if="{{loginUser}}" class="user-panel">
-        <view class="row-between mb-16">
-          <view class="user-name">{{loginUser.nickname || loginUser.username}}</view>
-          <view class="role-tag">{{loginUser.role}}</view>
+      <view class="count-row">
+        <view class="count-item">
+          <view class="count-num">{{stats.participatedCount}}</view>
+          <view class="count-label">{{i18n.participatedCount}}</view>
         </view>
-        <view class="count-row">
-          <view class="count-item"><view class="count-num">{{stats.participatedCount}}</view><view class="count-label">{{i18n.participatedCount}}</view></view>
-          <view class="count-item"><view class="count-num">{{stats.initiatedCount}}</view><view class="count-label">{{i18n.initiatedCount}}</view></view>
-          <view class="count-item"><view class="count-num">{{stats.managedOrgCount}}</view><view class="count-label">{{i18n.managedOrgCount}}</view></view>
+        <view class="count-item">
+          <view class="count-num">{{stats.initiatedCount}}</view>
+          <view class="count-label">{{i18n.initiatedCount}}</view>
         </view>
+        <view class="count-item">
+          <view class="count-num">{{stats.managedOrgCount}}</view>
+          <view class="count-label">{{i18n.managedOrgCount}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="entry-card">
+      <view class="entry-item" data-action="{{quickPrimary.action}}" bindtap="onQuickActionTap">
+        <view class="entry-title">{{quickPrimary.title}}</view>
+        <view class="entry-desc">{{quickPrimary.desc}}</view>
+      </view>
+      <view class="entry-divider"></view>
+      <view class="entry-item" data-action="{{quickSecondary.action}}" bindtap="onQuickActionTap">
+        <view class="entry-title">{{quickSecondary.title}}</view>
+        <view class="entry-desc">{{quickSecondary.desc}}</view>
       </view>
     </view>
 
     <view class="menu-card">
-      <view class="menu-item" data-action="myActivity" bindtap="onMenuTap">{{i18n.myActivity}}</view>
-      <view class="menu-item" data-action="myOrg" bindtap="onMenuTap">{{i18n.myOrg}}</view>
-      <view wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" class="menu-item" data-action="review" bindtap="onMenuTap">{{i18n.reviewManage}}</view>
-      <view class="menu-item" data-action="help" bindtap="onMenuTap">{{i18n.helpCenter}}</view>
-      <view class="menu-item" data-action="contact" bindtap="onMenuTap">{{i18n.contact}}</view>
-      <view wx:if="{{loginUser}}" class="menu-item danger" bindtap="onLogoutTap">{{i18n.logout}}</view>
+      <van-cell-group border="{{false}}" inset>
+        <van-cell title="{{i18n.myActivity}}" is-link data-action="myActivity" bind:click="onMenuTap" />
+        <van-cell title="{{i18n.myOrg}}" is-link data-action="myOrg" bind:click="onMenuTap" />
+        <van-cell wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" title="{{i18n.reviewManage}}" is-link data-action="review" bind:click="onMenuTap" />
+        <van-cell title="{{i18n.helpCenter}}" is-link data-action="help" bind:click="onMenuTap" />
+        <van-cell title="{{i18n.contact}}" is-link data-action="contact" bind:click="onMenuTap" />
+        <van-cell wx:if="{{loginUser}}" title="{{i18n.logout}}" bind:click="onLogoutTap" />
+      </van-cell-group>
     </view>
   </view>
 </scroll-view>
 
-<bottom-nav active="mine" bind:change="onBottomTabChange"></bottom-nav>
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom>
+  <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
+  <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
+  <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>
+</van-tabbar>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

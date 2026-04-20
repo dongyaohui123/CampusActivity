@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * V1RegistrationServiceImpl服务实现。
+ */
 @Service
 public class V1RegistrationServiceImpl implements V1RegistrationService {
     private final ActivityMapper activityMapper;
@@ -29,6 +32,9 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
     private final ActivityReviewMapper reviewMapper;
     private final OperatorPermissionService permissionService;
 
+    /**
+     * 构造函数。
+     */
     public V1RegistrationServiceImpl(
             ActivityMapper activityMapper,
             ActivityRegistrationMapper registrationMapper,
@@ -41,6 +47,14 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
         this.permissionService = permissionService;
     }
 
+    /**
+     * 学生报名活动。
+     *
+     * @param request 报名请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 报名记录
+     */
     @Override
     @Transactional
     public ActivityRegistration register(RegistrationCreateRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -93,6 +107,15 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
         return existing;
     }
 
+    /**
+     * 学生取消报名。
+     *
+     * @param registrationId 报名记录 ID
+     * @param request 取消请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 更新后的报名记录
+     */
     @Override
     @Transactional
     public ActivityRegistration cancelRegistration(

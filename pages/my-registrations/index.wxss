@@ -2,7 +2,7 @@ page {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #eef4ff 0%, #f5f7fb 220rpx, #f5f7fb 100%);
+  background: #f7f8fa;
 }
 
 .list-scroll {
@@ -20,4 +20,18 @@ page {
 
 .muted {
   line-height: 1.6;
+  color: #667085;
+}
+
+.card-time {
+  color: #667085;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 360rpx;
 }

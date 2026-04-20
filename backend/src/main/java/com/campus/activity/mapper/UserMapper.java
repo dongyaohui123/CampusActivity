@@ -18,4 +18,9 @@ public interface UserMapper extends BaseMapper<User> {
      * Read user by openid (unique key, nullable in DB).
      */
     User selectByOpenid(@Param("openid") String openid);
+
+    /**
+     * Read user by phone.
+     */
+    User selectByPhone(@Param("phone") String phone);
 }

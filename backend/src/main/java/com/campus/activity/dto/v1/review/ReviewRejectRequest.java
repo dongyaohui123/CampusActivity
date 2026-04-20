@@ -3,6 +3,9 @@ package com.campus.activity.dto.v1.review;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * ReviewRejectRequest请求参数对象。
+ */
 public class ReviewRejectRequest {
     @NotBlank(message = "comment is required")
     @Size(max = 500, message = "comment length must be <= 500")

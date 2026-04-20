@@ -4,8 +4,23 @@ import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.view.v1.LoginUserView;
 
+/**
+ * V1AuthService服务接口。
+ */
 public interface V1AuthService {
+    /**
+     * 登录并返回当前用户信息。
+     *
+     * @param request 登录请求
+     * @return 登录用户信息
+     */
     LoginUserView login(LoginRequest request);
 
+    /**
+     * 注册并返回当前用户信息。
+     *
+     * @param request 注册请求
+     * @return 注册后的用户信息
+     */
     LoginUserView register(RegisterRequest request);
 }

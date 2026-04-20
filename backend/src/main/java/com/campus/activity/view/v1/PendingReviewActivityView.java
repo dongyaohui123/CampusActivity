@@ -3,6 +3,9 @@ package com.campus.activity.view.v1;
 import com.campus.activity.enums.ReviewStatus;
 import java.time.LocalDateTime;
 
+/**
+ * PendingReviewActivityView页面视图对象。
+ */
 public class PendingReviewActivityView {
     private Long activityId;
     private String title;

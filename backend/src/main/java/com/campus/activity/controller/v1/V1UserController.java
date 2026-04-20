@@ -18,16 +18,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * V1UserController控制器。
+ */
 @Validated
 @RestController
 @RequestMapping("/api/v1/users")
 public class V1UserController {
     private final V1UserService userService;
 
+    /**
+     * 构造函数。
+     *
+     * @param userService 用户服务
+     */
     public V1UserController(V1UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * 查询用户资料。
+     *
+     * @param userId 目标用户 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 用户资料
+     */
     @GetMapping("/{userId}")
     public ApiResponse<User> getUserProfile(
             @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,
@@ -37,6 +53,15 @@ public class V1UserController {
         return ApiResponse.success(userService.getUserProfile(userId, operatorUserId, operatorRole));
     }
 
+    /**
+     * 更新用户资料。
+     *
+     * @param userId 目标用户 ID
+     * @param request 更新参数
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 更新后的用户资料
+     */
     @PutMapping("/{userId}/profile")
     public ApiResponse<User> updateUserProfile(
             @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,
@@ -48,6 +73,14 @@ public class V1UserController {
                 userService.updateUserProfile(userId, request, operatorUserId, operatorRole));
     }
 
+    /**
+     * 查询用户报名记录。
+     *
+     * @param userId 目标用户 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 报名记录列表
+     */
     @GetMapping("/{userId}/registrations")
     public ApiResponse<List<RegistrationRecordView>> getUserRegistrations(
             @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,

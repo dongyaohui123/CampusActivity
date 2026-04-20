@@ -1,16 +1,18 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="detail-scroll" scroll-y type="list">
   <view class="page-body">
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <view wx:if="{{activity}}" class="card">
       <view class="title mb-12">{{activity.title}}</view>
-      <view class="muted mb-12">{{i18n.statusLabel}}: {{activity.status || '-'}}</view>
-      <view class="muted mb-12">{{i18n.locationLabel}}: {{activity.location || '-'}}</view>
-      <view class="muted mb-12">{{i18n.timeLabel}}: {{activity.startDisplay}} ~ {{activity.endDisplay}}</view>
-      <view class="muted mb-12">{{i18n.deadlineLabel}}: {{activity.deadlineDisplay}}</view>
-      <view class="muted mb-12">{{i18n.summaryLabel}}: {{activity.summary || '-'}}</view>
-      <view>{{i18n.contentLabel}}: {{activity.content || '-'}}</view>
+      <van-cell-group inset>
+        <van-cell title="{{i18n.statusLabel}}" value="{{activity.status || '-'}}" />
+        <van-cell title="{{i18n.locationLabel}}" value="{{activity.location || '-'}}" />
+        <van-cell title="{{i18n.timeLabel}}" value="{{activity.startDisplay}} ~ {{activity.endDisplay}}" />
+        <van-cell title="{{i18n.deadlineLabel}}" value="{{activity.deadlineDisplay}}" />
+        <van-cell title="{{i18n.summaryLabel}}" value="{{activity.summary || '-'}}" />
+      </van-cell-group>
+      <view class="detail-content">{{i18n.contentLabel}}: {{activity.content || '-'}}</view>
     </view>
 
     <view class="card">
@@ -18,9 +20,12 @@
       <view wx:if="{{operatorRole !== 'STUDENT'}}" class="muted mb-12">{{i18n.studentOnly}}</view>
       <view wx:if="{{currentRegistration}}" class="muted mb-12">{{i18n.currentStatus}}: {{currentRegistration.registrationStatus}}</view>
       <view class="row gap-12">
-        <button wx:if="{{canRegister}}" type="primary" bindtap="onRegisterTap">{{i18n.registerNow}}</button>
-        <button wx:if="{{canCancel}}" bindtap="onCancelTap">{{i18n.cancelRegister}}</button>
+        <van-button wx:if="{{canRegister}}" type="primary" bind:click="onRegisterTap">{{i18n.registerNow}}</van-button>
+        <van-button wx:if="{{canCancel}}" plain bind:click="onCancelTap">{{i18n.cancelRegister}}</van-button>
       </view>
     </view>
   </view>
 </scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

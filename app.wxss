@@ -70,19 +70,3 @@ page {
   color: #98a2b3;
 }
 
-button[type="primary"] {
-  background: var(--brand);
-  color: #ffffff;
-  border-radius: 14rpx;
-}
-
-button {
-  border-radius: 14rpx;
-}
-
-input,
-textarea,
-picker view {
-  color: var(--text-primary);
-}
-

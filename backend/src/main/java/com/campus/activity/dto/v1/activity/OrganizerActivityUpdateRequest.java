@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
+/**
+ * OrganizerActivityUpdateRequest请求参数对象。
+ */
 public class OrganizerActivityUpdateRequest {
     @Size(max = 200, message = "title length must be <= 200")
     private String title;

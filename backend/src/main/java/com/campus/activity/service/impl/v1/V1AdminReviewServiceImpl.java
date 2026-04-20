@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * V1AdminReviewServiceImpl服务实现。
+ */
 @Service
 public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     private final ActivityReviewMapper reviewMapper;
@@ -35,6 +38,9 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     private final ActivityAuditLogMapper auditLogMapper;
     private final OperatorPermissionService permissionService;
 
+    /**
+     * 构造函数。
+     */
     public V1AdminReviewServiceImpl(
             ActivityReviewMapper reviewMapper,
             ActivityMapper activityMapper,
@@ -47,6 +53,13 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         this.permissionService = permissionService;
     }
 
+    /**
+     * 查询待审核活动列表。
+     *
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 待审核活动列表
+     */
     @Override
     public List<PendingReviewActivityView> listPendingReviews(Long operatorUserId, UserRole operatorRole) {
         User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
@@ -91,6 +104,15 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 审核通过活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 审核通过请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 审核记录
+     */
     @Override
     @Transactional
     public ActivityReview approve(Long activityId, ReviewApproveRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -117,6 +139,15 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         return review;
     }
 
+    /**
+     * 审核驳回活动。
+     *
+     * @param activityId 活动 ID
+     * @param request 审核驳回请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 审核记录
+     */
     @Override
     @Transactional
     public ActivityReview reject(Long activityId, ReviewRejectRequest request, Long operatorUserId, UserRole operatorRole) {
@@ -140,6 +171,9 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         return review;
     }
 
+    /**
+     * 获取活动并校验可审核状态。
+     */
     private Activity getActivityOrThrow(Long activityId) {
         Activity activity = activityMapper.selectById(activityId);
         if (activity == null) {
@@ -151,6 +185,9 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         return activity;
     }
 
+    /**
+     * 获取待审核记录并校验状态。
+     */
     private ActivityReview getPendingReviewOrThrow(Long activityId) {
         ActivityReview review = reviewMapper.selectById(activityId);
         if (review == null) {
@@ -162,6 +199,9 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         return review;
     }
 
+    /**
+     * 写入审核日志。
+     */
     private void insertAuditLog(Long activityId, Long operatorId, AuditAction action, String comment, LocalDateTime createdAt) {
         ActivityAuditLog log = new ActivityAuditLog();
         log.setActivityId(activityId);

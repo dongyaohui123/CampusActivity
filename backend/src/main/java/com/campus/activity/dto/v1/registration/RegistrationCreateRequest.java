@@ -3,6 +3,9 @@ package com.campus.activity.dto.v1.registration;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * RegistrationCreateRequest请求参数对象。
+ */
 public class RegistrationCreateRequest {
     @NotNull(message = "activityId is required")
     private Long activityId;

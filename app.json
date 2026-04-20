@@ -3,16 +3,37 @@
                   "pages/index/index",
                   "pages/activity-list/index",
                   "pages/mine/index",
+                  "pages/auth/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",
                   "pages/organizer-activities/index",
                   "pages/admin-review/index"
               ],
+    "usingComponents": {
+        "van-nav-bar": "@vant/weapp/nav-bar/index",
+        "van-tabbar": "@vant/weapp/tabbar/index",
+        "van-tabbar-item": "@vant/weapp/tabbar-item/index",
+        "van-button": "@vant/weapp/button/index",
+        "van-field": "@vant/weapp/field/index",
+        "van-switch": "@vant/weapp/switch/index",
+        "van-popup": "@vant/weapp/popup/index",
+        "van-picker": "@vant/weapp/picker/index",
+        "van-cell": "@vant/weapp/cell/index",
+        "van-cell-group": "@vant/weapp/cell-group/index",
+        "van-grid": "@vant/weapp/grid/index",
+        "van-grid-item": "@vant/weapp/grid-item/index",
+        "van-card": "@vant/weapp/card/index",
+        "van-tabs": "@vant/weapp/tabs/index",
+        "van-tab": "@vant/weapp/tab/index",
+        "van-search": "@vant/weapp/search/index",
+        "van-empty": "@vant/weapp/empty/index",
+        "van-toast": "@vant/weapp/toast/index",
+        "van-notify": "@vant/weapp/notify/index"
+    },
     "window":  {
                    "navigationBarTextStyle":  "black",
                    "navigationStyle":  "custom"
                },
-    "style":  "v2",
     "renderer":  "skyline",
     "rendererOptions":  {
                             "skyline":  {

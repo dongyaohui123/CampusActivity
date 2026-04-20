@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.auth.LoginRequest;
+import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.entity.User;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
@@ -51,6 +52,28 @@ class V1AuthServiceImplTest {
     }
 
     @Test
+    void login_shouldSupportPhoneWhenUsernameNotFound() {
+        User user = new User();
+        user.setId(2L);
+        user.setUsername("alice");
+        user.setPhone("13800000000");
+        user.setPasswordHash("123456");
+        user.setNickname("Alice");
+        user.setRole(UserRole.STUDENT);
+        user.setStatus(UserStatus.ACTIVE);
+        when(userMapper.selectByUsername("13800000000")).thenReturn(null);
+        when(userMapper.selectByPhone("13800000000")).thenReturn(user);
+
+        LoginRequest request = new LoginRequest();
+        request.setUsername("13800000000");
+        request.setPassword("123456");
+        LoginUserView result = authService.login(request);
+
+        assertThat(result.getId()).isEqualTo(2L);
+        assertThat(result.getPhone()).isEqualTo("13800000000");
+    }
+
+    @Test
     void login_shouldRejectWhenPasswordWrong() {
         User user = new User();
         user.setUsername("alice");
@@ -85,5 +108,37 @@ class V1AuthServiceImplTest {
                 .extracting(ex -> ((BusinessException) ex).getErrorCode())
                 .isEqualTo(ErrorCode.FORBIDDEN);
     }
-}
 
+    @Test
+    void register_shouldRejectWhenPhoneInvalid() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("alice");
+        request.setPassword("123456");
+        request.setNickname("Alice");
+        request.setPhone("12345");
+
+        assertThatThrownBy(() -> authService.register(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.BAD_REQUEST);
+    }
+
+    @Test
+    void register_shouldRejectWhenPhoneDuplicated() {
+        User existed = new User();
+        existed.setId(100L);
+        existed.setPhone("13800000000");
+        when(userMapper.selectByPhone("13800000000")).thenReturn(existed);
+
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("alice");
+        request.setPassword("123456");
+        request.setNickname("Alice");
+        request.setPhone("13800000000");
+
+        assertThatThrownBy(() -> authService.register(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.CONFLICT);
+    }
+}
