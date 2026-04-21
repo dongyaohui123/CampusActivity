@@ -95,11 +95,11 @@
       </view>
 
       <view class="row gap-12 mt-16 action-row">
-        <van-button class="action-btn" type="primary" bind:click="onSubmitTap">
+        <van-button class="action-btn" type="primary" bind:click="onSubmitTap" custom-style="border-radius: 18rpx;">
           <text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text>
           <text wx:else>{{i18n.createActivity}}</text>
         </van-button>
-        <van-button class="action-btn action-btn-ghost" plain bind:click="resetForm">{{i18n.reset}}</van-button>
+        <van-button class="action-btn action-btn-ghost" plain bind:click="resetForm" custom-style="border-radius: 18rpx;">{{i18n.reset}}</van-button>
       </view>
     </view>
 
@@ -126,8 +126,8 @@
         <van-card title="{{item.title}}" desc="{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}">
           <view slot="tags" class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
           <view slot="footer" class="row gap-12">
-            <van-button size="small" plain data-id="{{item.id}}" bind:click="onEditTap">{{i18n.edit}}</van-button>
-            <van-button size="small" type="primary" data-id="{{item.id}}" bind:click="onSubmitReviewTap">{{i18n.submitReview}}</van-button>
+            <van-button class="list-op-btn" size="small" plain data-id="{{item.id}}" bind:click="onEditTap">{{i18n.edit}}</van-button>
+            <van-button class="list-op-btn" size="small" type="primary" data-id="{{item.id}}" bind:click="onSubmitReviewTap">{{i18n.submitReview}}</van-button>
           </view>
         </van-card>
       </view>

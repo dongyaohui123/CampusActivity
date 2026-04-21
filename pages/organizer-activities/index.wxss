@@ -160,10 +160,21 @@ page {
 
 .action-btn {
   width: 100%;
+  --button-border-radius: 18rpx;
+  --button-default-height: 80rpx;
+  --button-default-line-height: 80rpx;
+  --button-default-font-size: 30rpx;
+  --button-primary-border-color: #2f6cf3;
+  --button-primary-background-color: #2f6cf3;
+  --button-primary-color: #ffffff;
 }
 
 .action-btn-ghost {
   background: #ffffff;
+}
+
+.list-op-btn {
+  --button-border-radius: 12rpx;
 }
 
 .gap-12 {
