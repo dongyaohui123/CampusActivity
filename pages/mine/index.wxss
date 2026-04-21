@@ -299,7 +299,7 @@ page {
 .logout-btn {
   width: 100%;
   border-radius: 20rpx !important;
-  border-color: #d7e3ff !important;
-  color: #2f7cf5 !important;
+  border-color: #ffd7d7 !important;
+  color: #ee0a24 !important;
   background: #ffffff !important;
 }
