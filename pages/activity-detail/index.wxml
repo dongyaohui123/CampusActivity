@@ -63,15 +63,21 @@
   <view wx:if="{{activity}}" class="action-bar">
     <view class="quick-group">
       <view class="quick-btn" data-action="favorite" bindtap="onQuickActionTap">
-        <text class="quick-icon">F</text>
+        <view class="quick-icon">
+          <van-icon name="star-o" class="quick-vant-icon" />
+        </view>
         <text class="quick-label">{{i18n.favorite}}</text>
       </view>
       <view class="quick-btn" data-action="share" bindtap="onQuickActionTap">
-        <text class="quick-icon">S</text>
+        <view class="quick-icon">
+          <van-icon name="share-o" class="quick-vant-icon" />
+        </view>
         <text class="quick-label">{{i18n.share}}</text>
       </view>
       <view class="quick-btn" data-action="service" bindtap="onQuickActionTap">
-        <text class="quick-icon">C</text>
+        <view class="quick-icon">
+          <van-icon name="service-o" class="quick-vant-icon" />
+        </view>
         <text class="quick-label">{{i18n.service}}</text>
       </view>
     </view>

@@ -252,6 +252,12 @@ page {
   line-height: 1;
 }
 
+.quick-vant-icon {
+  color: var(--brand);
+  font-size: 20rpx;
+  line-height: 1;
+}
+
 .quick-label {
   font-size: 20rpx;
   color: #475569;
