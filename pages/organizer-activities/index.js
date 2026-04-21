@@ -125,7 +125,7 @@ Page({
       updateActivity: "更新活动",
       reset: "重置",
       submitNote: "提审备注（可选）",
-      submitCommentPlaceholder: "提审备注",
+      submitCommentPlaceholder: "例如：可填写提审说明（可选）",
       loading: "加载中...",
       statusLabel: "状态",
       reviewLabel: "审核",
@@ -143,7 +143,7 @@ Page({
     loading: false,
     activities: [],
     editingActivityId: null,
-    reviewComment: "来自小程序的提审备注",
+    reviewComment: "",
     form: emptyForm(),
     visibilityOptions: VISIBILITY_OPTIONS,
     showVisibilityPicker: false,
@@ -272,6 +272,7 @@ Page({
     this.setData({
       editingActivityId: null,
       form: emptyForm(),
+      reviewComment: "",
       showVisibilityPicker: false,
       showDateTimePicker: false,
       activeDateField: "",
@@ -345,6 +346,7 @@ Page({
     try {
       await submitActivityReview(Number(event.currentTarget.dataset.id), this.data.reviewComment);
       feedback.success("提审成功");
+      this.setData({ reviewComment: "" });
       await this.loadActivities();
     } catch (e) {}
   },
