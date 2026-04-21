@@ -113,6 +113,7 @@ Page({
     currentRegistration: null,
     canRegister: false,
     canCancel: false,
+    navSafeHeightPx: 20,
     coverDisplay: DEFAULT_COVER,
     registrationStatusText: "未报名",
     ctaMode: "disabled",
@@ -121,7 +122,17 @@ Page({
   },
 
   onLoad(options) {
+    this.initNavSafeArea();
     this.setData({ activityId: Number(options.activityId || 0) });
+  },
+
+  initNavSafeArea() {
+    let navSafeHeightPx = 20;
+    try {
+      const info = typeof wx.getWindowInfo === "function" ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      navSafeHeightPx = Number(info.statusBarHeight) > 0 ? Number(info.statusBarHeight) : 20;
+    } catch (e) {}
+    this.setData({ navSafeHeightPx });
   },
 
   onClickNavLeft() {

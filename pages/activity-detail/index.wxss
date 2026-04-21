@@ -58,6 +58,12 @@ page {
   padding: 0 14rpx;
 }
 
+.nav-vant-icon {
+  color: #334155;
+  font-size: 28rpx;
+  line-height: 1;
+}
+
 .nav-title {
   text-align: center;
   color: #1f2937;

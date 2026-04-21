@@ -1,15 +1,23 @@
 <view class="detail-page">
   <view class="top-panel">
-    <view class="status-safe"></view>
+    <view class="status-safe" style="height: {{navSafeHeightPx}}px;"></view>
     <view class="nav-row">
       <view class="nav-left">
-        <view class="nav-btn" bindtap="onClickNavLeft">&lt;</view>
-        <view class="nav-btn" data-action="home" bindtap="onQuickActionTap">H</view>
+        <view class="nav-btn" bindtap="onClickNavLeft">
+          <van-icon name="arrow-left" class="nav-vant-icon" />
+        </view>
+        <view class="nav-btn" data-action="home" bindtap="onQuickActionTap">
+          <van-icon name="home-o" class="nav-vant-icon" />
+        </view>
       </view>
       <text class="nav-title">{{i18n.navTitle}}</text>
       <view class="nav-right">
-        <view class="nav-btn" data-action="share" bindtap="onQuickActionTap">...</view>
-        <view class="nav-btn" data-action="service" bindtap="onQuickActionTap">S</view>
+        <view class="nav-btn" data-action="share" bindtap="onQuickActionTap">
+          <van-icon name="ellipsis" class="nav-vant-icon" />
+        </view>
+        <view class="nav-btn" data-action="service" bindtap="onQuickActionTap">
+          <van-icon name="service-o" class="nav-vant-icon" />
+        </view>
       </view>
     </view>
   </view>
