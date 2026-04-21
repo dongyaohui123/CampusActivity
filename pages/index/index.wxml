@@ -1,42 +1,109 @@
-<van-nav-bar title="{{i18n.navTitle}}" />
+<scroll-view class="home-scroll" scroll-y>
+  <view class="home-page with-bottom-nav">
+    <view class="top-panel">
+      <view class="status-row">
+        <text class="status-time">9:41</text>
+        <view class="status-icons">
+          <view class="signal-group">
+            <view class="signal-bar b1"></view>
+            <view class="signal-bar b2"></view>
+            <view class="signal-bar b3"></view>
+            <view class="signal-bar b4"></view>
+          </view>
+          <view class="wifi-group">
+            <view class="wifi-dot"></view>
+          </view>
+          <view class="battery-group">
+            <view class="battery-level"></view>
+          </view>
+        </view>
+      </view>
 
-<scroll-view class="home-scroll" scroll-y type="list">
-  <view class="page-body with-bottom-nav">
-    <view class="card banner-card">
-      <swiper indicator-dots autoplay interval="5000" circular>
+      <view class="city-row">
+        <view class="city-pill">
+          <view class="pin-icon"></view>
+          <text class="city-text">{{i18n.city}}</text>
+          <view class="arrow-down"></view>
+        </view>
+
+        <view class="action-pill">
+          <view class="dot-group">
+            <view class="dot"></view>
+            <view class="dot"></view>
+            <view class="dot"></view>
+          </view>
+          <view class="action-divider"></view>
+          <view class="target-ring">
+            <view class="target-core"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="search-box" bindtap="goFind">
+        <view class="search-icon"></view>
+        <text class="search-text">{{i18n.searchPlaceholder}}</text>
+      </view>
+    </view>
+
+    <view class="hero-card fade-in">
+      <swiper class="hero-swiper" indicator-dots autoplay interval="5000" circular indicator-color="rgba(255,255,255,0.3)" indicator-active-color="#ffffff">
         <block wx:for="{{banners}}" wx:key="*this">
           <swiper-item>
-            <image class="banner-image" src="{{item}}" mode="aspectFill" />
-            <view class="banner-mask">
-              <text class="banner-title">{{i18n.navTitle}}</text>
-              <text class="banner-sub">{{i18n.bannerSub}}</text>
+            <image class="hero-image" src="{{item}}" mode="aspectFill" />
+            <view class="hero-mask">
+              <text class="hero-title">{{i18n.bannerTitle}}</text>
+              <text class="hero-sub">{{i18n.bannerSub}}</text>
             </view>
           </swiper-item>
         </block>
       </swiper>
     </view>
 
-    <view class="card quick-card">
-      <van-grid border="{{false}}" column-num="3">
-        <van-grid-item icon="friends-o" text="{{i18n.myActivity}}" data-action="myActivity" bind:click="onQuickTap" />
-        <van-grid-item icon="cluster-o" text="{{i18n.myOrg}}" data-action="myOrg" bind:click="onQuickTap" />
-        <van-grid-item icon="plus" text="{{i18n.publish}}" data-action="publish" bind:click="onQuickTap" />
-      </van-grid>
+    <view class="quick-card fade-in delay-1">
+      <view class="quick-grid">
+        <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
+          <view class="quick-icon icon-a"></view>
+          <text class="quick-text">{{i18n.myActivity}}</text>
+        </view>
+        <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
+          <view class="quick-icon icon-b"></view>
+          <text class="quick-text">{{i18n.myOrg}}</text>
+        </view>
+        <view class="quick-item" data-action="publish" bindtap="onQuickTap">
+          <view class="quick-icon icon-c"></view>
+          <text class="quick-text">{{i18n.publish}}</text>
+        </view>
+      </view>
     </view>
 
-    <view class="section-title row-between">
-      <text>{{i18n.recommend}}</text>
+    <view class="section-head fade-in delay-2">
+      <text class="section-title">{{i18n.recommend}}</text>
+      <text class="section-more" bindtap="goFind">{{i18n.more}}</text>
     </view>
 
     <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
-    <block wx:for="{{recommendList}}" wx:key="id">
-      <view class="card activity-card-wrap" bindtap="goDetail" data-id="{{item.id}}">
-        <van-card thumb="{{item.cover}}" title="{{item.title}}" desc="{{item.locationDisplay}}">
-          <view slot="tags" class="card-time">{{item.startDisplay}}</view>
-        </van-card>
-      </view>
-    </block>
+    <view class="recommend-list" wx:if="{{!loading && recommendList.length > 0}}">
+      <block wx:for="{{recommendList}}" wx:key="id">
+        <view class="recommend-card fade-up" bindtap="goDetail" data-id="{{item.id}}">
+          <image class="recommend-thumb" src="{{item.cover}}" mode="aspectFill" />
+          <view class="recommend-body">
+            <view class="recommend-title-row">
+              <text class="recommend-tag">{{i18n.signing}}</text>
+              <text class="recommend-title">{{item.title}}</text>
+            </view>
+            <view class="recommend-meta">
+              <view class="meta-icon clock"></view>
+              <text class="meta-text">{{item.startDisplay}}</text>
+            </view>
+            <view class="recommend-meta">
+              <view class="meta-icon pin"></view>
+              <text class="meta-text">{{item.locationDisplay}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
 
     <van-empty wx:if="{{!loading && recommendList.length === 0}}" image="search" description="{{i18n.emptyRecommend}}" />
   </view>
