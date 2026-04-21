@@ -1,15 +1,20 @@
 <van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="page-scroll" scroll-y type="list">
   <view class="page-body with-bottom-space">
-    <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="card role-card">
+    <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="top-lite fade-up">
+      <view class="top-lite-left">
+        <view class="top-lite-title">{{i18n.createActivity}}</view>
+        <view class="top-lite-sub">{{i18n.formHint}}</view>
+      </view>
+      <view class="top-lite-badge">{{i18n.tipBadge}}</view>
+    </view>
+
+    <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="card role-card fade-up">
       <view class="muted">{{i18n.roleHintPrefix}} {{operatorRole}}, {{i18n.roleHintSuffix}}</view>
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card form-card fade-up">
-      <view class="title mb-16">
-        <text wx:if="{{editingActivityId}}">{{i18n.editActivity}}</text>
-        <text wx:else>{{i18n.createActivity}}</text>
-      </view>
+      <view class="section-chip">{{i18n.basicInfo}}</view>
 
       <van-field
         data-field="title"
@@ -43,7 +48,7 @@
         is-link
         bind:click="onOpenDateTimePicker"
         bind:click-input="onOpenDateTimePicker"
-        placeholder="请选择日期和时间"
+        placeholder="{{i18n.timePickerPlaceholder}}"
       />
       <van-field
         data-field="endTime"
@@ -53,7 +58,7 @@
         is-link
         bind:click="onOpenDateTimePicker"
         bind:click-input="onOpenDateTimePicker"
-        placeholder="请选择日期和时间"
+        placeholder="{{i18n.timePickerPlaceholder}}"
       />
       <van-field
         data-field="registrationDeadline"
@@ -63,8 +68,10 @@
         is-link
         bind:click="onOpenDateTimePicker"
         bind:click-input="onOpenDateTimePicker"
-        placeholder="请选择日期和时间"
+        placeholder="{{i18n.timePickerPlaceholder}}"
       />
+
+      <view class="section-chip section-chip-second">{{i18n.publishOptions}}</view>
 
       <van-field
         data-field="maxParticipants"
@@ -87,19 +94,17 @@
         <van-switch checked="{{form.featured}}" bind:change="onFeaturedChange" />
       </view>
 
-      <view class="action-dock">
-        <view class="row gap-12 mt-16">
-          <van-button type="primary" bind:click="onSubmitTap">
-            <text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text>
-            <text wx:else>{{i18n.createActivity}}</text>
-          </van-button>
-          <van-button plain bind:click="resetForm">{{i18n.reset}}</van-button>
-        </view>
+      <view class="row gap-12 mt-16 action-row">
+        <van-button class="action-btn" type="primary" bind:click="onSubmitTap">
+          <text wx:if="{{editingActivityId}}">{{i18n.updateActivity}}</text>
+          <text wx:else>{{i18n.createActivity}}</text>
+        </van-button>
+        <van-button class="action-btn action-btn-ghost" plain bind:click="resetForm">{{i18n.reset}}</van-button>
       </view>
     </view>
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card fade-up">
-      <view class="title mb-12">{{i18n.submitNote}}</view>
+      <view class="section-chip">{{i18n.submitNote}}</view>
       <van-field
         value="{{reviewComment}}"
         bind:change="onReviewCommentInput"
@@ -109,14 +114,17 @@
       />
     </view>
 
-    <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="section-title">{{i18n.myActivityList}}</view>
+    <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="section-head fade-up">
+      <view class="section-title">{{i18n.myActivityList}}</view>
+      <view class="section-count">{{activities.length}}</view>
+    </view>
 
     <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
     <block wx:for="{{activities}}" wx:key="id">
       <view class="card activity-card fade-up">
         <van-card title="{{item.title}}" desc="{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}">
-          <view slot="tags" class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}} </view>
+          <view slot="tags" class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
           <view slot="footer" class="row gap-12">
             <van-button size="small" plain data-id="{{item.id}}" bind:click="onEditTap">{{i18n.edit}}</van-button>
             <van-button size="small" type="primary" data-id="{{item.id}}" bind:click="onSubmitReviewTap">{{i18n.submitReview}}</van-button>

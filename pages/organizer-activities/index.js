@@ -61,7 +61,6 @@ function formatTimestampToDisplay(timestamp) {
   if (!Number.isFinite(numeric)) return "";
   const date = new Date(numeric);
   if (!Number.isFinite(date.getTime())) return "";
-
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
@@ -73,7 +72,6 @@ function extractPickerTimestamp(detail) {
     if (typeof detail.value === "number") return detail.value;
     if (detail.value instanceof Date) return detail.value.getTime();
   }
-
   return NaN;
 }
 
@@ -112,7 +110,11 @@ Page({
       roleHintPrefix: "当前角色为",
       roleHintSuffix: "请在首页切换为组织者后再操作。",
       editActivity: "编辑活动",
-      createActivity: "创建活动",
+      createActivity: "发布活动",
+      formHint: "完善活动信息后即可提交审核",
+      tipBadge: "组织者",
+      basicInfo: "基础信息",
+      publishOptions: "发布设置",
       titleLabel: "标题",
       summaryLabel: "摘要",
       locationLabel: "地点",
@@ -136,7 +138,8 @@ Page({
       phTitle: "例如：校园歌手大赛",
       phSummary: "一句话摘要",
       phLocation: "例如：大学生活动中心",
-      myActivityList: "我的活动",
+      myActivityList: "已发布活动",
+      timePickerPlaceholder: "请选择日期和时间",
       required: "*",
     },
     operatorRole: "STUDENT",
@@ -243,10 +246,6 @@ Page({
     this.setData({ showVisibilityPicker: false });
   },
 
-  onVisibilityChange(event) {
-    this.setData({ "form.visibilityIndex": Number(event.detail.value) });
-  },
-
   onVisibilityConfirm(event) {
     const rawIndex = Array.isArray(event.detail.index) ? event.detail.index[0] : event.detail.index;
     const index = Number(rawIndex);
@@ -307,7 +306,6 @@ Page({
 
     const deadline = normalizeDateTimeInput(form.registrationDeadline);
     if (deadline) payload.registrationDeadline = deadline;
-
     return payload;
   },
 
