@@ -11,14 +11,7 @@
         </view>
       </view>
       <text class="nav-title">{{i18n.navTitle}}</text>
-      <view class="nav-right">
-        <view class="nav-btn" data-action="share" bindtap="onQuickActionTap">
-          <van-icon name="ellipsis" class="nav-vant-icon" />
-        </view>
-        <view class="nav-btn" data-action="service" bindtap="onQuickActionTap">
-          <van-icon name="service-o" class="nav-vant-icon" />
-        </view>
-      </view>
+      <view class="nav-right"></view>
     </view>
   </view>
 
