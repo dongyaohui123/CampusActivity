@@ -1,37 +1,122 @@
-<van-nav-bar title="{{i18n.navTitle}}" />
+<scroll-view class="find-scroll" scroll-y>
+  <view class="find-page with-bottom-nav">
+    <view class="top-panel">
+      <view class="status-safe" style="height: {{navSafeHeightPx}}px;"></view>
+      <view class="title-row" style="padding-right: {{titleRightSafePx}}px;">
+        <text class="page-title">{{i18n.pageTitle}}</text>
+      </view>
 
-<scroll-view class="find-scroll" scroll-y type="list">
-  <view class="page-body with-bottom-nav">
-    <view class="search-wrap card">
-      <van-search
-        value="{{keyword}}"
-        placeholder="{{i18n.searchPlaceholder}}"
-        shape="round"
-        bind:change="onKeywordInput"
-      />
-    </view>
+      <view class="search-box">
+        <view class="search-icon"></view>
+        <input
+          class="search-input"
+          value="{{keyword}}"
+          placeholder="{{i18n.searchPlaceholder}}"
+          bindinput="onKeywordInput"
+          placeholder-class="search-placeholder"
+        />
+      </view>
 
-    <view class="category-wrap card">
-      <van-tabs active="{{selectedCategory}}" bind:change="onCategoryChange" sticky="{{false}}" line-width="22">
+      <scroll-view class="category-row" scroll-x enable-flex>
         <block wx:for="{{categories}}" wx:key="key">
-          <van-tab title="{{item.label}}" name="{{item.key}}"></van-tab>
+          <view
+            class="tab-chip {{selectedCategory === item.key ? 'active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onCategoryTap"
+          >
+            {{item.label}}
+          </view>
         </block>
-      </van-tabs>
+      </scroll-view>
     </view>
 
-    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
+    <view class="filter-card {{filterExpanded ? 'open' : ''}}">
+      <view class="filter-head" bindtap="toggleFilterPanel">
+        <view class="filter-head-left">
+          <text class="filter-title">{{i18n.filterTitle}}</text>
+          <text class="filter-summary">{{filterSummary}}</text>
+        </view>
+        <view class="arrow {{filterExpanded ? 'up' : ''}}"></view>
+      </view>
 
-    <view class="list-wrap">
+      <view wx:if="{{filterExpanded}}" class="filter-body">
+        <view class="filter-group">
+          <text class="group-label">时间</text>
+          <view class="chip-row">
+            <block wx:for="{{timeOptions}}" wx:key="key">
+              <view
+                class="chip {{selectedTime === item.key ? 'active' : ''}}"
+                data-key="{{item.key}}"
+                bindtap="onTimeTap"
+              >
+                {{item.label}}
+              </view>
+            </block>
+          </view>
+        </view>
+
+        <view class="filter-group">
+          <text class="group-label">地点</text>
+          <view class="chip-row">
+            <block wx:for="{{locationOptions}}" wx:key="key">
+              <view
+                class="chip {{selectedLocation === item.key ? 'active' : ''}}"
+                data-key="{{item.key}}"
+                bindtap="onLocationTap"
+              >
+                {{item.label}}
+              </view>
+            </block>
+          </view>
+        </view>
+
+        <view class="filter-group">
+          <text class="group-label">状态（仅展示）</text>
+          <view class="chip-row">
+            <block wx:for="{{statusOptions}}" wx:key="key">
+              <view
+                class="chip {{selectedStatus === item.key ? 'active' : ''}}"
+                data-key="{{item.key}}"
+                bindtap="onStatusTap"
+              >
+                {{item.label}}
+              </view>
+            </block>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="result-head">
+      <text class="result-title">{{i18n.resultTitle}}</text>
+      <text class="result-count">{{resultCount}} 条结果</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading-wrap">
+      <text class="loading-text">{{i18n.loading}}</text>
+    </view>
+
+    <view wx:if="{{!loading && displayList.length > 0}}" class="list-wrap">
       <block wx:for="{{displayList}}" wx:key="id">
-        <view class="card list-card" bindtap="goDetail" data-id="{{item.id}}">
-          <van-card thumb="{{item.cover}}" title="{{item.title}}" desc="{{item.locationDisplay}}">
-            <view slot="tags" class="card-time">{{item.timeDisplay}}</view>
-          </van-card>
+        <view class="activity-card fade-up" bindtap="goDetail" data-id="{{item.id}}" style="animation-delay: {{index * 40}}ms;">
+          <image class="activity-cover" src="{{item.cover}}" mode="aspectFill" />
+          <view class="activity-body">
+            <view class="title-line">
+              <text class="status-tag {{item.statusKey === 'CLOSED' ? 'closed' : ''}}">{{item.statusDisplay}}</text>
+              <text class="activity-title">{{item.title}}</text>
+            </view>
+            <text class="meta-line">时间：{{item.timeDisplay}}</text>
+            <text class="meta-line">地点：{{item.locationDisplay}}</text>
+            <text class="category-pill">{{item.categoryLabel}}</text>
+          </view>
         </view>
       </block>
     </view>
 
-    <van-empty wx:if="{{!loading && displayList.length === 0}}" image="search" description="{{i18n.empty}}" />
+    <view wx:if="{{!loading && displayList.length === 0}}" class="empty-wrap">
+      <text class="empty-title">{{i18n.emptyTitle}}</text>
+      <text class="empty-desc">{{i18n.emptyDesc}}</text>
+    </view>
   </view>
 </scroll-view>
 
