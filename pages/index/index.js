@@ -1,4 +1,4 @@
-const { listPublicActivities } = require("../../utils/api");
+﻿const { listPublicActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
@@ -23,14 +23,19 @@ function mapActivity(item) {
 Page({
   data: {
     i18n: {
+      city: "合肥",
       navTitle: "首页",
       myActivity: "我的活动",
       myOrg: "我的组织",
       publish: "发布活动",
-      recommend: "推荐活动",
+      recommend: "为你推荐",
+      more: "更多",
+      signing: "报名中",
       loading: "加载中...",
       emptyRecommend: "暂无推荐活动",
-      bannerSub: "校园活动一站式服务",
+      searchPlaceholder: "请搜索展览名",
+      bannerTitle: "校园活动管理平台",
+      bannerSub: "一站式发现、报名与管理校园活动",
     },
     banners: [
       "https://picsum.photos/980/420?random=31",
@@ -44,6 +49,10 @@ Page({
 
   onShow() {
     this.loadRecommendList();
+  },
+
+  goFind() {
+    wx.reLaunch({ url: "/pages/activity-list/index" });
   },
 
   async loadRecommendList() {
