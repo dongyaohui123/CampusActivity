@@ -7,9 +7,9 @@
         <view class="avatar">{{avatarText}}</view>
         <view class="user-meta">
           <view class="user-name">{{loginUser ? (loginUser.nickname || loginUser.username) : i18n.guestName}}</view>
+          <view wx:if="{{loginUser}}" class="user-id">{{i18n.userIdPrefix}}{{loginUser.id}}</view>
           <view class="user-desc">{{loginUser ? i18n.welcomeBack : i18n.guestDesc}}</view>
         </view>
-        <view class="settings-tag">{{i18n.setting}}</view>
       </view>
 
       <view class="count-row">
@@ -28,16 +28,76 @@
       </view>
     </view>
 
-    <view class="entry-card">
-      <view class="entry-item" data-action="{{quickPrimary.action}}" bindtap="onQuickActionTap">
-        <view class="entry-title">{{quickPrimary.title}}</view>
-        <view class="entry-desc">{{quickPrimary.desc}}</view>
+    <view class="quick-card">
+      <view wx:for="{{quickActions}}" wx:key="action" class="quick-item" data-action="{{item.action}}" bindtap="onQuickActionTap">
+        <view class="quick-icon">{{item.icon}}</view>
+        <view class="quick-title">{{item.title}}</view>
+        <view class="quick-desc">{{item.desc}}</view>
       </view>
-      <view class="entry-divider"></view>
-      <view class="entry-item" data-action="{{quickSecondary.action}}" bindtap="onQuickActionTap">
-        <view class="entry-title">{{quickSecondary.title}}</view>
-        <view class="entry-desc">{{quickSecondary.desc}}</view>
+    </view>
+
+    <view class="activity-panel">
+      <view class="panel-head">
+        <view class="panel-title">{{i18n.myActivity}}</view>
+        <view class="panel-more" data-action="{{sectionEntry.action}}" bindtap="onSectionMoreTap">{{sectionEntry.text}}</view>
       </view>
+
+      <view wx:if="{{!loginUser}}" class="panel-empty-login">
+        <view class="empty-text">{{i18n.guestActivityHint}}</view>
+        <van-button size="small" type="primary" data-action="login" bind:click="onMenuTap">{{i18n.goLogin}}</van-button>
+      </view>
+
+      <block wx:if="{{loginUser}}">
+        <view wx:if="{{activityTabs.length}}" class="activity-tabs">
+          <view
+            wx:for="{{activityTabs}}"
+            wx:key="key"
+            class="activity-tab {{activeActivityTab === item.key ? 'activity-tab-active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onActivityTabTap"
+          >
+            <text>{{item.label}}</text>
+            <text wx:if="{{item.count > 0}}" class="tab-badge">{{item.count}}</text>
+          </view>
+        </view>
+
+        <van-empty wx:if="{{loadingActivities}}" image="search" description="{{i18n.loading}}" />
+
+        <block wx:for="{{filteredActivityCards}}" wx:key="itemKey">
+          <view class="activity-card">
+            <view class="activity-top">
+              <view class="activity-title">{{item.title}}</view>
+              <view class="status-pill status-{{item.statusTone}}">{{item.statusText}}</view>
+            </view>
+            <view class="activity-meta">{{i18n.locationLabel}}：{{item.locationText}}</view>
+            <view class="activity-meta">{{i18n.timeLabel}}：{{item.timeText}}</view>
+            <view class="activity-actions">
+              <van-button
+                wx:if="{{item.secondaryAction}}"
+                size="small"
+                plain
+                data-action="{{item.secondaryAction.action}}"
+                data-item-id="{{item.secondaryAction.itemId}}"
+                bind:click="onCardActionTap"
+              >
+                {{item.secondaryAction.label}}
+              </van-button>
+              <van-button
+                wx:if="{{item.primaryAction}}"
+                size="small"
+                type="primary"
+                data-action="{{item.primaryAction.action}}"
+                data-item-id="{{item.primaryAction.itemId}}"
+                bind:click="onCardActionTap"
+              >
+                {{item.primaryAction.label}}
+              </van-button>
+            </view>
+          </view>
+        </block>
+
+        <van-empty wx:if="{{!loadingActivities && filteredActivityCards.length === 0}}" image="search" description="{{activityEmptyText}}" />
+      </block>
     </view>
 
     <view class="menu-card">
