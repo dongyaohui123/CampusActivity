@@ -30,7 +30,9 @@
 
     <view class="quick-card">
       <view wx:for="{{quickActions}}" wx:key="action" class="quick-item" data-action="{{item.action}}" bindtap="onQuickActionTap">
-        <view class="quick-icon">{{item.icon}}</view>
+        <view class="quick-icon">
+          <van-icon name="{{item.iconName}}" custom-class="quick-icon-glyph" />
+        </view>
         <view class="quick-title">{{item.title}}</view>
         <view class="quick-desc">{{item.desc}}</view>
       </view>
@@ -100,15 +102,8 @@
       </block>
     </view>
 
-    <view class="menu-card">
-      <van-cell-group border="{{false}}" inset>
-        <van-cell title="{{i18n.myActivity}}" is-link data-action="myActivity" bind:click="onMenuTap" />
-        <van-cell title="{{i18n.myOrg}}" is-link data-action="myOrg" bind:click="onMenuTap" />
-        <van-cell wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" title="{{i18n.reviewManage}}" is-link data-action="review" bind:click="onMenuTap" />
-        <van-cell title="{{i18n.helpCenter}}" is-link data-action="help" bind:click="onMenuTap" />
-        <van-cell title="{{i18n.contact}}" is-link data-action="contact" bind:click="onMenuTap" />
-        <van-cell wx:if="{{loginUser}}" title="{{i18n.logout}}" bind:click="onLogoutTap" />
-      </van-cell-group>
+    <view wx:if="{{loginUser}}" class="logout-wrap">
+      <van-button type="default" custom-class="logout-btn" bind:click="onLogoutTap">{{i18n.logout}}</van-button>
     </view>
   </view>
 </scroll-view>

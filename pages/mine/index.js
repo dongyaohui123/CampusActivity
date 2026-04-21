@@ -95,23 +95,23 @@ function getRoleTabDefs(role, i18n) {
 function getQuickActions(i18n, loginUser) {
   if (!loginUser) {
     return [
-      { icon: "登", title: i18n.goLogin, desc: i18n.goLoginDesc, action: "login" },
-      { icon: "活", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
-      { icon: "助", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
-      { icon: "客", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
+      { iconName: "contact-o", title: i18n.goLogin, desc: i18n.goLoginDesc, action: "login" },
+      { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
+      { iconName: "question-o", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
+      { iconName: "service-o", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
     ];
   }
   const roleAction =
     loginUser.role === "ADMIN"
-      ? { icon: "审", title: i18n.reviewManage, desc: i18n.reviewDesc, action: "review" }
+      ? { iconName: "search", title: i18n.reviewManage, desc: i18n.reviewDesc, action: "review" }
       : loginUser.role === "ORGANIZER"
-      ? { icon: "组", title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" }
-      : { icon: "找", title: i18n.findActivity, desc: i18n.findActivityDesc, action: "findActivity" };
+      ? { iconName: "cluster-o", title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" }
+      : { iconName: "search", title: i18n.findActivity, desc: i18n.findActivityDesc, action: "findActivity" };
   return [
-    { icon: "活", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
+    { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
     roleAction,
-    { icon: "助", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
-    { icon: "客", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
+    { iconName: "question-o", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
+    { iconName: "service-o", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
   ];
 }
 
