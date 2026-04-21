@@ -17,45 +17,6 @@ page {
   padding-bottom: 44rpx;
 }
 
-.top-panel {
-  background: linear-gradient(160deg, rgba(205, 212, 226, 0.58), rgba(236, 239, 246, 0.56) 45%, rgba(243, 245, 249, 1));
-  border-radius: 0 0 24rpx 24rpx;
-  border-bottom: 1rpx solid #d9e0ec;
-  padding: 16rpx 8rpx 14rpx;
-  margin: 0 -8rpx 12rpx;
-}
-
-.title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.page-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #2f3746;
-  line-height: 1.25;
-}
-
-.page-subtitle {
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: #667085;
-}
-
-.page-badge {
-  flex-shrink: 0;
-  font-size: 20rpx;
-  font-weight: 700;
-  color: #2f6cf3;
-  background: #edf3ff;
-  border: 1rpx solid #d8e6ff;
-  border-radius: 999rpx;
-  padding: 6rpx 12rpx;
-}
-
 .card {
   background: #ffffff;
   border-radius: 20rpx;

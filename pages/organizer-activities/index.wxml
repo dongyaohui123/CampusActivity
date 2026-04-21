@@ -1,16 +1,6 @@
 <van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
 <scroll-view class="page-scroll" scroll-y type="list">
   <view class="page-body with-bottom-space">
-    <view class="top-panel fade-up">
-      <view class="title-row">
-        <view>
-          <view class="page-title">{{i18n.navTitle}}</view>
-          <view class="page-subtitle">{{i18n.createActivity}}</view>
-        </view>
-        <view class="page-badge">Mobile</view>
-      </view>
-    </view>
-
     <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="card role-card">
       <view class="muted">{{i18n.roleHintPrefix}} {{operatorRole}}, {{i18n.roleHintSuffix}}</view>
     </view>
