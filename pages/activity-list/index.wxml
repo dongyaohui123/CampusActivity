@@ -1,9 +1,9 @@
 <scroll-view class="find-scroll" scroll-y>
   <view class="find-page with-bottom-nav">
     <view class="top-panel">
-      <view class="title-row">
+      <view class="status-safe" style="height: {{navSafeHeightPx}}px;"></view>
+      <view class="title-row" style="padding-right: {{titleRightSafePx}}px;">
         <text class="page-title">{{i18n.pageTitle}}</text>
-        <text class="page-badge">Research</text>
       </view>
 
       <view class="search-box">

@@ -17,8 +17,12 @@ page {
   background: linear-gradient(160deg, rgba(205, 212, 226, 0.58), rgba(236, 239, 246, 0.56) 45%, rgba(243, 245, 249, 1));
   border-radius: 0 0 24rpx 24rpx;
   border-bottom: 1rpx solid #d9e0ec;
-  padding: 22rpx 8rpx 14rpx;
+  padding: 0 8rpx 14rpx;
   margin: 0 -8rpx 12rpx;
+}
+
+.status-safe {
+  width: 100%;
 }
 
 .title-row {
