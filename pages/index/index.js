@@ -1,4 +1,4 @@
-const { listPublicActivities } = require("../../utils/api");
+﻿const { listPublicActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
@@ -23,7 +23,7 @@ function mapActivity(item) {
 Page({
   data: {
     i18n: {
-      city: "深圳",
+      city: "合肥",
       navTitle: "首页",
       myActivity: "我的活动",
       myOrg: "我的组织",

@@ -62,15 +62,21 @@
     <view class="quick-card fade-in delay-1">
       <view class="quick-grid">
         <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
-          <view class="quick-icon icon-a"></view>
+          <view class="quick-icon icon-activity">
+            <van-icon name="todo-list-o" class="quick-vant-icon" />
+          </view>
           <text class="quick-text">{{i18n.myActivity}}</text>
         </view>
         <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
-          <view class="quick-icon icon-b"></view>
+          <view class="quick-icon icon-org">
+            <van-icon name="cluster-o" class="quick-vant-icon" />
+          </view>
           <text class="quick-text">{{i18n.myOrg}}</text>
         </view>
         <view class="quick-item" data-action="publish" bindtap="onQuickTap">
-          <view class="quick-icon icon-c"></view>
+          <view class="quick-icon icon-publish">
+            <van-icon name="plus" class="quick-vant-icon" />
+          </view>
           <text class="quick-text">{{i18n.publish}}</text>
         </view>
       </view>
