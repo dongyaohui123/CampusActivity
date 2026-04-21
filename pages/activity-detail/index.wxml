@@ -1,31 +1,94 @@
-<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
-<scroll-view class="detail-scroll" scroll-y type="list">
-  <view class="page-body">
-    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
-
-    <view wx:if="{{activity}}" class="card">
-      <view class="title mb-12">{{activity.title}}</view>
-      <van-cell-group inset>
-        <van-cell title="{{i18n.statusLabel}}" value="{{activity.status || '-'}}" />
-        <van-cell title="{{i18n.locationLabel}}" value="{{activity.location || '-'}}" />
-        <van-cell title="{{i18n.timeLabel}}" value="{{activity.startDisplay}} ~ {{activity.endDisplay}}" />
-        <van-cell title="{{i18n.deadlineLabel}}" value="{{activity.deadlineDisplay}}" />
-        <van-cell title="{{i18n.summaryLabel}}" value="{{activity.summary || '-'}}" />
-      </van-cell-group>
-      <view class="detail-content">{{i18n.contentLabel}}: {{activity.content || '-'}}</view>
-    </view>
-
-    <view class="card">
-      <view class="title mb-12">{{i18n.registerOps}}</view>
-      <view wx:if="{{operatorRole !== 'STUDENT'}}" class="muted mb-12">{{i18n.studentOnly}}</view>
-      <view wx:if="{{currentRegistration}}" class="muted mb-12">{{i18n.currentStatus}}: {{currentRegistration.registrationStatus}}</view>
-      <view class="row gap-12">
-        <van-button wx:if="{{canRegister}}" type="primary" bind:click="onRegisterTap">{{i18n.registerNow}}</van-button>
-        <van-button wx:if="{{canCancel}}" plain bind:click="onCancelTap">{{i18n.cancelRegister}}</van-button>
+<view class="detail-page">
+  <view class="top-panel">
+    <view class="status-safe" style="height: {{navSafeHeightPx}}px;"></view>
+    <view class="nav-row">
+      <view class="nav-left">
+        <view class="nav-btn" bindtap="onClickNavLeft">
+          <van-icon name="arrow-left" class="nav-vant-icon" />
+        </view>
+        <view class="nav-btn" data-action="home" bindtap="onQuickActionTap">
+          <van-icon name="home-o" class="nav-vant-icon" />
+        </view>
       </view>
+      <text class="nav-title">{{i18n.navTitle}}</text>
+      <view class="nav-right"></view>
     </view>
   </view>
-</scroll-view>
+
+  <scroll-view class="detail-scroll" scroll-y type="list">
+    <view class="page-body detail-body">
+      <view wx:if="{{loading}}" class="card loading-card">
+        <view class="loading-title">{{i18n.loading}}</view>
+        <view class="loading-line"></view>
+        <view class="loading-line"></view>
+        <view class="loading-line short"></view>
+      </view>
+
+      <block wx:if="{{!loading && activity}}">
+        <view class="hero-card fade-up">
+          <image class="hero-image" src="{{coverDisplay}}" mode="aspectFill" />
+          <view class="hero-mask">
+            <text class="hero-status">{{activity.statusText}}</text>
+            <text class="hero-deadline">{{i18n.deadlineLabel}} {{activity.deadlineDisplay}}</text>
+          </view>
+        </view>
+
+        <view class="card info-card fade-up delay-1">
+          <view class="title mb-12">{{activity.title || i18n.untitled}}</view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.locationLabel}}</text>
+            <text class="meta-value">{{activity.location || i18n.emptyText}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.timeLabel}}</text>
+            <text class="meta-value">{{activity.startDisplay}} ~ {{activity.endDisplay}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.currentStatus}}</text>
+            <text class="meta-value">{{registrationStatusText}}</text>
+          </view>
+        </view>
+
+        <view class="card detail-card fade-up delay-2">
+          <view class="section-title">{{i18n.summaryLabel}}</view>
+          <view class="summary-text">{{activity.summary || i18n.summaryEmpty}}</view>
+          <view class="section-title content-title">{{i18n.contentLabel}}</view>
+          <view class="detail-content">{{activity.content || i18n.contentEmpty}}</view>
+        </view>
+      </block>
+
+      <van-empty wx:if="{{!loading && !activity}}" image="search" description="{{i18n.loadFailed}}" />
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{activity}}" class="action-bar">
+    <view class="quick-group">
+      <view class="quick-btn" data-action="favorite" bindtap="onQuickActionTap">
+        <view class="quick-icon">
+          <van-icon name="star-o" class="quick-vant-icon" />
+        </view>
+        <text class="quick-label">{{i18n.favorite}}</text>
+      </view>
+      <view class="quick-btn" data-action="share" bindtap="onQuickActionTap">
+        <view class="quick-icon">
+          <van-icon name="share-o" class="quick-vant-icon" />
+        </view>
+        <text class="quick-label">{{i18n.share}}</text>
+      </view>
+      <view class="quick-btn" data-action="service" bindtap="onQuickActionTap">
+        <view class="quick-icon">
+          <van-icon name="service-o" class="quick-vant-icon" />
+        </view>
+        <text class="quick-label">{{i18n.service}}</text>
+      </view>
+    </view>
+
+    <button class="cta-btn {{ctaMode}}" bindtap="onCtaTap" disabled="{{ctaMode === 'disabled'}}">
+      <text class="cta-main">{{ctaText}}</text>
+      <text class="cta-sub">{{ctaHint}}</text>
+    </button>
+  </view>
+</view>
 
 <van-toast id="van-toast" />
 <van-notify id="van-notify" />
