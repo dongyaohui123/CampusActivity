@@ -11,11 +11,73 @@ const CATEGORY_ITEMS = [
   { key: "OTHER", label: "其他" },
 ];
 
-function formatTime(time) {
+const TIME_ITEMS = [
+  { key: "ALL", label: "不限" },
+  { key: "TODAY", label: "今天" },
+  { key: "THIS_WEEK", label: "本周" },
+  { key: "WEEKEND", label: "周末" },
+];
+
+const LOCATION_ITEMS = [
+  { key: "ALL", label: "不限" },
+  { key: "东校区", label: "东校区" },
+  { key: "西校区", label: "西校区" },
+  { key: "图书馆", label: "图书馆" },
+  { key: "线上", label: "线上" },
+];
+
+const STATUS_ITEMS = [
+  { key: "ALL", label: "不限" },
+  { key: "OPEN", label: "报名中" },
+  { key: "CLOSED", label: "已截止" },
+];
+
+function parseTime(value) {
+  const time = new Date(value);
+  return Number.isNaN(time.getTime()) ? null : time;
+}
+
+function padNumber(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatTime(timeText) {
+  const time = parseTime(timeText);
   if (!time) {
     return "时间待定";
   }
-  return String(time).replace("T", " ").slice(5, 16);
+  const year = time.getFullYear();
+  const month = padNumber(time.getMonth() + 1);
+  const day = padNumber(time.getDate());
+  const hour = padNumber(time.getHours());
+  const minute = padNumber(time.getMinutes());
+  return `${year}-${month}-${day} ${hour}:${minute}`;
+}
+
+function isSameDay(dateA, dateB) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+function isWeekend(date) {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+function inThisWeek(date, now) {
+  const day = now.getDay() || 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - day + 1);
+  monday.setHours(0, 0, 0, 0);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+
+  return date >= monday && date <= sunday;
 }
 
 function classifyByText(activity) {
@@ -27,30 +89,67 @@ function classifyByText(activity) {
   return "OTHER";
 }
 
-function normalizeActivity(item) {
+function getCategoryLabel(key) {
+  const category = CATEGORY_ITEMS.find((item) => item.key === key);
+  return category ? category.label : "其他";
+}
+
+function deriveStatusKey(activity, now) {
+  if (activity.status === "OPEN" || activity.status === "CLOSED") {
+    return activity.status;
+  }
+  const start = parseTime(activity.startTime);
+  if (start && start < now) {
+    return "CLOSED";
+  }
+  return "OPEN";
+}
+
+function getStatusDisplay(statusKey) {
+  return statusKey === "CLOSED" ? "已截止" : "报名中";
+}
+
+function normalizeActivity(item, now) {
+  const categoryKey = classifyByText(item);
+  const statusKey = deriveStatusKey(item, now);
   return {
     ...item,
-    cover: item.coverUrl || DEFAULT_COVER,
+    cover: item.coverUrl || item.cover || DEFAULT_COVER,
     timeDisplay: formatTime(item.startTime),
     locationDisplay: item.location || "地点待定",
-    categoryKey: classifyByText(item),
+    categoryKey,
+    categoryLabel: getCategoryLabel(categoryKey),
+    statusKey,
+    statusDisplay: getStatusDisplay(statusKey),
   };
 }
 
 Page({
   data: {
     i18n: {
-      navTitle: "找活动",
-      searchPlaceholder: "请输入活动名称或地点",
+      pageTitle: "校园活动搜索",
+      searchPlaceholder: "搜索活动标题或地点",
+      filterTitle: "筛选条件",
+      resultTitle: "活动列表",
       loading: "加载中...",
-      empty: "暂无更多活动",
+      emptyTitle: "暂无匹配活动",
+      emptyDesc: "尝试更换关键词或放宽筛选条件",
     },
     loading: false,
     keyword: "",
     selectedCategory: "ALL",
     categories: CATEGORY_ITEMS,
+    selectedTime: "ALL",
+    timeOptions: TIME_ITEMS,
+    selectedLocation: "ALL",
+    locationOptions: LOCATION_ITEMS,
+    selectedStatus: "ALL",
+    statusOptions: STATUS_ITEMS,
+    filterExpanded: true,
+    filterSummary: "时间不限 · 地点不限 · 状态不限",
     fullList: [],
     displayList: [],
+    resultCount: 0,
     bottomActive: "find",
   },
 
@@ -59,53 +158,104 @@ Page({
   },
 
   onKeywordInput(event) {
-    this.setData({ keyword: event.detail });
+    this.setData({ keyword: event.detail.value || "" });
     this.applyFilter();
   },
 
   onCategoryTap(event) {
-    const category = event.currentTarget.dataset.category;
-    this.setData({ selectedCategory: category });
+    const key = event.currentTarget.dataset.key;
+    this.setData({ selectedCategory: key });
     this.applyFilter();
   },
 
-  onCategoryChange(event) {
-    const category = event.detail;
-    this.setData({ selectedCategory: category });
+  onTimeTap(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ selectedTime: key });
     this.applyFilter();
   },
 
-  async loadActivities() {
-    this.setData({ loading: true });
-    try {
-      const list = await listPublicActivities({});
-      this.setData({ fullList: (list || []).map(normalizeActivity) });
-      this.applyFilter();
-    } catch (e) {
-      this.setData({ fullList: [], displayList: [] });
-    } finally {
-      this.setData({ loading: false });
-    }
+  onLocationTap(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ selectedLocation: key });
+    this.applyFilter();
+  },
+
+  onStatusTap(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ selectedStatus: key });
+    this.applyFilter();
+  },
+
+  toggleFilterPanel() {
+    this.setData({ filterExpanded: !this.data.filterExpanded });
+  },
+
+  buildFilterSummary() {
+    const timeLabel = TIME_ITEMS.find((item) => item.key === this.data.selectedTime)?.label || "不限";
+    const locationLabel = LOCATION_ITEMS.find((item) => item.key === this.data.selectedLocation)?.label || "不限";
+    const statusLabel = STATUS_ITEMS.find((item) => item.key === this.data.selectedStatus)?.label || "不限";
+    return `时间${timeLabel} · 地点${locationLabel} · 状态${statusLabel}`;
+  },
+
+  passTimeFilter(itemTime, selectedTime, now) {
+    if (selectedTime === "ALL") return true;
+    const time = parseTime(itemTime);
+    if (!time) return false;
+    if (selectedTime === "TODAY") return isSameDay(time, now);
+    if (selectedTime === "THIS_WEEK") return inThisWeek(time, now);
+    if (selectedTime === "WEEKEND") return isWeekend(time);
+    return true;
+  },
+
+  passLocationFilter(itemLocation, selectedLocation) {
+    if (selectedLocation === "ALL") return true;
+    return String(itemLocation || "").includes(selectedLocation);
   },
 
   applyFilter() {
     const keyword = String(this.data.keyword || "").trim().toLowerCase();
     const selectedCategory = this.data.selectedCategory;
-    // 从全量名单中进行过滤
+    const selectedTime = this.data.selectedTime;
+    const selectedLocation = this.data.selectedLocation;
+    const now = new Date();
+
     const displayList = this.data.fullList.filter((item) => {
-      // 关键词匹配（标题、简介、地点里包含这个词吗？）
       const passKeyword =
         !keyword ||
-        (item.title || "").toLowerCase().includes(keyword) ||
-        (item.summary || "").toLowerCase().includes(keyword) ||
-        (item.location || "").toLowerCase().includes(keyword);
-      //分类匹配（是选中的分类吗？）
+        String(item.title || "").toLowerCase().includes(keyword) ||
+        String(item.summary || "").toLowerCase().includes(keyword) ||
+        String(item.location || "").toLowerCase().includes(keyword);
+
       const passCategory = selectedCategory === "ALL" || item.categoryKey === selectedCategory;
-      //两项都满足才能通过
-      return passKeyword && passCategory;
+      const passTime = this.passTimeFilter(item.startTime, selectedTime, now);
+      const passLocation = this.passLocationFilter(item.location, selectedLocation);
+      return passKeyword && passCategory && passTime && passLocation;
     });
-    // 更新到屏幕上
-    this.setData({ displayList });
+
+    this.setData({
+      displayList,
+      resultCount: displayList.length,
+      filterSummary: this.buildFilterSummary(),
+    });
+  },
+
+  async loadActivities() {
+    this.setData({ loading: true });
+    try {
+      const now = new Date();
+      const list = await listPublicActivities({});
+      this.setData({ fullList: (list || []).map((item) => normalizeActivity(item, now)) });
+      this.applyFilter();
+    } catch (error) {
+      this.setData({
+        fullList: [],
+        displayList: [],
+        resultCount: 0,
+        filterSummary: this.buildFilterSummary(),
+      });
+    } finally {
+      this.setData({ loading: false });
+    }
   },
 
   goDetail(event) {
@@ -120,6 +270,8 @@ Page({
       return;
     }
     if (tab === "find") return;
-    if (tab === "mine") wx.reLaunch({ url: "/pages/mine/index" });
+    if (tab === "mine") {
+      wx.reLaunch({ url: "/pages/mine/index" });
+    }
   },
 });
