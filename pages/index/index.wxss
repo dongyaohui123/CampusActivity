@@ -7,6 +7,7 @@ page {
 
 .home-scroll {
   flex: 1;
+  min-height: 0;
 }
 
 .home-page {

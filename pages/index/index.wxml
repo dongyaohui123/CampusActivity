@@ -1,5 +1,5 @@
 <scroll-view class="home-scroll" scroll-y>
-  <view class="home-page with-bottom-nav">
+  <view class="home-page">
     <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
       <view class="city-row" style="min-height: {{cityRowMinHeightPx}}px;">
         <view class="city-pill">
@@ -85,7 +85,7 @@
   </view>
 </scroll-view>
 
-<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom>
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
   <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>

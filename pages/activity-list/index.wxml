@@ -1,5 +1,5 @@
 <scroll-view class="find-scroll" scroll-y>
-  <view class="find-page with-bottom-nav">
+  <view class="find-page">
     <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
       <view class="title-row" style="min-height: {{titleRowMinHeightPx}}px; padding-right: {{titleRightSafePx}}px;">
         <text class="page-title">{{i18n.pageTitle}}</text>
@@ -119,7 +119,7 @@
   </view>
 </scroll-view>
 
-<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom>
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
   <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>

@@ -1,7 +1,7 @@
 <van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="mine-scroll" scroll-y type="list">
-  <view class="with-bottom-nav mine-page">
+  <view class="mine-page">
     <view class="profile-header">
       <view class="header-top">
         <view class="avatar">{{avatarText}}</view>
@@ -108,7 +108,7 @@
   </view>
 </scroll-view>
 
-<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom>
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
   <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>

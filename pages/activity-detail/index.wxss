@@ -73,6 +73,7 @@ page {
 
 .detail-scroll {
   flex: 1;
+  min-height: 0;
 }
 
 .detail-body {
