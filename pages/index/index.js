@@ -33,7 +33,7 @@ Page({
       signing: "报名中",
       loading: "加载中...",
       emptyRecommend: "暂无推荐活动",
-      searchPlaceholder: "请搜索展览名",
+      searchPlaceholder: "请搜索活动名",
       bannerTitle: "校园活动管理平台",
       bannerSub: "一站式发现、报名与管理校园活动",
     },
@@ -45,10 +45,67 @@ Page({
     recommendList: [],
     loading: false,
     bottomActive: "home",
+    topPanelPaddingTopPx: 20,
+    cityRowMinHeightPx: 32,
+    searchBoxMarginTopPx: 8,
+  },
+
+  onLoad() {
+    this.initTopPanelSafePadding();
   },
 
   onShow() {
     this.loadRecommendList();
+  },
+
+  initTopPanelSafePadding() {
+    let statusBarHeight = 20;
+    let topPanelPaddingTopPx = statusBarHeight + 4;
+    let cityRowMinHeightPx = 32;
+    let searchBoxMarginTopPx = 8;
+
+    try {
+      const systemInfo = wx.getWindowInfo
+        ? wx.getWindowInfo()
+        : wx.getSystemInfoSync
+          ? wx.getSystemInfoSync()
+          : null;
+
+      if (systemInfo && typeof systemInfo.statusBarHeight === "number") {
+        statusBarHeight = systemInfo.statusBarHeight || statusBarHeight;
+      }
+
+      topPanelPaddingTopPx = statusBarHeight + 4;
+      cityRowMinHeightPx = 32;
+      searchBoxMarginTopPx = 8;
+
+      if (wx.getMenuButtonBoundingClientRect) {
+        const menuRect = wx.getMenuButtonBoundingClientRect();
+        if (
+          menuRect &&
+          typeof menuRect.top === "number" &&
+          typeof menuRect.height === "number" &&
+          typeof menuRect.bottom === "number"
+        ) {
+          topPanelPaddingTopPx = Math.ceil(menuRect.top);
+          cityRowMinHeightPx = Math.ceil(menuRect.height);
+          searchBoxMarginTopPx = Math.max(
+            0,
+            Math.ceil((menuRect.bottom + 8) - (topPanelPaddingTopPx + cityRowMinHeightPx))
+          );
+        }
+      }
+    } catch (error) {
+      topPanelPaddingTopPx = statusBarHeight + 4;
+      cityRowMinHeightPx = 32;
+      searchBoxMarginTopPx = 8;
+    }
+
+    this.setData({
+      topPanelPaddingTopPx,
+      cityRowMinHeightPx,
+      searchBoxMarginTopPx,
+    });
   },
 
   goFind() {

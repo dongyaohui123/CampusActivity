@@ -1,45 +1,15 @@
 <scroll-view class="home-scroll" scroll-y>
   <view class="home-page with-bottom-nav">
-    <view class="top-panel">
-      <view class="status-row">
-        <text class="status-time">9:41</text>
-        <view class="status-icons">
-          <view class="signal-group">
-            <view class="signal-bar b1"></view>
-            <view class="signal-bar b2"></view>
-            <view class="signal-bar b3"></view>
-            <view class="signal-bar b4"></view>
-          </view>
-          <view class="wifi-group">
-            <view class="wifi-dot"></view>
-          </view>
-          <view class="battery-group">
-            <view class="battery-level"></view>
-          </view>
-        </view>
-      </view>
-
-      <view class="city-row">
+    <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
+      <view class="city-row" style="min-height: {{cityRowMinHeightPx}}px;">
         <view class="city-pill">
           <view class="pin-icon"></view>
           <text class="city-text">{{i18n.city}}</text>
           <view class="arrow-down"></view>
         </view>
-
-        <view class="action-pill">
-          <view class="dot-group">
-            <view class="dot"></view>
-            <view class="dot"></view>
-            <view class="dot"></view>
-          </view>
-          <view class="action-divider"></view>
-          <view class="target-ring">
-            <view class="target-core"></view>
-          </view>
-        </view>
       </view>
 
-      <view class="search-box" bindtap="goFind">
+      <view class="search-box" style="margin-top: {{searchBoxMarginTopPx}}px;" bindtap="goFind">
         <view class="search-icon"></view>
         <text class="search-text">{{i18n.searchPlaceholder}}</text>
       </view>

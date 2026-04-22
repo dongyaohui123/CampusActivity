@@ -20,100 +20,9 @@ page {
   margin: 0 -6rpx 8rpx;
 }
 
-.status-row {
-  height: 44rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18rpx;
-  padding: 0 8rpx;
-}
-
-.status-time {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #1f2736;
-  letter-spacing: 0;
-}
-
-.status-icons {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  color: #1f2736;
-}
-
-.signal-group {
-  display: flex;
-  align-items: flex-end;
-  gap: 2rpx;
-  height: 20rpx;
-}
-
-.signal-bar {
-  width: 4rpx;
-  border-radius: 4rpx;
-  background: currentColor;
-}
-
-.signal-bar.b1 { height: 8rpx; }
-.signal-bar.b2 { height: 11rpx; }
-.signal-bar.b3 { height: 14rpx; }
-.signal-bar.b4 { height: 17rpx; }
-
-.wifi-group {
-  width: 18rpx;
-  height: 14rpx;
-  border: 2rpx solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-  position: relative;
-  transform: rotate(180deg);
-}
-
-.wifi-dot {
-  width: 4rpx;
-  height: 4rpx;
-  border-radius: 50%;
-  background: currentColor;
-  position: absolute;
-  left: 50%;
-  top: 2rpx;
-  transform: translateX(-50%);
-}
-
-.battery-group {
-  width: 30rpx;
-  height: 16rpx;
-  border: 2rpx solid currentColor;
-  border-radius: 4rpx;
-  position: relative;
-  padding: 2rpx;
-}
-
-.battery-group::after {
-  content: "";
-  position: absolute;
-  right: -4rpx;
-  top: 4rpx;
-  width: 3rpx;
-  height: 6rpx;
-  border-radius: 0 2rpx 2rpx 0;
-  background: currentColor;
-}
-
-.battery-level {
-  height: 100%;
-  width: 70%;
-  border-radius: 2rpx;
-  background: currentColor;
-}
-
 .city-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14rpx;
 }
 
 .city-pill {
@@ -155,54 +64,6 @@ page {
   border-left: 2rpx solid #4f5767;
   border-bottom: 2rpx solid #4f5767;
   transform: rotate(-45deg) translateY(-2rpx);
-}
-
-.action-pill {
-  width: 220rpx;
-  height: 72rpx;
-  border-radius: 36rpx;
-  border: 1rpx solid #d1d8e3;
-  background: rgba(246, 248, 252, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-}
-
-.dot-group {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.dot {
-  width: 6rpx;
-  height: 6rpx;
-  border-radius: 50%;
-  background: #2d3443;
-}
-
-.action-divider {
-  width: 1rpx;
-  height: 26rpx;
-  background: #cfd6e1;
-}
-
-.target-ring {
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  border: 2rpx solid #2d3443;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.target-core {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: #2d3443;
 }
 
 .search-box {

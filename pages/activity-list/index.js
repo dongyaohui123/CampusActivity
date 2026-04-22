@@ -147,8 +147,9 @@ Page({
     statusOptions: STATUS_ITEMS,
     filterExpanded: true,
     filterSummary: "时间不限 · 地点不限 · 状态不限",
-    statusBarHeightPx: 20,
-    navSafeHeightPx: 20,
+    topPanelPaddingTopPx: 24,
+    titleRowMinHeightPx: 32,
+    searchBoxMarginTopPx: 8,
     titleRightSafePx: 12,
     fullList: [],
     displayList: [],
@@ -166,21 +167,13 @@ Page({
 
   initStatusBarHeight() {
     let statusBarHeight = 20;
-    let navSafeHeight = 20;
+    let topPanelPaddingTop = statusBarHeight + 4;
+    let titleRowMinHeight = 32;
+    let searchBoxMarginTop = 8;
     let titleRightSafe = 12;
     try {
       let windowWidth = 375;
-      if (wx.getSystemInfoSync) {
-        const systemInfo = wx.getSystemInfoSync();
-        if (systemInfo) {
-          if (typeof systemInfo.statusBarHeight === "number") {
-            statusBarHeight = systemInfo.statusBarHeight || statusBarHeight;
-          }
-          if (typeof systemInfo.windowWidth === "number") {
-            windowWidth = systemInfo.windowWidth;
-          }
-        }
-      } else if (wx.getWindowInfo) {
+      if (wx.getWindowInfo) {
         const windowInfo = wx.getWindowInfo();
         if (windowInfo) {
           if (typeof windowInfo.statusBarHeight === "number") {
@@ -190,25 +183,52 @@ Page({
             windowWidth = windowInfo.windowWidth;
           }
         }
-      }
-
-      navSafeHeight = Math.max(statusBarHeight, 20);
-      if (wx.getMenuButtonBoundingClientRect) {
-        const menuRect = wx.getMenuButtonBoundingClientRect();
-        if (menuRect) {
-          if (typeof menuRect.left === "number" && typeof windowWidth === "number") {
-            titleRightSafe = Math.max(titleRightSafe, Math.ceil(windowWidth - menuRect.left + 12));
+      } else if (wx.getSystemInfoSync) {
+        const systemInfo = wx.getSystemInfoSync();
+        if (systemInfo) {
+          if (typeof systemInfo.statusBarHeight === "number") {
+            statusBarHeight = systemInfo.statusBarHeight || statusBarHeight;
+          }
+          if (typeof systemInfo.windowWidth === "number") {
+            windowWidth = systemInfo.windowWidth;
           }
         }
       }
+
+      topPanelPaddingTop = statusBarHeight + 4;
+      titleRowMinHeight = 32;
+      searchBoxMarginTop = 8;
+      titleRightSafe = 12;
+
+      if (wx.getMenuButtonBoundingClientRect) {
+        const menuRect = wx.getMenuButtonBoundingClientRect();
+        if (
+          menuRect &&
+          typeof menuRect.top === "number" &&
+          typeof menuRect.height === "number" &&
+          typeof menuRect.bottom === "number" &&
+          typeof menuRect.left === "number" &&
+          typeof windowWidth === "number"
+        ) {
+          topPanelPaddingTop = Math.ceil(menuRect.top);
+          titleRowMinHeight = Math.ceil(menuRect.height);
+          searchBoxMarginTop = Math.max(
+            0,
+            Math.ceil((menuRect.bottom + 8) - (topPanelPaddingTop + titleRowMinHeight))
+          );
+          titleRightSafe = Math.max(titleRightSafe, Math.ceil(windowWidth - menuRect.left + 12));
+        }
+      }
     } catch (error) {
-      statusBarHeight = 20;
-      navSafeHeight = 20;
+      topPanelPaddingTop = statusBarHeight + 4;
+      titleRowMinHeight = 32;
+      searchBoxMarginTop = 8;
       titleRightSafe = 12;
     }
     this.setData({
-      statusBarHeightPx: statusBarHeight,
-      navSafeHeightPx: navSafeHeight,
+      topPanelPaddingTopPx: topPanelPaddingTop,
+      titleRowMinHeightPx: titleRowMinHeight,
+      searchBoxMarginTopPx: searchBoxMarginTop,
       titleRightSafePx: titleRightSafe,
     });
   },

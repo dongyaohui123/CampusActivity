@@ -21,15 +21,10 @@ page {
   margin: 0 -8rpx 12rpx;
 }
 
-.status-safe {
-  width: 100%;
-}
-
 .title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14rpx;
   padding: 0 10rpx;
 }
 
