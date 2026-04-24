@@ -1,7 +1,8 @@
-<van-nav-bar title="{{i18n.navTitle}}" />
+﻿<van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="mine-scroll" scroll-y type="list">
   <view class="mine-page">
+    <!-- 个人信息与统计区 -->
     <view class="profile-header">
       <view class="header-top">
         <view class="avatar">{{avatarText}}</view>
@@ -28,6 +29,7 @@
       </view>
     </view>
 
+    <!-- 快捷入口区 -->
     <view class="quick-card">
       <view wx:for="{{quickActions}}" wx:key="action" class="quick-item" data-action="{{item.action}}" bindtap="onQuickActionTap">
         <view class="quick-icon">
@@ -38,6 +40,7 @@
       </view>
     </view>
 
+    <!-- 我的活动区 -->
     <view class="activity-panel">
       <view class="panel-head">
         <view class="panel-title">{{i18n.myActivity}}</view>
@@ -108,6 +111,7 @@
   </view>
 </scroll-view>
 
+<!-- 底部主导航 -->
 <van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>

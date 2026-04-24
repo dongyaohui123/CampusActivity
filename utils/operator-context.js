@@ -1,4 +1,4 @@
-const STORAGE_KEY = "operator_context";
+﻿const STORAGE_KEY = "operator_context";
 
 const EMPTY_CONTEXT = {
   operatorUserId: null,
@@ -9,6 +9,9 @@ const ROLE_SET = new Set(["STUDENT", "ORGANIZER", "ADMIN"]);
 
 let memoryContext = { ...EMPTY_CONTEXT };
 
+/**
+ * 统一 operator 上下文格式。
+ */
 function normalizeContext(input) {
   const raw = input || {};
   const operatorUserId = Number(raw.operatorUserId);
@@ -58,6 +61,9 @@ function hasOperatorContext() {
   return Number.isFinite(Number(ctx.operatorUserId)) && Number(ctx.operatorUserId) > 0 && ROLE_SET.has(ctx.operatorRole);
 }
 
+/**
+ * 供 request 封装自动拼接 query。
+ */
 function getOperatorQuery() {
   const ctx = getOperatorContext();
   if (!hasOperatorContext()) {

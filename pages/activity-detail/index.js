@@ -1,4 +1,4 @@
-const {
+﻿const {
   getPublicActivityDetail,
   getMyRegistrations,
   registerActivity,
@@ -39,6 +39,9 @@ function normalizeRegistrationStatus(registration) {
   return REGISTRATION_STATUS_MAP[status] || status;
 }
 
+/**
+ * 详情页底部主按钮状态机：根据角色与报名状态决定 CTA。
+ */
 function resolveCtaState(ctx) {
   const { operatorRole, canRegister, canCancel, registrationStatusText, i18n, activity } = ctx;
   if (!activity) {
@@ -90,7 +93,7 @@ Page({
       studentOnly: "仅学生可报名或取消报名",
       studentOnlyShort: "学生专属",
       currentStatus: "报名状态",
-      registerNow: "马上预约",
+      registerNow: "马上报名",
       cancelRegister: "取消报名",
       ctaUnavailable: "暂不可报名",
       untitled: "未命名活动",
@@ -143,6 +146,9 @@ Page({
     this.loadAll();
   },
 
+  /**
+   * 聚合更新页面展示状态，避免各请求分支重复 setData。
+   */
   refreshPresentationState() {
     const { activity, currentRegistration, canRegister, canCancel, operatorRole, i18n } = this.data;
     const registrationStatusText = normalizeRegistrationStatus(currentRegistration);
@@ -199,6 +205,9 @@ Page({
     this.refreshPresentationState();
   },
 
+  /**
+   * 查询当前活动报名态，并推导可报名/可取消状态。
+   */
   async loadRegistrationState() {
     const rows = await getMyRegistrations();
     const currentRegistration = (rows || []).find((item) => Number(item.activityId) === this.data.activityId) || null;

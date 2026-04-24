@@ -190,7 +190,7 @@ page {
 
 .quick-vant-icon {
   color: #2f82ff;
-  font-size: 30rpx;
+  font-size: 40rpx;
   line-height: 1;
 }
 

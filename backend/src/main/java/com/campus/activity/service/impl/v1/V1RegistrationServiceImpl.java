@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * V1RegistrationServiceImpl服务实现。
+ * 报名服务实现（v1）。
+ * 负责学生报名与取消报名，并校验活动可报名条件。
  */
 @Service
 public class V1RegistrationServiceImpl implements V1RegistrationService {
@@ -72,6 +73,7 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             throw new BusinessException(ErrorCode.CONFLICT, "registration deadline has passed");
         }
 
+        // 报名前必须是审核通过活动。
         ActivityReview review = reviewMapper.selectById(activity.getId());
         if (review == null || !ReviewStatus.APPROVED.equals(review.getReviewStatus())) {
             throw new BusinessException(ErrorCode.CONFLICT, "activity has not been approved");
@@ -94,6 +96,7 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             return registration;
         }
 
+        // 已报名/已签到状态不允许重复报名，已取消记录允许恢复为报名状态。
         if (RegistrationStatus.REGISTERED.equals(existing.getStatus())
                 || RegistrationStatus.CHECKED_IN.equals(existing.getStatus())) {
             throw new BusinessException(ErrorCode.CONFLICT, "already registered");

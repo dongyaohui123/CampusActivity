@@ -1,6 +1,9 @@
-const { request } = require("./request");
+﻿const { request } = require("./request");
 const { getOperatorContext } = require("./operator-context");
 
+/**
+ * 认证：登录。
+ */
 function login(account, password) {
   return request({
     path: "/api/v1/auth/login",
@@ -13,6 +16,9 @@ function login(account, password) {
   });
 }
 
+/**
+ * 认证：注册。
+ */
 function registerUser(username, password, nickname, phone) {
   return request({
     path: "/api/v1/auth/register",
@@ -27,6 +33,9 @@ function registerUser(username, password, nickname, phone) {
   });
 }
 
+/**
+ * 公共活动：列表。
+ */
 function listPublicActivities(params) {
   return request({
     path: "/api/v1/activities",
@@ -36,6 +45,9 @@ function listPublicActivities(params) {
   });
 }
 
+/**
+ * 公共活动：详情。
+ */
 function getPublicActivityDetail(activityId) {
   return request({
     path: `/api/v1/activities/${activityId}`,
@@ -44,6 +56,10 @@ function getPublicActivityDetail(activityId) {
   });
 }
 
+/**
+ * 当前用户报名记录。
+ * 若未传 userId，默认取当前操作上下文中的 operatorUserId。
+ */
 function getMyRegistrations(userId) {
   const ctx = getOperatorContext();
   const targetUserId = Number(userId || ctx.operatorUserId);
@@ -57,6 +73,9 @@ function getMyRegistrations(userId) {
   });
 }
 
+/**
+ * 学生报名活动。
+ */
 function registerActivity(activityId, remark) {
   return request({
     path: "/api/v1/registrations",
@@ -68,6 +87,9 @@ function registerActivity(activityId, remark) {
   });
 }
 
+/**
+ * 学生取消报名。
+ */
 function cancelRegistration(registrationId, remark) {
   return request({
     path: `/api/v1/registrations/${registrationId}/cancel`,
@@ -78,6 +100,9 @@ function cancelRegistration(registrationId, remark) {
   });
 }
 
+/**
+ * 组织者活动列表。
+ */
 function listOrganizerActivities(params) {
   return request({
     path: "/api/v1/organizer/activities",
@@ -87,6 +112,9 @@ function listOrganizerActivities(params) {
   });
 }
 
+/**
+ * 组织者创建活动。
+ */
 function createOrganizerActivity(payload) {
   return request({
     path: "/api/v1/organizer/activities",
@@ -95,6 +123,9 @@ function createOrganizerActivity(payload) {
   });
 }
 
+/**
+ * 组织者更新活动。
+ */
 function updateOrganizerActivity(activityId, payload) {
   return request({
     path: `/api/v1/organizer/activities/${activityId}`,
@@ -103,6 +134,9 @@ function updateOrganizerActivity(activityId, payload) {
   });
 }
 
+/**
+ * 组织者提审活动。
+ */
 function submitActivityReview(activityId, comment) {
   return request({
     path: `/api/v1/organizer/activities/${activityId}/submit-review`,
@@ -113,6 +147,9 @@ function submitActivityReview(activityId, comment) {
   });
 }
 
+/**
+ * 管理员：待审核列表。
+ */
 function listPendingReviews() {
   return request({
     path: "/api/v1/admin/reviews/pending",
@@ -121,6 +158,9 @@ function listPendingReviews() {
   });
 }
 
+/**
+ * 管理员：审核通过。
+ */
 function approveReview(activityId, comment) {
   return request({
     path: `/api/v1/admin/reviews/${activityId}/approve`,
@@ -131,6 +171,9 @@ function approveReview(activityId, comment) {
   });
 }
 
+/**
+ * 管理员：审核驳回。
+ */
 function rejectReview(activityId, comment) {
   return request({
     path: `/api/v1/admin/reviews/${activityId}/reject`,

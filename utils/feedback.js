@@ -1,4 +1,4 @@
-const Toast = require("@vant/weapp/toast/toast");
+﻿const Toast = require("@vant/weapp/toast/toast");
 const Notify = require("@vant/weapp/notify/notify");
 
 const TOAST_SELECTOR = "#van-toast";
@@ -8,6 +8,9 @@ function normalizeMessage(message, fallback) {
   return String(message || fallback || "");
 }
 
+/**
+ * Vant 组件不可用时的兜底提示。
+ */
 function fallbackToast(message, icon = "none", duration = 1800) {
   if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
     wx.showToast({

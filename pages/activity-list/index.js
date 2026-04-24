@@ -1,4 +1,4 @@
-const { listPublicActivities } = require("../../utils/api");
+﻿const { listPublicActivities } = require("../../utils/api");
 
 const DEFAULT_COVER = "https://picsum.photos/600/360?random=12";
 
@@ -80,6 +80,9 @@ function inThisWeek(date, now) {
   return date >= monday && date <= sunday;
 }
 
+/**
+ * 基于标题与摘要关键字进行轻量分类。
+ */
 function classifyByText(activity) {
   const text = `${activity.title || ""} ${activity.summary || ""}`.toLowerCase();
   if (/sport|basketball|football|run|fitness|运动|篮球|足球|跑步|健身/.test(text)) return "SPORTS";
@@ -109,6 +112,9 @@ function getStatusDisplay(statusKey) {
   return statusKey === "CLOSED" ? "已截止" : "报名中";
 }
 
+/**
+ * 列表项视图模型统一：封面/时间/地点/分类/状态。
+ */
 function normalizeActivity(item, now) {
   const categoryKey = classifyByText(item);
   const statusKey = deriveStatusKey(item, now);
@@ -133,7 +139,7 @@ Page({
       resultTitle: "活动列表",
       loading: "加载中...",
       emptyTitle: "暂无匹配活动",
-      emptyDesc: "尝试更换关键词或放宽筛选条件",
+      emptyDesc: "尝试更换关键字或放宽筛选条件",
     },
     loading: false,
     keyword: "",
@@ -165,6 +171,9 @@ Page({
     this.loadActivities();
   },
 
+  /**
+   * 适配自定义导航栏与胶囊按钮，计算标题与搜索框安全区。
+   */
   initStatusBarHeight() {
     let statusBarHeight = 20;
     let topPanelPaddingTop = statusBarHeight + 4;
@@ -288,6 +297,9 @@ Page({
     return String(itemLocation || "").includes(selectedLocation);
   },
 
+  /**
+   * 多条件筛选流水线：关键字 + 分类 + 时间 + 地点。
+   */
   applyFilter() {
     const keyword = String(this.data.keyword || "").trim().toLowerCase();
     const selectedCategory = this.data.selectedCategory;

@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * V1UserController控制器。
+ * 用户中心控制器（v1）。
+ * 提供用户资料查询/更新和报名记录查询。
  */
 @Validated
 @RestController

@@ -1,4 +1,4 @@
-const { listPendingReviews, approveReview, rejectReview } = require("../../utils/api");
+﻿const { listPendingReviews, approveReview, rejectReview } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
 
@@ -10,9 +10,9 @@ function displayTime(value) {
 Page({
   data: {
     i18n: {
-      navTitle: "管理员审核（简页）",
+      navTitle: "管理员审核（简版）",
       roleHintPrefix: "当前角色为",
-      roleHintSuffix: "请在首页切换为管理员。",
+      roleHintSuffix: "，请在首页切换为管理员。",
       reviewCommentTitle: "审核意见",
       reviewCommentPlaceholder: "通过可空，驳回必填",
       loading: "加载中...",
@@ -64,6 +64,9 @@ Page({
     } catch (e) {}
   },
 
+  /**
+   * 驳回必须填写意见，避免服务端校验失败后重复交互。
+   */
   async onRejectTap(event) {
     const activityId = Number(event.currentTarget.dataset.id);
     const comment = String(this.data.reviewComment || "").trim();

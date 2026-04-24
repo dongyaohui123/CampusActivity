@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
@@ -29,7 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * V1AdminReviewServiceImpl服务实现。
+ * 管理员审核服务实现（v1）。
+ * 负责待审核列表、审核通过、审核驳回与审计日志写入。
  */
 @Service
 public class V1AdminReviewServiceImpl implements V1AdminReviewService {
@@ -172,7 +173,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     }
 
     /**
-     * 获取活动并校验可审核状态。
+     * 获取活动并校验“可审核”状态。
      */
     private Activity getActivityOrThrow(Long activityId) {
         Activity activity = activityMapper.selectById(activityId);
@@ -186,7 +187,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     }
 
     /**
-     * 获取待审核记录并校验状态。
+     * 获取待审核记录并校验状态必须为 PENDING。
      */
     private ActivityReview getPendingReviewOrThrow(Long activityId) {
         ActivityReview review = reviewMapper.selectById(activityId);
@@ -200,7 +201,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     }
 
     /**
-     * 写入审核日志。
+     * 写入审核审计日志。
      */
     private void insertAuditLog(Long activityId, Long operatorId, AuditAction action, String comment, LocalDateTime createdAt) {
         ActivityAuditLog log = new ActivityAuditLog();

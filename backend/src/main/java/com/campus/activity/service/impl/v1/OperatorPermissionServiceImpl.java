@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.entity.User;
@@ -10,7 +10,8 @@ import com.campus.activity.service.v1.OperatorPermissionService;
 import org.springframework.stereotype.Service;
 
 /**
- * OperatorPermissionServiceImpl服务实现。
+ * 操作人权限校验服务实现。
+ * 负责统一校验：操作者身份有效性、角色匹配、是否本人/管理员。
  */
 @Service
 public class OperatorPermissionServiceImpl implements OperatorPermissionService {
@@ -77,7 +78,7 @@ public class OperatorPermissionServiceImpl implements OperatorPermissionService 
     }
 
     /**
-     * 要求操作人是本人。
+     * 要求操作人必须是本人。
      *
      * @param operator 操作人
      * @param targetUserId 目标用户 ID

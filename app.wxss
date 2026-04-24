@@ -1,4 +1,6 @@
 /** app.wxss **/
+@import "/static/css/icon.wxss";
+
 page {
   --bg-main: #f4f7fb;
   --bg-card: #ffffff;

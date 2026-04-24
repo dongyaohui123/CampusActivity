@@ -1,4 +1,4 @@
-const {
+﻿const {
   listOrganizerActivities,
   createOrganizerActivity,
   updateOrganizerActivity,
@@ -24,6 +24,9 @@ function displayTime(value) {
   return normalized.replace("T", " ");
 }
 
+/**
+ * 输入时间标准化为后端需要的 ISO 本地格式：YYYY-MM-DDTHH:mm:ss。
+ */
 function normalizeDateTimeInput(input) {
   const raw = String(input || "").trim();
   if (!raw) return "";
@@ -108,7 +111,7 @@ Page({
     i18n: {
       navTitle: "组织者活动管理",
       roleHintPrefix: "当前角色为",
-      roleHintSuffix: "请在首页切换为组织者后再操作。",
+      roleHintSuffix: "，请在首页切换为组织者后再操作。",
       editActivity: "编辑活动",
       createActivity: "发布活动",
       formHint: "完善活动信息后即可提交审核",
@@ -309,6 +312,9 @@ Page({
     return payload;
   },
 
+  /**
+   * 发布/更新活动：仅组织者可操作，前置校验时间和人数。
+   */
   async onSubmitTap() {
     if (this.data.operatorRole !== "ORGANIZER") return feedback.error("请先切换为组织者");
 

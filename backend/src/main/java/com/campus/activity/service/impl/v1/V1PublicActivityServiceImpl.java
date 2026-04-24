@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.entity.Activity;
@@ -18,10 +18,14 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
- * V1PublicActivityServiceImpl服务实现。
+ * 公开活动服务实现（v1）。
+ * 仅返回“对外可见且审核通过”的活动数据。
  */
 @Service
 public class V1PublicActivityServiceImpl implements V1PublicActivityService {
+    /**
+     * 面向公众展示的活动状态集合。
+     */
     private static final Set<ActivityStatus> PUBLIC_STATUS = Set.of(
             ActivityStatus.PUBLISHED,
             ActivityStatus.REGISTRATION_OPEN,
@@ -63,6 +67,7 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
                 startTo
         );
         return raw.stream()
+                // 同时满足“审核通过 + 公开状态”才对外展示。
                 .filter(item -> item.getReviewStatus() == ReviewStatus.APPROVED)
                 .filter(item -> item.getStatus() != null && PUBLIC_STATUS.contains(item.getStatus()))
                 .collect(Collectors.toList());
@@ -83,6 +88,8 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
         if (!Visibility.PUBLIC.equals(activity.getVisibility()) || !PUBLIC_STATUS.contains(activity.getStatus())) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly visible");
         }
+
+        // 详情接口与列表保持一致：必须审核通过才允许访问。
         ActivityReview review = reviewMapper.selectById(activityId);
         if (review == null || !ReviewStatus.APPROVED.equals(review.getReviewStatus())) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not approved yet");

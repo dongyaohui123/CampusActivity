@@ -1,4 +1,4 @@
-const { getMyRegistrations, listOrganizerActivities, listPendingReviews } = require("../../utils/api");
+﻿const { getMyRegistrations, listOrganizerActivities, listPendingReviews } = require("../../utils/api");
 const { getLoginUser, clearLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
@@ -92,6 +92,9 @@ function getRoleTabDefs(role, i18n) {
   return [];
 }
 
+/**
+ * 根据登录态和角色生成快捷入口卡片。
+ */
 function getQuickActions(i18n, loginUser) {
   if (!loginUser) {
     return [
@@ -105,8 +108,8 @@ function getQuickActions(i18n, loginUser) {
     loginUser.role === "ADMIN"
       ? { iconName: "search", title: i18n.reviewManage, desc: i18n.reviewDesc, action: "review" }
       : loginUser.role === "ORGANIZER"
-      ? { iconName: "cluster-o", title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" }
-      : { iconName: "search", title: i18n.findActivity, desc: i18n.findActivityDesc, action: "findActivity" };
+        ? { iconName: "cluster-o", title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" }
+        : { iconName: "search", title: i18n.findActivity, desc: i18n.findActivityDesc, action: "findActivity" };
   return [
     { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
     roleAction,
@@ -305,6 +308,9 @@ Page({
     this.restoreLoginState();
   },
 
+  /**
+   * 恢复登录态后并行加载统计与卡片数据。
+   */
   async restoreLoginState() {
     const loginUser = getLoginUser();
     const { i18n } = this.data;
@@ -363,6 +369,9 @@ Page({
     });
   },
 
+  /**
+   * 按角色加载活动卡片，统一抽象到 tab + card 结构渲染。
+   */
   async loadMineActivityCards(loginUser) {
     if (!loginUser) return;
     const { i18n } = this.data;
@@ -433,6 +442,9 @@ Page({
     this.handleAction(action);
   },
 
+  /**
+   * 我的页统一动作分发器。
+   */
   handleAction(action, payload) {
     const loginUser = this.data.loginUser;
     if (action === "help") {

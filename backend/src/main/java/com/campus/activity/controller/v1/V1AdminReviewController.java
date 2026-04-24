@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.review.ReviewApproveRequest;
@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * V1AdminReviewController控制器。
+ * 管理员审核控制器（v1）。
+ * 提供待审核列表查询、通过、驳回能力。
  */
 @Validated
 @RestController
@@ -56,7 +57,7 @@ public class V1AdminReviewController {
      * 审核通过活动。
      *
      * @param activityId 活动 ID
-     * @param request 审核通过请求
+     * @param request 审核通过请求（可空）
      * @param operatorUserId 操作人 ID
      * @param operatorRole 操作人角色
      * @return 最新审核记录

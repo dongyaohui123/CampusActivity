@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.auth.LoginRequest;
@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
- * V1AuthServiceImpl服务实现。
+ * 认证服务实现（v1）。
+ * 负责登录账号校验、注册唯一性校验与登录视图转换。
  */
 @Service
 public class V1AuthServiceImpl implements V1AuthService {
@@ -42,6 +43,8 @@ public class V1AuthServiceImpl implements V1AuthService {
     public LoginUserView login(LoginRequest request) {
         String account = StringUtils.trimWhitespace(request.getUsername());
         String password = request.getPassword();
+
+        // 支持“用户名或手机号”两种账号输入。
         User user = userMapper.selectByUsername(account);
         if (user == null && isPhone(account)) {
             user = userMapper.selectByPhone(account);
@@ -95,6 +98,7 @@ public class V1AuthServiceImpl implements V1AuthService {
         try {
             userMapper.insert(user);
         } catch (DataIntegrityViolationException ex) {
+            // 并发注册场景下兜底处理唯一索引冲突，返回稳定业务错误。
             String message = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
             if (message.contains("uk_users_phone")) {
                 throw new BusinessException(ErrorCode.CONFLICT, "phone already exists");
@@ -104,6 +108,9 @@ public class V1AuthServiceImpl implements V1AuthService {
         return toLoginView(user);
     }
 
+    /**
+     * 校验手机号格式。
+     */
     private boolean isPhone(String value) {
         return StringUtils.hasText(value) && value.matches(PHONE_REGEX);
     }

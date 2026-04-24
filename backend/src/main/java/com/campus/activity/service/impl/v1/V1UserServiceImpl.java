@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
@@ -25,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
- * V1UserServiceImpl服务实现。
+ * 用户服务实现（v1）。
+ * 负责用户资料查询/更新与用户报名记录聚合。
  */
 @Service
 public class V1UserServiceImpl implements V1UserService {
@@ -66,6 +67,7 @@ public class V1UserServiceImpl implements V1UserService {
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "user not found: " + userId);
         }
+        // 返回前移除敏感字段。
         user.setPasswordHash(null);
         return user;
     }
@@ -162,7 +164,7 @@ public class V1UserServiceImpl implements V1UserService {
     }
 
     /**
-     * 判断是否存在可更新字段。
+     * 判断是否存在可更新字段，避免空更新。
      */
     private boolean hasAnyUpdatableField(UserProfileUpdateRequest request) {
         return StringUtils.hasText(request.getNickname())

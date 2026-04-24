@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
@@ -26,7 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 主办方活动管理控制器（v1）。
+ * 组织者活动管理控制器（v1）。
+ * 覆盖活动创建、编辑、提审、列表查询、报名用户查询。
  */
 @Validated
 @RestController
@@ -39,7 +40,7 @@ public class V1OrganizerActivityController {
     }
 
     /**
-     * 主办方创建活动。
+     * 组织者创建活动。
      *
      * @param request 创建参数
      * @param operatorUserId 操作人用户 ID
@@ -57,7 +58,7 @@ public class V1OrganizerActivityController {
     }
 
     /**
-     * 主办方更新活动。
+     * 组织者更新活动。
      *
      * @param activityId 活动 ID
      * @param request 更新参数
@@ -80,7 +81,7 @@ public class V1OrganizerActivityController {
      * 提交活动审核。
      *
      * @param activityId 活动 ID
-     * @param request 提交说明，允许为空
+     * @param request 提审说明（可空）
      * @param operatorUserId 操作人用户 ID
      * @param operatorRole 操作人角色
      * @return 提交后的活动
@@ -98,14 +99,14 @@ public class V1OrganizerActivityController {
     }
 
     /**
-     * 查询当前主办方名下活动列表。
+     * 查询当前组织者名下活动列表。
      *
      * @param operatorUserId 操作人用户 ID
      * @param operatorRole 操作人角色
      * @param keyword 关键字筛选
      * @param startFrom 活动开始时间下界
      * @param startTo 活动开始时间上界
-     * @return 主办方活动列表
+     * @return 组织者活动列表
      */
     @GetMapping
     public ApiResponse<List<ActivityListItemView>> listOwnActivities(
@@ -128,7 +129,7 @@ public class V1OrganizerActivityController {
      * @param activityId 活动 ID
      * @param operatorUserId 操作人用户 ID
      * @param operatorRole 操作人角色
-     * @param status 报名状态筛选
+     * @param status 报名状态筛选（可空）
      * @return 报名用户列表
      */
     @GetMapping("/{activityId}/registrations")

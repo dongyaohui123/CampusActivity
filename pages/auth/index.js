@@ -1,4 +1,4 @@
-const { login, registerUser } = require("../../utils/api");
+﻿const { login, registerUser } = require("../../utils/api");
 const { setLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
@@ -73,6 +73,9 @@ Page({
     feedback.info("功能开发中");
   },
 
+  /**
+   * 提交按钮总入口：根据当前 Tab 选择登录或注册流程。
+   */
   async onSubmitTap() {
     if (this.data.loading) {
       return;
@@ -143,6 +146,9 @@ Page({
     }
   },
 
+  /**
+   * 登录/注册后回跳：有历史页则返回，否则进入“我的”页。
+   */
   backAfterAuth() {
     const pages = getCurrentPages();
     if (pages.length > 1) {

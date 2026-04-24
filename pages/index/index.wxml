@@ -1,5 +1,6 @@
-<scroll-view class="home-scroll" scroll-y>
+﻿<scroll-view class="home-scroll" scroll-y>
   <view class="home-page">
+    <!-- 顶部导航区：城市与搜索入口 -->
     <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
       <view class="city-row" style="min-height: {{cityRowMinHeightPx}}px;">
         <view class="city-pill">
@@ -15,6 +16,7 @@
       </view>
     </view>
 
+    <!-- 轮播宣传区 -->
     <view class="hero-card fade-in">
       <swiper class="hero-swiper" indicator-dots autoplay interval="5000" circular indicator-color="rgba(255,255,255,0.3)" indicator-active-color="#ffffff">
         <block wx:for="{{banners}}" wx:key="*this">
@@ -29,6 +31,7 @@
       </swiper>
     </view>
 
+    <!-- 快捷入口区 -->
     <view class="quick-card fade-in delay-1">
       <view class="quick-grid">
         <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
@@ -52,6 +55,7 @@
       </view>
     </view>
 
+    <!-- 推荐活动列表区 -->
     <view class="section-head fade-in delay-2">
       <text class="section-title">{{i18n.recommend}}</text>
       <text class="section-more" bindtap="goFind">{{i18n.more}}</text>
@@ -85,6 +89,7 @@
   </view>
 </scroll-view>
 
+<!-- 底部主导航 -->
 <van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>

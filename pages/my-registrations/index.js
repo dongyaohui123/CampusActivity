@@ -1,4 +1,4 @@
-const { getMyRegistrations, cancelRegistration } = require("../../utils/api");
+﻿const { getMyRegistrations, cancelRegistration } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 

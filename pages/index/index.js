@@ -11,6 +11,9 @@ function formatDisplayDate(value) {
   return String(value).replace("T", " ").slice(5, 16);
 }
 
+/**
+ * 首页活动卡片展示字段映射。
+ */
 function mapActivity(item) {
   return {
     ...item,
@@ -58,6 +61,9 @@ Page({
     this.loadRecommendList();
   },
 
+  /**
+   * 基于状态栏/胶囊信息动态计算顶部安全区，适配不同机型。
+   */
   initTopPanelSafePadding() {
     let statusBarHeight = 20;
     let topPanelPaddingTopPx = statusBarHeight + 4;
@@ -112,6 +118,9 @@ Page({
     wx.reLaunch({ url: "/pages/activity-list/index" });
   },
 
+  /**
+   * 拉取推荐活动并裁剪为首页展示数量。
+   */
   async loadRecommendList() {
     this.setData({ loading: true });
     try {
@@ -132,11 +141,14 @@ Page({
     });
   },
 
+  /**
+   * 快捷入口统一分流：未登录拦截、组织者角色校验、页面跳转。
+   */
   onQuickTap(event) {
     const action = event.currentTarget.dataset.action;
     const loginUser = getLoginUser();
     if (!loginUser) {
-      feedback.error("请先在我的页登录");
+      feedback.error("请先在“我的”页登录");
       return;
     }
 

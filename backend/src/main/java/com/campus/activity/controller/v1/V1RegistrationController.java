@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.registration.RegistrationCancelRequest;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 活动报名控制器（v1）。
+ * 提供学生报名和取消报名接口。
  */
 @Validated
 @RestController

@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.auth.LoginRequest;
@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * V1AuthController控制器。
+ * 认证控制器（v1）。
+ * 提供登录与注册能力，并返回登录态所需用户信息。
  */
 @Validated
 @RestController
@@ -31,7 +32,7 @@ public class V1AuthController {
     }
 
     /**
-     * 登录。
+     * 用户登录。
      *
      * @param request 登录参数
      * @return 登录用户信息
@@ -42,10 +43,10 @@ public class V1AuthController {
     }
 
     /**
-     * 注册。
+     * 用户注册。
      *
      * @param request 注册参数
-     * @return 注册并登录后的用户信息
+     * @return 注册并自动登录后的用户信息
      */
     @PostMapping("/register")
     public ApiResponse<LoginUserView> register(@Valid @RequestBody RegisterRequest request) {

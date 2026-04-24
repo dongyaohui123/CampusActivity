@@ -1,4 +1,4 @@
-package com.campus.activity.controller.v1;
+﻿package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.entity.Activity;
@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * V1ActivityController控制器。
+ * 公共活动查询控制器（v1）。
+ * 仅提供面向游客/普通用户的公开活动列表与详情查询接口。
  */
 @Validated
 @RestController
@@ -36,9 +37,9 @@ public class V1ActivityController {
     /**
      * 查询公开活动列表。
      *
-     * @param keyword 关键字筛选
-     * @param startFrom 活动开始时间下界
-     * @param startTo 活动开始时间上界
+     * @param keyword 标题/摘要关键字（可选）
+     * @param startFrom 活动开始时间下界（可选）
+     * @param startTo 活动开始时间上界（可选）
      * @return 公开活动列表
      */
     @GetMapping
@@ -55,7 +56,7 @@ public class V1ActivityController {
     /**
      * 查询公开活动详情。
      *
-     * @param activityId 活动 ID
+     * @param activityId 活动 ID（必须 >= 1）
      * @return 活动详情
      */
     @GetMapping("/{activityId}")

@@ -1,4 +1,4 @@
-package com.campus.activity.service.impl.v1;
+﻿package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
@@ -38,7 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
- * V1OrganizerActivityServiceImpl服务实现。
+ * 组织者活动服务实现（v1）。
+ * 提供组织者创建、修改、提审、列表查询以及报名用户查询能力。
  */
 @Service
 public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityService {
@@ -69,7 +70,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 主办方创建活动。
+     * 组织者创建活动。
      *
      * @param request 创建请求
      * @param operatorUserId 操作人 ID
@@ -104,7 +105,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 主办方更新活动。
+     * 组织者更新活动。
      *
      * @param activityId 活动 ID
      * @param request 更新请求
@@ -126,6 +127,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             throw new BusinessException(ErrorCode.BAD_REQUEST, "no updatable field provided");
         }
 
+        // 更新时间前先合并新旧时间，统一做时间窗口校验。
         LocalDateTime mergedStart = request.getStartTime() != null ? request.getStartTime() : activity.getStartTime();
         LocalDateTime mergedEnd = request.getEndTime() != null ? request.getEndTime() : activity.getEndTime();
         LocalDateTime mergedDeadline = request.getRegistrationDeadline() != null
@@ -171,7 +173,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 主办方提交审核。
+     * 组织者提交审核。
      *
      * @param activityId 活动 ID
      * @param request 提交审核请求
@@ -189,6 +191,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             throw new BusinessException(ErrorCode.CONFLICT, "cancelled activity cannot be submitted");
         }
 
+        // 提审后活动进入可发布状态，同时写入/重置审核记录。
         activity.setStatus(ActivityStatus.PUBLISHED);
         if (activity.getPublishedAt() == null) {
             activity.setPublishedAt(LocalDateTime.now());
@@ -220,7 +223,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 查询主办方活动列表。
+     * 查询组织者活动列表。
      *
      * @param operatorUserId 操作人 ID
      * @param operatorRole 操作人角色
@@ -301,7 +304,8 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 获取主办方名下活动。
+     * 获取组织者名下活动。
+     * 统一校验活动存在且归属当前组织者。
      */
     private Activity getOwnedActivityOrThrow(Long activityId, Long organizerId) {
         Activity activity = activityMapper.selectById(activityId);
@@ -315,7 +319,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
-     * 判断是否存在可更新字段。
+     * 判断更新请求中是否至少包含一个可更新字段。
      */
     private boolean hasAnyUpdatableField(OrganizerActivityUpdateRequest request) {
         return StringUtils.hasText(request.getTitle())
@@ -333,6 +337,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
 
     /**
      * 校验活动时间窗口。
+     * 规则：start/end 必填、end 必须晚于 start、报名截止时间不得晚于 start。
      */
     private void validateActivityTime(LocalDateTime start, LocalDateTime end, LocalDateTime registrationDeadline) {
         if (start == null || end == null) {

@@ -1,4 +1,4 @@
-const { setOperatorContext, clearOperatorContext } = require("./operator-context");
+﻿const { setOperatorContext, clearOperatorContext } = require("./operator-context");
 
 const LOGIN_USER_KEY = "login_user";
 
@@ -8,6 +8,9 @@ function canUseWxStorage() {
   return typeof wx !== "undefined" && typeof wx.getStorageSync === "function" && typeof wx.setStorageSync === "function";
 }
 
+/**
+ * 统一登录用户结构，保证 id/role 可用。
+ */
 function normalizeLoginUser(user) {
   if (!user || typeof user !== "object") {
     return null;
@@ -40,6 +43,11 @@ function getLoginUser() {
   return memoryLoginUser ? { ...memoryLoginUser } : null;
 }
 
+/**
+ * 登录成功后同步两个上下文：
+ * 1) login_user（页面展示）
+ * 2) operator_context（接口鉴权 query 参数）
+ */
 function setLoginUser(user) {
   const normalized = normalizeLoginUser(user);
   if (!normalized) {
@@ -74,4 +82,3 @@ module.exports = {
   clearLoginUser,
   isLoggedIn,
 };
-
