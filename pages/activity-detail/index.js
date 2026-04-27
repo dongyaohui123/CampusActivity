@@ -128,6 +128,8 @@ Page({
       favoriteLoginHint: "请先登录后再收藏活动",
       share: "分享",
       shareTitleFallback: "校园活动",
+      viewTicket: "查看电子票",
+      ticketHint: "报名成功后可查看二维码凭证",
       service: "客服",
       serviceTip: "客服功能建设中",
       actionTodo: "功能建设中",
@@ -139,6 +141,7 @@ Page({
     currentRegistration: null,
     canRegister: false,
     canCancel: false,
+    canViewTicket: false,
     navSafeHeightPx: 20,
     coverDisplay: DEFAULT_COVER,
     registrationStatusText: "未报名",
@@ -228,7 +231,7 @@ Page({
       if (operatorRole === "STUDENT") {
         await this.loadRegistrationState();
       } else {
-        this.setData({ currentRegistration: null, canRegister: false, canCancel: false });
+        this.setData({ currentRegistration: null, canRegister: false, canCancel: false, canViewTicket: false });
         this.refreshPresentationState();
       }
 
@@ -243,6 +246,7 @@ Page({
         currentRegistration: null,
         canRegister: false,
         canCancel: false,
+        canViewTicket: false,
         favorited: false,
       });
       this.refreshPresentationState();
@@ -273,12 +277,13 @@ Page({
     const rows = await getMyRegistrations();
     const currentRegistration = (rows || []).find((item) => Number(item.activityId) === this.data.activityId) || null;
     const canRegister = !currentRegistration || currentRegistration.registrationStatus === "CANCELLED";
-    const canCancel = Boolean(
+    const canCancel = Boolean(currentRegistration && currentRegistration.registrationStatus === "REGISTERED");
+    const canViewTicket = Boolean(
       currentRegistration &&
         (currentRegistration.registrationStatus === "REGISTERED" ||
           currentRegistration.registrationStatus === "CHECKED_IN")
     );
-    this.setData({ currentRegistration, canRegister, canCancel });
+    this.setData({ currentRegistration, canRegister, canCancel, canViewTicket });
     this.refreshPresentationState();
   },
 
@@ -362,6 +367,17 @@ Page({
       return;
     }
     feedback.info(this.data.i18n.actionTodo);
+  },
+
+  onViewTicketTap() {
+    const registration = this.data.currentRegistration;
+    if (!registration || !registration.registrationId) {
+      feedback.error("电子票信息缺失");
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/ticket/index?registrationId=${registration.registrationId}`,
+    });
   },
 
   goToAuth() {

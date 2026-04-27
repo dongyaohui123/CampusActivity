@@ -4,6 +4,7 @@ import com.campus.activity.dto.v1.registration.RegistrationCancelRequest;
 import com.campus.activity.dto.v1.registration.RegistrationCreateRequest;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.enums.UserRole;
+import com.campus.activity.view.v1.TicketDetailView;
 
 /**
  * V1RegistrationService服务接口。
@@ -29,4 +30,14 @@ public interface V1RegistrationService {
      * @return 更新后的报名记录
      */
     ActivityRegistration cancelRegistration(Long registrationId, RegistrationCancelRequest request, Long operatorUserId, UserRole operatorRole);
+
+    /**
+     * 查询电子票详情。
+     */
+    TicketDetailView getTicketDetail(Long registrationId, Long operatorUserId, UserRole operatorRole);
+
+    /**
+     * 生成电子票二维码图片。
+     */
+    byte[] renderTicketQrCode(Long registrationId, Long operatorUserId, UserRole operatorRole);
 }

@@ -3,6 +3,7 @@ package com.campus.activity.service.impl.v1;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
+import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
 import com.campus.activity.entity.Activity;
@@ -26,6 +27,7 @@ import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.CheckinResultView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -293,6 +295,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             view.setRemark(registration.getRemark());
             view.setRegisteredAt(registration.getRegisteredAt());
             view.setCancelledAt(registration.getCancelledAt());
+            view.setCheckinAt(registration.getCheckinAt());
             User user = userMap.get(registration.getUserId());
             if (user != null) {
                 view.setNickname(user.getNickname());
@@ -300,6 +303,59 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             }
             result.add(view);
         }
+        return result;
+    }
+
+    /**
+     * 组织者按票码签到。
+     */
+    @Override
+    @Transactional
+    public CheckinResultView checkInByTicketCode(
+            Long activityId,
+            OrganizerActivityCheckinRequest request,
+            Long operatorUserId,
+            UserRole operatorRole
+    ) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        getOwnedActivityOrThrow(activityId, operator.getId());
+
+        ActivityRegistration registration = registrationMapper.selectOne(
+                new QueryWrapper<ActivityRegistration>()
+                        .eq("ticket_code", request.getTicketCode())
+                        .last("LIMIT 1")
+        );
+        if (registration == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "ticket not found");
+        }
+        if (!activityId.equals(registration.getActivityId())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "ticket does not belong to this activity");
+        }
+        if (RegistrationStatus.CANCELLED.equals(registration.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "cancelled ticket cannot check in");
+        }
+        if (RegistrationStatus.CHECKED_IN.equals(registration.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "ticket already checked in");
+        }
+        if (!RegistrationStatus.REGISTERED.equals(registration.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "registration status cannot check in");
+        }
+
+        registration.setStatus(RegistrationStatus.CHECKED_IN);
+        registration.setCheckinAt(LocalDateTime.now());
+        registration.setCheckinOperatorId(operator.getId());
+        registrationMapper.updateById(registration);
+
+        User attendee = userMapper.selectById(registration.getUserId());
+        CheckinResultView result = new CheckinResultView();
+        result.setRegistrationId(registration.getId());
+        result.setActivityId(registration.getActivityId());
+        result.setUserId(registration.getUserId());
+        result.setNickname(attendee != null ? attendee.getNickname() : null);
+        result.setStatus(registration.getStatus());
+        result.setCheckedInAt(registration.getCheckinAt());
+        result.setOperatorUserId(operator.getId());
         return result;
     }
 

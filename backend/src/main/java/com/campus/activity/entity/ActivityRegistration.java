@@ -27,7 +27,13 @@ public class ActivityRegistration {
 
     private LocalDateTime cancelledAt;
 
+    private String ticketCode;
+
+    private LocalDateTime ticketIssuedAt;
+
     private LocalDateTime checkinAt;
+
+    private Long checkinOperatorId;
 
     private LocalDateTime createdAt;
 
@@ -89,12 +95,36 @@ public class ActivityRegistration {
         this.cancelledAt = cancelledAt;
     }
 
+    public String getTicketCode() {
+        return ticketCode;
+    }
+
+    public void setTicketCode(String ticketCode) {
+        this.ticketCode = ticketCode;
+    }
+
+    public LocalDateTime getTicketIssuedAt() {
+        return ticketIssuedAt;
+    }
+
+    public void setTicketIssuedAt(LocalDateTime ticketIssuedAt) {
+        this.ticketIssuedAt = ticketIssuedAt;
+    }
+
     public LocalDateTime getCheckinAt() {
         return checkinAt;
     }
 
     public void setCheckinAt(LocalDateTime checkinAt) {
         this.checkinAt = checkinAt;
+    }
+
+    public Long getCheckinOperatorId() {
+        return checkinOperatorId;
+    }
+
+    public void setCheckinOperatorId(Long checkinOperatorId) {
+        this.checkinOperatorId = checkinOperatorId;
     }
 
     public LocalDateTime getCreatedAt() {

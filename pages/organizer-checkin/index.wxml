@@ -1,0 +1,64 @@
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
+<scroll-view class="checkin-scroll" scroll-y type="list">
+  <view class="page-body">
+    <view wx:if="{{operatorRole !== 'ORGANIZER'}}" class="role-card">{{i18n.roleHint}}</view>
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
+
+    <block wx:if="{{!loading && operatorRole === 'ORGANIZER'}}">
+      <view class="activity-card">
+        <view class="section-title">{{i18n.activityLabel}}</view>
+        <view class="activity-title">{{(activity && activity.title) || i18n.unknownActivity}}</view>
+        <view class="activity-meta">{{i18n.timeLabel}}：{{activity.startDisplay}} ~ {{activity.endDisplay}}</view>
+        <view class="activity-meta">{{i18n.locationLabel}}：{{(activity && activity.location) || '-'}}</view>
+      </view>
+
+      <view class="stats-grid">
+        <view class="stat-card">
+          <view class="stat-value">{{stats.activeCount}}</view>
+          <view class="stat-label">{{i18n.activeCount}}</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-value">{{stats.checkedInCount}}</view>
+          <view class="stat-label">{{i18n.checkedInCount}}</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-value">{{stats.pendingCount}}</view>
+          <view class="stat-label">{{i18n.pendingCount}}</view>
+        </view>
+      </view>
+
+      <view class="action-card">
+        <van-button type="primary" bind:click="onScanTap">{{i18n.scanNow}}</van-button>
+        <view class="manual-section">
+          <view class="manual-label">{{i18n.manualLabel}}</view>
+          <van-field
+            value="{{manualTicketCode}}"
+            bind:change="onManualTicketInput"
+            placeholder="{{i18n.manualPlaceholder}}"
+          />
+          <van-button plain bind:click="onManualSubmitTap">{{i18n.manualSubmit}}</van-button>
+        </view>
+      </view>
+
+      <view class="section-head">{{i18n.registrationList}}</view>
+      <block wx:for="{{registrations}}" wx:key="registrationId">
+        <view class="registration-card">
+          <view class="registration-top">
+            <view class="registration-name">{{item.nickname || ('用户 #' + item.userId)}}</view>
+            <view class="registration-status {{item.status === 'CHECKED_IN' ? 'is-success' : ''}}">
+              {{item.statusText}}
+            </view>
+          </view>
+          <view class="registration-meta">手机号：{{item.phone || '-'}}</view>
+          <view class="registration-meta">报名时间：{{item.registeredDisplay}}</view>
+          <view wx:if="{{item.status === 'CHECKED_IN'}}" class="registration-meta">签到时间：{{item.checkinDisplay}}</view>
+        </view>
+      </block>
+
+      <van-empty wx:if="{{registrations.length === 0}}" image="search" description="{{i18n.empty}}" />
+    </block>
+  </view>
+</scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

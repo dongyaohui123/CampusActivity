@@ -10,15 +10,26 @@
           <view slot="tags" class="card-time">{{i18n.timeLabel}}: {{item.activityStartDisplay}} ~ {{item.activityEndDisplay}}</view>
           <view slot="footer" class="card-footer">
             <view class="muted">{{i18n.statusLabel}}: {{item.registrationStatus}}</view>
-            <van-button
-              wx:if="{{item.registrationStatus === 'REGISTERED' || item.registrationStatus === 'CHECKED_IN'}}"
-              size="small"
-              plain
-              data-id="{{item.registrationId}}"
-              bind:click="onCancelTap"
-            >
-              {{i18n.cancelRegister}}
-            </van-button>
+            <view class="footer-actions">
+              <van-button
+                wx:if="{{item.canViewTicket}}"
+                size="small"
+                plain
+                data-id="{{item.registrationId}}"
+                bind:click="onViewTicketTap"
+              >
+                {{i18n.viewTicket}}
+              </van-button>
+              <van-button
+                wx:if="{{item.canCancel}}"
+                size="small"
+                plain
+                data-id="{{item.registrationId}}"
+                bind:click="onCancelTap"
+              >
+                {{i18n.cancelRegister}}
+              </van-button>
+            </view>
           </view>
         </van-card>
       </view>

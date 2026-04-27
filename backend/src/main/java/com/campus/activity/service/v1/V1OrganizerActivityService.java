@@ -1,6 +1,7 @@
 package com.campus.activity.service.v1;
 
 import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
+import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
 import com.campus.activity.entity.Activity;
@@ -8,6 +9,7 @@ import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.CheckinResultView;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -69,4 +71,14 @@ public interface V1OrganizerActivityService {
      * @return 报名用户列表
      */
     List<ActivityRegistrationUserView> listActivityRegistrations(Long activityId, RegistrationStatus status, Long operatorUserId, UserRole operatorRole);
+
+    /**
+     * 组织者按票码签到。
+     */
+    CheckinResultView checkInByTicketCode(
+            Long activityId,
+            OrganizerActivityCheckinRequest request,
+            Long operatorUserId,
+            UserRole operatorRole
+    );
 }

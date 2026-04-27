@@ -6,9 +6,15 @@ import com.campus.activity.dto.v1.registration.RegistrationCreateRequest;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1RegistrationService;
+import com.campus.activity.view.v1.TicketDetailView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -73,5 +79,34 @@ public class V1RegistrationController {
         RegistrationCancelRequest safeRequest = request == null ? new RegistrationCancelRequest() : request;
         return ApiResponse.success("registration cancelled",
                 registrationService.cancelRegistration(registrationId, safeRequest, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 查询电子票详情。
+     */
+    @GetMapping("/{registrationId}/ticket")
+    public ApiResponse<TicketDetailView> getTicketDetail(
+            @PathVariable("registrationId") @Min(value = 1, message = "registrationId must be >= 1") Long registrationId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success("ticket detail",
+                registrationService.getTicketDetail(registrationId, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 生成电子票二维码 PNG。
+     */
+    @GetMapping(value = "/{registrationId}/ticket/qrcode", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getTicketQrCode(
+            @PathVariable("registrationId") @Min(value = 1, message = "registrationId must be >= 1") Long registrationId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        byte[] image = registrationService.renderTicketQrCode(registrationId, operatorUserId, operatorRole);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .body(image);
     }
 }

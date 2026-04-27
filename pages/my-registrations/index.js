@@ -17,6 +17,7 @@ Page({
       timeLabel: "时间",
       statusLabel: "状态",
       cancelRegister: "取消报名",
+      viewTicket: "电子票",
       empty: "暂无活动记录",
     },
     loading: false,
@@ -47,6 +48,8 @@ Page({
         activityTitleDisplay: item.activityTitle || "未知活动",
         activityStartDisplay: displayTime(item.activityStartTime),
         activityEndDisplay: displayTime(item.activityEndTime),
+        canCancel: item.registrationStatus === "REGISTERED",
+        canViewTicket: item.registrationStatus === "REGISTERED" || item.registrationStatus === "CHECKED_IN",
       }));
       this.setData({ registrations });
     } catch (e) {
@@ -63,5 +66,16 @@ Page({
       feedback.success("取消成功");
       await this.loadRegistrations();
     } catch (e) {}
+  },
+
+  onViewTicketTap(event) {
+    const registrationId = Number(event.currentTarget.dataset.id);
+    if (!registrationId) {
+      feedback.error("电子票信息缺失");
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/ticket/index?registrationId=${registrationId}`,
+    });
   },
 });

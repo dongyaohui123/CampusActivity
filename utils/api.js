@@ -1,6 +1,6 @@
 const { request } = require("./request");
 const { baseURL } = require("../config");
-const { getOperatorContext } = require("./operator-context");
+const { getOperatorContext, getOperatorQuery, hasOperatorContext } = require("./operator-context");
 const feedback = require("./feedback");
 
 const SUCCESS_CODE = 0;
@@ -363,6 +363,28 @@ function cancelRegistration(registrationId, remark) {
 }
 
 /**
+ * 查询电子票详情。
+ */
+function getRegistrationTicket(registrationId) {
+  return request({
+    path: `/api/v1/registrations/${registrationId}/ticket`,
+    method: "GET",
+    withOperator: true,
+  });
+}
+
+/**
+ * 电子票二维码直链。
+ */
+function getRegistrationTicketQrCodeUrl(registrationId) {
+  if (!hasOperatorContext()) {
+    return "";
+  }
+  const query = buildQueryString(getOperatorQuery());
+  return `${baseURL}/api/v1/registrations/${registrationId}/ticket/qrcode${query}`;
+}
+
+/**
  * 组织者活动列表。
  */
 function listOrganizerActivities(params) {
@@ -405,6 +427,31 @@ function submitActivityReview(activityId, comment) {
     method: "POST",
     data: {
       comment: comment || "",
+    },
+  });
+}
+
+/**
+ * 组织者查看活动报名名单。
+ */
+function listOrganizerActivityRegistrations(activityId, status) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}/registrations`,
+    method: "GET",
+    query: status ? { status } : {},
+    withOperator: true,
+  });
+}
+
+/**
+ * 组织者按票码签到。
+ */
+function organizerCheckIn(activityId, ticketCode) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}/check-in`,
+    method: "POST",
+    data: {
+      ticketCode: String(ticketCode || "").trim(),
     },
   });
 }
@@ -462,10 +509,14 @@ module.exports = {
   unfavoriteActivity,
   registerActivity,
   cancelRegistration,
+  getRegistrationTicket,
+  getRegistrationTicketQrCodeUrl,
   listOrganizerActivities,
   createOrganizerActivity,
   updateOrganizerActivity,
   submitActivityReview,
+  listOrganizerActivityRegistrations,
+  organizerCheckIn,
   listPendingReviews,
   approveReview,
   rejectReview,

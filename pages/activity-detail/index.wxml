@@ -49,6 +49,13 @@
             <text class="meta-label">{{i18n.currentStatus}}</text>
             <text class="meta-value">{{registrationStatusText}}</text>
           </view>
+          <view wx:if="{{canViewTicket}}" class="ticket-entry">
+            <view class="ticket-entry-copy">
+              <view class="ticket-entry-title">{{i18n.viewTicket}}</view>
+              <view class="ticket-entry-sub">{{i18n.ticketHint}}</view>
+            </view>
+            <van-button size="small" plain bind:click="onViewTicketTap">{{i18n.viewTicket}}</van-button>
+          </view>
         </view>
 
         <view class="card detail-card fade-up delay-2">

@@ -77,27 +77,42 @@
             </view>
             <view class="activity-meta">{{i18n.locationLabel}}：{{item.locationText}}</view>
             <view class="activity-meta">{{i18n.timeLabel}}：{{item.timeText}}</view>
-            <view class="activity-actions">
-              <van-button
-                wx:if="{{item.secondaryAction}}"
-                size="small"
-                plain
-                data-action="{{item.secondaryAction.action}}"
-                data-item-id="{{item.secondaryAction.itemId}}"
-                bind:click="onCardActionTap"
-              >
-                {{item.secondaryAction.label}}
-              </van-button>
-              <van-button
-                wx:if="{{item.primaryAction}}"
-                size="small"
-                type="primary"
-                data-action="{{item.primaryAction.action}}"
-                data-item-id="{{item.primaryAction.itemId}}"
-                bind:click="onCardActionTap"
-              >
-                {{item.primaryAction.label}}
-              </van-button>
+            <view
+              wx:if="{{item.sourceType === 'studentRegistration' && item.canShowInlineTicketQr}}"
+              class="ticket-qr-inline"
+              data-action="viewTicket"
+              data-item-id="{{item.registrationId}}"
+              bindtap="onCardActionTap"
+            >
+              <view class="ticket-qr-inline-title">{{i18n.ticketQrTitle}}</view>
+              <image class="ticket-qr-inline-image" src="{{item.ticketQrCodeUrl}}" mode="aspectFit" />
+              <view class="ticket-qr-inline-hint">{{i18n.ticketQrHint}}</view>
+            </view>
+            <view wx:if="{{item.actions && item.actions.length}}" class="activity-actions">
+              <block wx:for="{{item.actions}}" wx:key="action" wx:for-item="actionItem">
+                <van-button
+                  wx:if="{{actionItem.tone === 'primary'}}"
+                  size="small"
+                  type="primary"
+                  custom-class="activity-action-btn"
+                  data-action="{{actionItem.action}}"
+                  data-item-id="{{actionItem.itemId}}"
+                  bind:click="onCardActionTap"
+                >
+                  {{actionItem.label}}
+                </van-button>
+                <van-button
+                  wx:else
+                  size="small"
+                  plain
+                  custom-class="activity-action-btn"
+                  data-action="{{actionItem.action}}"
+                  data-item-id="{{actionItem.itemId}}"
+                  bind:click="onCardActionTap"
+                >
+                  {{actionItem.label}}
+                </van-button>
+              </block>
             </view>
           </view>
         </block>

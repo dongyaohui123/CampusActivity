@@ -36,3 +36,9 @@ page {
   justify-content: space-between;
   min-width: 360rpx;
 }
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}

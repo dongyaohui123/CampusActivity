@@ -15,6 +15,7 @@ public class ActivityRegistrationUserView {
     private String remark;
     private LocalDateTime registeredAt;
     private LocalDateTime cancelledAt;
+    private LocalDateTime checkinAt;
 
     public Long getRegistrationId() { return registrationId; }
     public void setRegistrationId(Long registrationId) { this.registrationId = registrationId; }
@@ -32,4 +33,6 @@ public class ActivityRegistrationUserView {
     public void setRegisteredAt(LocalDateTime registeredAt) { this.registeredAt = registeredAt; }
     public LocalDateTime getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
+    public LocalDateTime getCheckinAt() { return checkinAt; }
+    public void setCheckinAt(LocalDateTime checkinAt) { this.checkinAt = checkinAt; }
 }

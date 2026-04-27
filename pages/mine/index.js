@@ -1,5 +1,6 @@
 const {
   getMyRegistrations,
+  getRegistrationTicketQrCodeUrl,
   listOrganizerActivities,
   listPendingReviews,
   updateUserProfile,
@@ -140,10 +141,13 @@ function mapStudentCard(item, i18n, index) {
   const status = String(item.registrationStatus || "");
   const tabKey = resolveStudentTabKey(status);
   const activityId = Number(item.activityId || 0);
+  const registrationId = Number(item.registrationId || 0);
+  const canShowInlineTicketQr = status === "REGISTERED" && registrationId > 0;
   return {
-    itemKey: `student-${index}-${item.registrationId || activityId}`,
+    itemKey: `student-${index}-${registrationId || activityId}`,
     sourceType: "studentRegistration",
     itemId: activityId,
+    registrationId,
     title: item.activityTitle || i18n.unknownActivity,
     locationText: item.location || i18n.unknownLocation,
     timeText: `${displayTime(item.activityStartTime)} ~ ${displayTime(item.activityEndTime)}`,
@@ -151,16 +155,22 @@ function mapStudentCard(item, i18n, index) {
     statusText: mapStudentStatusText(status, i18n),
     statusTone: getStatusToneByTab(tabKey),
     tabKey,
-    primaryAction: {
-      action: "activityDetail",
-      itemId: activityId,
-      label: i18n.viewDetail,
-    },
-    secondaryAction: {
-      action: "myActivity",
-      itemId: Number(item.registrationId || 0),
-      label: i18n.viewRecords,
-    },
+    canShowInlineTicketQr,
+    ticketQrCodeUrl: canShowInlineTicketQr ? getRegistrationTicketQrCodeUrl(registrationId) : "",
+    actions: [
+      {
+        action: "myActivity",
+        itemId: registrationId,
+        label: i18n.viewRecords,
+        tone: "plain",
+      },
+      {
+        action: "activityDetail",
+        itemId: activityId,
+        label: i18n.viewDetail,
+        tone: "primary",
+      },
+    ],
   };
 }
 
@@ -183,16 +193,26 @@ function mapOrganizerCard(item, i18n, index) {
     statusText,
     statusTone: getStatusToneByTab(tabKey),
     tabKey,
-    primaryAction: {
-      action: "myOrg",
-      itemId: activityId,
-      label: i18n.goManage,
-    },
-    secondaryAction: {
-      action: "activityDetail",
-      itemId: activityId,
-      label: i18n.viewDetail,
-    },
+    actions: [
+      {
+        action: "activityDetail",
+        itemId: activityId,
+        label: i18n.viewDetail,
+        tone: "plain",
+      },
+      {
+        action: "organizerCheckin",
+        itemId: activityId,
+        label: i18n.organizerCheckin,
+        tone: "plain",
+      },
+      {
+        action: "myOrg",
+        itemId: activityId,
+        label: i18n.goManage,
+        tone: "primary",
+      },
+    ],
   };
 }
 
@@ -209,16 +229,20 @@ function mapAdminCard(item, i18n, index) {
     statusText: mapReviewStatusText(String(item.reviewStatus || "PENDING"), i18n),
     statusTone: getStatusToneByTab("pendingReview"),
     tabKey: "pendingReview",
-    primaryAction: {
-      action: "review",
-      itemId: activityId,
-      label: i18n.goReviewManage,
-    },
-    secondaryAction: {
-      action: "activityDetail",
-      itemId: activityId,
-      label: i18n.viewDetail,
-    },
+    actions: [
+      {
+        action: "activityDetail",
+        itemId: activityId,
+        label: i18n.viewDetail,
+        tone: "plain",
+      },
+      {
+        action: "review",
+        itemId: activityId,
+        label: i18n.goReviewManage,
+        tone: "primary",
+      },
+    ],
   };
 }
 
@@ -287,8 +311,12 @@ Page({
       tabPublished: "已发布",
       viewDetail: "活动详情",
       viewRecords: "报名记录",
+      viewTicket: "电子票",
+      organizerCheckin: "扫码签到",
       goManage: "组织管理",
       organizerPrefix: "组织者ID：",
+      ticketQrTitle: "签到二维码",
+      ticketQrHint: "到场后向组织者出示二维码，点击可查看完整电子票。",
       editProfile: "编辑资料",
       editProfileTitle: "编辑个人资料",
       nicknameLabel: "昵称",
@@ -637,8 +665,30 @@ Page({
       wx.navigateTo({ url: "/pages/my-registrations/index" });
       return;
     }
+    if (action === "viewTicket") {
+      const registrationId = Number(payload && payload.itemId);
+      if (!registrationId) {
+        feedback.error("电子票信息缺失");
+        return;
+      }
+      wx.navigateTo({ url: `/pages/ticket/index?registrationId=${registrationId}` });
+      return;
+    }
     if (action === "changePassword") {
       wx.navigateTo({ url: "/pages/change-password/index" });
+      return;
+    }
+    if (action === "organizerCheckin") {
+      if (loginUser.role !== "ORGANIZER") {
+        feedback.error("仅组织者可使用");
+        return;
+      }
+      const activityId = Number(payload && payload.itemId);
+      if (!activityId) {
+        feedback.error("活动信息缺失");
+        return;
+      }
+      wx.navigateTo({ url: `/pages/organizer-checkin/index?activityId=${activityId}` });
       return;
     }
     if (action === "myOrg") {

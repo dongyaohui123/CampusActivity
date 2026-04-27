@@ -1,0 +1,52 @@
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
+<scroll-view class="ticket-scroll" scroll-y type="list">
+  <view class="page-body">
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
+    <van-empty wx:if="{{!loading && !ticket}}" image="search" description="{{i18n.empty}}" />
+
+    <block wx:if="{{!loading && ticket}}">
+      <view class="ticket-hero">
+        <view class="ticket-status {{ticket.registrationStatus === 'CHECKED_IN' ? 'is-used' : ''}}">
+          {{ticket.statusText}}
+        </view>
+        <view class="ticket-title">{{ticket.activityTitle || '-'}}</view>
+        <view class="ticket-sub">{{ticket.location || '-'}}</view>
+      </view>
+
+      <view class="ticket-card">
+        <image wx:if="{{qrCodeUrl}}" class="ticket-qr" src="{{qrCodeUrl}}" mode="aspectFit" />
+        <view class="ticket-code">{{ticket.ticketCode}}</view>
+        <view class="ticket-hint">
+          {{ticket.registrationStatus === 'CHECKED_IN' ? i18n.checkedInTip : i18n.ticketTip}}
+        </view>
+        <van-button type="primary" plain bind:click="onCopyTicketCodeTap">{{i18n.copyTicketCode}}</van-button>
+      </view>
+
+      <view class="info-card">
+        <view class="info-row">
+          <text class="info-label">{{i18n.timeLabel}}</text>
+          <text class="info-value">{{ticket.activityStartDisplay}} ~ {{ticket.activityEndDisplay}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">{{i18n.locationLabel}}</text>
+          <text class="info-value">{{ticket.location || '-'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">{{i18n.ticketCodeLabel}}</text>
+          <text class="info-value">{{ticket.ticketCode}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">{{i18n.issuedAtLabel}}</text>
+          <text class="info-value">{{ticket.ticketIssuedDisplay}}</text>
+        </view>
+        <view wx:if="{{ticket.registrationStatus === 'CHECKED_IN'}}" class="info-row">
+          <text class="info-label">{{i18n.checkinAtLabel}}</text>
+          <text class="info-value">{{ticket.checkinDisplay}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

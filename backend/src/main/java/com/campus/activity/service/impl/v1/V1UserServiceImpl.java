@@ -211,6 +211,7 @@ public class V1UserServiceImpl implements V1UserService {
             view.setRegistrationStatus(registration.getStatus());
             view.setRegisteredAt(registration.getRegisteredAt());
             view.setCancelledAt(registration.getCancelledAt());
+            view.setCheckinAt(registration.getCheckinAt());
             if (activity != null) {
                 view.setActivityTitle(activity.getTitle());
                 view.setLocation(activity.getLocation());

@@ -1,5 +1,6 @@
 package com.campus.activity.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
@@ -31,8 +32,10 @@ import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.service.v1.V1UserService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
 import com.campus.activity.view.v1.AvatarUploadView;
+import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.FavoriteActivityView;
 import com.campus.activity.view.v1.LoginUserView;
+import com.campus.activity.view.v1.TicketDetailView;
 import java.util.List;
 import org.springframework.mock.web.MockMultipartFile;
 import org.junit.jupiter.api.Test;
@@ -131,6 +134,51 @@ class V1ApiControllerIntegrationTest {
     }
 
     @Test
+    void getTicketDetail_shouldReturnUnifiedSuccessBody() throws Exception {
+        TicketDetailView view = new TicketDetailView();
+        view.setRegistrationId(5L);
+        view.setActivityId(8L);
+        view.setTicketCode("TICKET-001");
+        when(v1RegistrationService.getTicketDetail(5L, 2L, UserRole.STUDENT)).thenReturn(view);
+
+        mockMvc.perform(get("/api/v1/registrations/5/ticket")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("ticket detail"))
+                .andExpect(jsonPath("$.data.registrationId").value(5))
+                .andExpect(jsonPath("$.data.ticketCode").value("TICKET-001"));
+    }
+
+    @Test
+    void getTicketQrCode_shouldReturnPngBody() throws Exception {
+        when(v1RegistrationService.renderTicketQrCode(5L, 2L, UserRole.STUDENT))
+                .thenReturn("PNG".getBytes());
+
+        mockMvc.perform(get("/api/v1/registrations/5/ticket/qrcode")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(result -> {
+                    assertThat(result.getResponse().getContentType()).isEqualTo(MediaType.IMAGE_PNG_VALUE);
+                    assertThat(result.getResponse().getContentAsByteArray()).isEqualTo("PNG".getBytes());
+                });
+    }
+
+    @Test
+    void getTicketQrCode_shouldReturnForbiddenWhenServiceRejects() throws Exception {
+        when(v1RegistrationService.renderTicketQrCode(5L, 9L, UserRole.STUDENT))
+                .thenThrow(new BusinessException(ErrorCode.FORBIDDEN, "only self or admin can access this resource"));
+
+        mockMvc.perform(get("/api/v1/registrations/5/ticket/qrcode")
+                        .param("operatorUserId", "9")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+    }
+
+    @Test
     void changePassword_shouldReturnUnifiedSuccessBody() throws Exception {
         String body = """
                 {
@@ -173,6 +221,44 @@ class V1ApiControllerIntegrationTest {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void organizerCheckIn_shouldValidateTicketCodeRequired() throws Exception {
+        String body = "{}";
+
+        mockMvc.perform(post("/api/v1/organizer/activities/8/check-in")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void organizerCheckIn_shouldReturnUnifiedSuccessBody() throws Exception {
+        CheckinResultView view = new CheckinResultView();
+        view.setRegistrationId(5L);
+        view.setActivityId(8L);
+        view.setUserId(2L);
+        when(v1OrganizerActivityService.checkInByTicketCode(any(), any(), any(), any())).thenReturn(view);
+
+        String body = """
+                {
+                  "ticketCode":"TICKET-001"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/organizer/activities/8/check-in")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("check-in success"))
+                .andExpect(jsonPath("$.data.registrationId").value(5));
     }
 
     @Test

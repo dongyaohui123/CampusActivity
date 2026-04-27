@@ -8,8 +8,10 @@
                   "pages/change-password/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",
+                  "pages/ticket/index",
                   "pages/my-favorites/index",
                   "pages/organizer-activities/index",
+                  "pages/organizer-checkin/index",
                   "pages/admin-review/index"
               ],
     "usingComponents": {

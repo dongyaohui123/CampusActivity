@@ -16,11 +16,14 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.service.RegistrationTicketService;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1RegistrationService;
+import com.campus.activity.view.v1.TicketDetailView;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * 报名服务实现（v1）。
@@ -32,6 +35,7 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
     private final ActivityRegistrationMapper registrationMapper;
     private final ActivityReviewMapper reviewMapper;
     private final OperatorPermissionService permissionService;
+    private final RegistrationTicketService registrationTicketService;
 
     /**
      * 构造函数。
@@ -40,12 +44,14 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             ActivityMapper activityMapper,
             ActivityRegistrationMapper registrationMapper,
             ActivityReviewMapper reviewMapper,
-            OperatorPermissionService permissionService
+            OperatorPermissionService permissionService,
+            RegistrationTicketService registrationTicketService
     ) {
         this.activityMapper = activityMapper;
         this.registrationMapper = registrationMapper;
         this.reviewMapper = reviewMapper;
         this.permissionService = permissionService;
+        this.registrationTicketService = registrationTicketService;
     }
 
     /**
@@ -92,6 +98,7 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             registration.setStatus(RegistrationStatus.REGISTERED);
             registration.setRemark(request.getRemark());
             registration.setRegisteredAt(LocalDateTime.now());
+            issueTicket(registration);
             registrationMapper.insert(registration);
             return registration;
         }
@@ -106,6 +113,9 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
         existing.setRemark(request.getRemark());
         existing.setCancelledAt(null);
         existing.setRegisteredAt(LocalDateTime.now());
+        existing.setCheckinAt(null);
+        existing.setCheckinOperatorId(null);
+        issueTicket(existing);
         registrationMapper.updateById(existing);
         return existing;
     }
@@ -135,16 +145,102 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             throw new BusinessException(ErrorCode.NOT_FOUND, "registration not found: " + registrationId);
         }
         permissionService.requireSelf(operator, registration.getUserId());
+        if (RegistrationStatus.CHECKED_IN.equals(registration.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "checked-in registration cannot be cancelled");
+        }
         if (RegistrationStatus.CANCELLED.equals(registration.getStatus())) {
             throw new BusinessException(ErrorCode.CONFLICT, "registration already cancelled");
         }
 
         registration.setStatus(RegistrationStatus.CANCELLED);
         registration.setCancelledAt(LocalDateTime.now());
+        registration.setTicketCode(null);
+        registration.setTicketIssuedAt(null);
+        registration.setCheckinAt(null);
+        registration.setCheckinOperatorId(null);
         if (request != null && request.getRemark() != null) {
             registration.setRemark(request.getRemark());
         }
         registrationMapper.updateById(registration);
+        return registration;
+    }
+
+    /**
+     * 查询电子票详情。
+     */
+    @Override
+    public TicketDetailView getTicketDetail(Long registrationId, Long operatorUserId, UserRole operatorRole) {
+        ActivityRegistration registration = getAccessibleRegistration(registrationId, operatorUserId, operatorRole);
+        registration = ensureTicketIssuedForActiveRegistration(registration);
+
+        Activity activity = activityMapper.selectById(registration.getActivityId());
+        if (activity == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + registration.getActivityId());
+        }
+
+        TicketDetailView view = new TicketDetailView();
+        view.setRegistrationId(registration.getId());
+        view.setActivityId(registration.getActivityId());
+        view.setActivityTitle(activity.getTitle());
+        view.setLocation(activity.getLocation());
+        view.setActivityStartTime(activity.getStartTime());
+        view.setActivityEndTime(activity.getEndTime());
+        view.setRegistrationStatus(registration.getStatus());
+        view.setTicketCode(registration.getTicketCode());
+        view.setTicketIssuedAt(registration.getTicketIssuedAt());
+        view.setCheckinAt(registration.getCheckinAt());
+        view.setQrContent(registrationTicketService.buildQrContent(registration.getActivityId(), registration.getTicketCode()));
+        return view;
+    }
+
+    /**
+     * 输出电子票二维码图片。
+     */
+    @Override
+    public byte[] renderTicketQrCode(Long registrationId, Long operatorUserId, UserRole operatorRole) {
+        TicketDetailView detail = getTicketDetail(registrationId, operatorUserId, operatorRole);
+        return registrationTicketService.renderQrCode(detail.getQrContent());
+    }
+
+    private void issueTicket(ActivityRegistration registration) {
+        registration.setTicketCode(generateUniqueTicketCode());
+        registration.setTicketIssuedAt(LocalDateTime.now());
+    }
+
+    private String generateUniqueTicketCode() {
+        for (int i = 0; i < 5; i++) {
+            String code = registrationTicketService.generateTicketCode();
+            Long existingCount = registrationMapper.selectCount(
+                    new QueryWrapper<ActivityRegistration>().eq("ticket_code", code)
+            );
+            if (existingCount == null || existingCount == 0L) {
+                return code;
+            }
+        }
+        throw new BusinessException(ErrorCode.INTERNAL_ERROR, "failed to issue unique ticket code");
+    }
+
+    private ActivityRegistration ensureTicketIssuedForActiveRegistration(ActivityRegistration registration) {
+        if (StringUtils.hasText(registration.getTicketCode())) {
+            return registration;
+        }
+        if (!RegistrationStatus.REGISTERED.equals(registration.getStatus())
+                && !RegistrationStatus.CHECKED_IN.equals(registration.getStatus())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "ticket has not been issued");
+        }
+
+        issueTicket(registration);
+        registrationMapper.updateById(registration);
+        return registration;
+    }
+
+    private ActivityRegistration getAccessibleRegistration(Long registrationId, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        ActivityRegistration registration = registrationMapper.selectById(registrationId);
+        if (registration == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "registration not found: " + registrationId);
+        }
+        permissionService.requireSelfOrAdmin(operator, registration.getUserId());
         return registration;
     }
 }

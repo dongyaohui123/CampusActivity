@@ -2,6 +2,7 @@ package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
+import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
 import com.campus.activity.entity.Activity;
@@ -10,6 +11,7 @@ import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.CheckinResultView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
@@ -142,5 +144,19 @@ public class V1OrganizerActivityController {
         return ApiResponse.success(organizerActivityService.listActivityRegistrations(
                 activityId, status, operatorUserId, operatorRole
         ));
+    }
+
+    /**
+     * 组织者按票码签到。
+     */
+    @PostMapping("/{activityId}/check-in")
+    public ApiResponse<CheckinResultView> checkInByTicketCode(
+            @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
+            @Valid @RequestBody OrganizerActivityCheckinRequest request,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success("check-in success",
+                organizerActivityService.checkInByTicketCode(activityId, request, operatorUserId, operatorRole));
     }
 }

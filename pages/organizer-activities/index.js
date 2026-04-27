@@ -136,6 +136,7 @@ Page({
       reviewLabel: "审核",
       timeLabel: "时间",
       edit: "编辑",
+      checkinManage: "签到管理",
       submitReview: "提审",
       empty: "暂无活动",
       phTitle: "例如：校园歌手大赛",
@@ -353,5 +354,16 @@ Page({
       this.setData({ reviewComment: "" });
       await this.loadActivities();
     } catch (e) {}
+  },
+
+  onCheckinTap(event) {
+    const activityId = Number(event.currentTarget.dataset.id);
+    if (!activityId) {
+      feedback.error("活动信息缺失");
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/organizer-checkin/index?activityId=${activityId}`,
+    });
   },
 });
