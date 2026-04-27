@@ -1,33 +1,86 @@
 <van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
+
 <scroll-view class="page-scroll" scroll-y type="list">
-  <view class="page-body">
-    <view wx:if="{{operatorRole !== 'ADMIN'}}" class="card">
-      <view class="muted">{{i18n.roleHintPrefix}} {{operatorRole}}, {{i18n.roleHintSuffix}}</view>
+  <view class="page-body with-bottom-space">
+    <view wx:if="{{operatorRole === 'ADMIN'}}" class="top-lite fade-up">
+      <view class="top-lite-left">
+        <view class="top-lite-title">{{i18n.pageTitle}}</view>
+        <view class="top-lite-sub">{{i18n.pageSubtitle}}</view>
+      </view>
+      <view class="top-lite-right">
+        <view class="top-lite-badge">{{i18n.roleBadge}}</view>
+        <view class="top-lite-count">{{i18n.pendingCountPrefix}}{{pendingCount}}</view>
+      </view>
     </view>
 
-    <view wx:if="{{operatorRole === 'ADMIN'}}" class="card">
-      <view class="title mb-12">{{i18n.reviewCommentTitle}}</view>
+    <view wx:if="{{operatorRole !== 'ADMIN'}}" class="card role-card fade-up">
+      <view class="state-title">{{i18n.noPermissionTitle}}</view>
+      <view class="state-desc">{{i18n.roleHintPrefix}}{{operatorRoleText}}{{i18n.roleHintSuffix}}</view>
+    </view>
+
+    <view wx:if="{{operatorRole === 'ADMIN'}}" class="card form-card fade-up">
+      <view class="section-chip">{{i18n.reviewCommentTitle}}</view>
+      <view class="form-tip">{{i18n.reviewCommentTip}}</view>
       <van-field
         value="{{reviewComment}}"
+        type="textarea"
+        autosize
         placeholder="{{i18n.reviewCommentPlaceholder}}"
         bind:change="onCommentInput"
       />
     </view>
 
+    <view wx:if="{{operatorRole === 'ADMIN'}}" class="section-head fade-up">
+      <view class="section-title">{{i18n.pendingSectionTitle}}</view>
+      <view class="section-count">{{pendingCount}}</view>
+    </view>
+
     <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
-    <block wx:for="{{pendingList}}" wx:key="activityId">
-      <view class="card">
-        <van-card title="{{item.title}}" desc="{{i18n.timeLabel}}: {{item.startDisplay}} ~ {{item.endDisplay}}">
-          <view slot="tags" class="muted mb-12">{{i18n.activityIdLabel}}: {{item.activityId}} / {{i18n.organizerLabel}}: {{item.organizerId}}</view>
-          <view slot="footer" class="row gap-12">
-            <view class="muted">{{i18n.reviewStatusLabel}}: {{item.reviewStatus}}</view>
-            <van-button type="primary" size="small" data-id="{{item.activityId}}" bind:click="onApproveTap">{{i18n.approve}}</van-button>
-            <van-button plain size="small" data-id="{{item.activityId}}" bind:click="onRejectTap">{{i18n.reject}}</van-button>
+    <view wx:if="{{!loading && pendingList.length > 0}}" class="list-wrap">
+      <block wx:for="{{pendingList}}" wx:key="activityId">
+        <view class="card activity-card fade-up" style="animation-delay: {{index * 40}}ms;">
+          <view class="card-head">
+            <view class="card-title">{{item.title}}</view>
+            <view class="status-pill {{item.reviewStatusTone}}">{{item.reviewStatusText}}</view>
           </view>
-        </van-card>
-      </view>
-    </block>
+
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.timeLabel}}</text>
+            <text class="meta-value">{{item.startDisplay}} ~ {{item.endDisplay}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.activityIdLabel}}</text>
+            <text class="meta-value">{{item.activityIdDisplay}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.organizerLabel}}</text>
+            <text class="meta-value">{{item.organizerIdDisplay}}</text>
+          </view>
+
+          <view class="action-row">
+            <van-button
+              class="list-op-btn action-btn-ghost"
+              plain
+              size="small"
+              data-id="{{item.activityId}}"
+              bind:click="onRejectTap"
+            >
+              {{i18n.reject}}
+            </van-button>
+            <van-button
+              class="list-op-btn action-btn"
+              type="primary"
+              size="small"
+              data-id="{{item.activityId}}"
+              bind:click="onApproveTap"
+            >
+              {{i18n.approve}}
+            </van-button>
+          </view>
+        </view>
+      </block>
+    </view>
 
     <van-empty wx:if="{{!loading && pendingList.length === 0 && operatorRole === 'ADMIN'}}" image="search" description="{{i18n.empty}}" />
   </view>
