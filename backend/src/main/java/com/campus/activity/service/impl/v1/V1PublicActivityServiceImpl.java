@@ -10,6 +10,7 @@ import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.V1PublicActivityService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +37,7 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
 
     private final ActivityMapper activityMapper;
     private final ActivityReviewMapper reviewMapper;
+    private final ActivityPhaseResolver activityPhaseResolver;
 
     /**
      * 构造函数。
@@ -43,9 +45,14 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
      * @param activityMapper 活动数据访问
      * @param reviewMapper 审核数据访问
      */
-    public V1PublicActivityServiceImpl(ActivityMapper activityMapper, ActivityReviewMapper reviewMapper) {
+    public V1PublicActivityServiceImpl(
+            ActivityMapper activityMapper,
+            ActivityReviewMapper reviewMapper,
+            ActivityPhaseResolver activityPhaseResolver
+    ) {
         this.activityMapper = activityMapper;
         this.reviewMapper = reviewMapper;
+        this.activityPhaseResolver = activityPhaseResolver;
     }
 
     /**
@@ -70,6 +77,7 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
                 // 同时满足“审核通过 + 公开状态”才对外展示。
                 .filter(item -> item.getReviewStatus() == ReviewStatus.APPROVED)
                 .filter(item -> item.getStatus() != null && PUBLIC_STATUS.contains(item.getStatus()))
+                .map(this::withResolvedStatus)
                 .collect(Collectors.toList());
     }
 
@@ -94,6 +102,17 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
         if (review == null || !ReviewStatus.APPROVED.equals(review.getReviewStatus())) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not approved yet");
         }
+        activity.setStatus(activityPhaseResolver.resolve(activity));
         return activity;
+    }
+
+    private ActivityListItemView withResolvedStatus(ActivityListItemView item) {
+        item.setStatus(activityPhaseResolver.resolve(
+                item.getStatus(),
+                item.getStartTime(),
+                item.getEndTime(),
+                item.getRegistrationDeadline()
+        ));
+        return item;
     }
 }

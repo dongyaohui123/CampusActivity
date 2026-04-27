@@ -1,5 +1,5 @@
-﻿<scroll-view class="home-scroll" scroll-y>
-  <view class="home-page">
+<view class="home-page">
+  <view class="home-top-shell">
     <!-- 顶部导航区：城市与搜索入口 -->
     <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
       <view class="city-row" style="min-height: {{cityRowMinHeightPx}}px;">
@@ -15,79 +15,83 @@
         <text class="search-text">{{i18n.searchPlaceholder}}</text>
       </view>
     </view>
+  </view>
 
-    <!-- 轮播宣传区 -->
-    <view class="hero-card fade-in">
-      <swiper class="hero-swiper" indicator-dots autoplay interval="5000" circular indicator-color="rgba(255,255,255,0.3)" indicator-active-color="#ffffff">
-        <block wx:for="{{banners}}" wx:key="*this">
-          <swiper-item>
-            <image class="hero-image" src="{{item}}" mode="aspectFill" />
-            <view class="hero-mask">
-              <text class="hero-title">{{i18n.bannerTitle}}</text>
-              <text class="hero-sub">{{i18n.bannerSub}}</text>
+  <scroll-view class="home-scroll" scroll-y>
+    <view class="home-content">
+      <!-- 轮播宣传区 -->
+      <view class="hero-card fade-in">
+        <swiper class="hero-swiper" indicator-dots autoplay interval="5000" circular indicator-color="rgba(255,255,255,0.3)" indicator-active-color="#ffffff">
+          <block wx:for="{{banners}}" wx:key="*this">
+            <swiper-item>
+              <image class="hero-image" src="{{item}}" mode="aspectFill" />
+              <view class="hero-mask">
+                <text class="hero-title">{{i18n.bannerTitle}}</text>
+                <text class="hero-sub">{{i18n.bannerSub}}</text>
+              </view>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view>
+
+      <!-- 快捷入口区 -->
+      <view class="quick-card fade-in delay-1">
+        <view class="quick-grid">
+          <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
+            <view class="quick-icon icon-activity">
+              <van-icon name="todo-list-o" class="quick-vant-icon" />
             </view>
-          </swiper-item>
-        </block>
-      </swiper>
-    </view>
-
-    <!-- 快捷入口区 -->
-    <view class="quick-card fade-in delay-1">
-      <view class="quick-grid">
-        <view class="quick-item" data-action="myActivity" bindtap="onQuickTap">
-          <view class="quick-icon icon-activity">
-            <van-icon name="todo-list-o" class="quick-vant-icon" />
+            <text class="quick-text">{{i18n.myActivity}}</text>
           </view>
-          <text class="quick-text">{{i18n.myActivity}}</text>
-        </view>
-        <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
-          <view class="quick-icon icon-org">
-            <van-icon name="cluster-o" class="quick-vant-icon" />
+          <view class="quick-item" data-action="myOrg" bindtap="onQuickTap">
+            <view class="quick-icon icon-org">
+              <van-icon name="cluster-o" class="quick-vant-icon" />
+            </view>
+            <text class="quick-text">{{i18n.myOrg}}</text>
           </view>
-          <text class="quick-text">{{i18n.myOrg}}</text>
-        </view>
-        <view class="quick-item" data-action="publish" bindtap="onQuickTap">
-          <view class="quick-icon icon-publish">
-            <van-icon name="plus" class="quick-vant-icon" />
+          <view class="quick-item" data-action="publish" bindtap="onQuickTap">
+            <view class="quick-icon icon-publish">
+              <van-icon name="plus" class="quick-vant-icon" />
+            </view>
+            <text class="quick-text">{{i18n.publish}}</text>
           </view>
-          <text class="quick-text">{{i18n.publish}}</text>
         </view>
       </view>
-    </view>
 
-    <!-- 推荐活动列表区 -->
-    <view class="section-head fade-in delay-2">
-      <text class="section-title">{{i18n.recommend}}</text>
-      <text class="section-more" bindtap="goFind">{{i18n.more}}</text>
-    </view>
+      <!-- 推荐活动列表区 -->
+      <view class="section-head fade-in delay-2">
+        <text class="section-title">{{i18n.recommend}}</text>
+        <text class="section-more" bindtap="goFind">{{i18n.more}}</text>
+      </view>
 
-    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
+      <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
 
-    <view class="recommend-list" wx:if="{{!loading && recommendList.length > 0}}">
-      <block wx:for="{{recommendList}}" wx:key="id">
-        <view class="recommend-card fade-up" bindtap="goDetail" data-id="{{item.id}}">
-          <image class="recommend-thumb" src="{{item.cover}}" mode="aspectFill" />
-          <view class="recommend-body">
-            <view class="recommend-title-row">
-              <text class="recommend-tag">{{i18n.signing}}</text>
-              <text class="recommend-title">{{item.title}}</text>
-            </view>
-            <view class="recommend-meta">
-              <view class="meta-icon clock"></view>
-              <text class="meta-text">{{item.startDisplay}}</text>
-            </view>
-            <view class="recommend-meta">
-              <view class="meta-icon pin"></view>
-              <text class="meta-text">{{item.locationDisplay}}</text>
+      <view class="recommend-list" wx:if="{{!loading && recommendList.length > 0}}">
+        <block wx:for="{{recommendList}}" wx:key="id">
+          <view class="recommend-card fade-up" bindtap="goDetail" data-id="{{item.id}}">
+            <image class="recommend-thumb" src="{{item.cover}}" mode="aspectFill" />
+            <view class="recommend-body">
+              <view class="recommend-title-row">
+                <text class="recommend-tag">{{i18n.signing}}</text>
+                <text class="recommend-title">{{item.title}}</text>
+              </view>
+              <view class="recommend-meta">
+                <view class="meta-icon clock"></view>
+                <text class="meta-text">{{item.startDisplay}}</text>
+              </view>
+              <view class="recommend-meta">
+                <view class="meta-icon pin"></view>
+                <text class="meta-text">{{item.locationDisplay}}</text>
+              </view>
             </view>
           </view>
-        </view>
-      </block>
-    </view>
+        </block>
+      </view>
 
-    <van-empty wx:if="{{!loading && recommendList.length === 0}}" image="search" description="{{i18n.emptyRecommend}}" />
-  </view>
-</scroll-view>
+      <van-empty wx:if="{{!loading && recommendList.length === 0}}" image="search" description="{{i18n.emptyRecommend}}" />
+    </view>
+  </scroll-view>
+</view>
 
 <!-- 底部主导航 -->
 <van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>

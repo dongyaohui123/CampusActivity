@@ -14,6 +14,7 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityFavoriteMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
@@ -41,17 +42,20 @@ public class V1ActivityFavoriteServiceImpl implements V1ActivityFavoriteService 
     private final ActivityReviewMapper reviewMapper;
     private final ActivityFavoriteMapper favoriteMapper;
     private final OperatorPermissionService permissionService;
+    private final ActivityPhaseResolver activityPhaseResolver;
 
     public V1ActivityFavoriteServiceImpl(
             ActivityMapper activityMapper,
             ActivityReviewMapper reviewMapper,
             ActivityFavoriteMapper favoriteMapper,
-            OperatorPermissionService permissionService
+            OperatorPermissionService permissionService,
+            ActivityPhaseResolver activityPhaseResolver
     ) {
         this.activityMapper = activityMapper;
         this.reviewMapper = reviewMapper;
         this.favoriteMapper = favoriteMapper;
         this.permissionService = permissionService;
+        this.activityPhaseResolver = activityPhaseResolver;
     }
 
     @Override
@@ -99,12 +103,24 @@ public class V1ActivityFavoriteServiceImpl implements V1ActivityFavoriteService 
     public List<FavoriteActivityView> getUserFavorites(Long userId, Long operatorUserId, UserRole operatorRole) {
         User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
         permissionService.requireSelfOrAdmin(operator, userId);
-        return favoriteMapper.selectUserFavoriteActivities(userId);
+        return favoriteMapper.selectUserFavoriteActivities(userId).stream()
+                .map(this::withResolvedStatus)
+                .toList();
     }
 
     private ActivityFavoriteStateView buildState(boolean favorited) {
         ActivityFavoriteStateView view = new ActivityFavoriteStateView();
         view.setFavorited(favorited);
+        return view;
+    }
+
+    private FavoriteActivityView withResolvedStatus(FavoriteActivityView view) {
+        view.setStatus(activityPhaseResolver.resolve(
+                view.getStatus(),
+                view.getStartTime(),
+                view.getEndTime(),
+                view.getRegistrationDeadline()
+        ));
         return view;
     }
 

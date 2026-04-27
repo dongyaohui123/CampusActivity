@@ -25,13 +25,14 @@ import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
 import com.campus.activity.service.RegistrationTicketService;
 import com.campus.activity.service.impl.v1.V1RegistrationServiceImpl;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.view.v1.TicketDetailView;
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -52,8 +53,21 @@ class V1RegistrationServiceImplTest {
     @Mock
     private RegistrationTicketService registrationTicketService;
 
-    @InjectMocks
+    private final ActivityPhaseResolver activityPhaseResolver = new ActivityPhaseResolver();
+
     private V1RegistrationServiceImpl registrationService;
+
+    @BeforeEach
+    void setUp() {
+        registrationService = new V1RegistrationServiceImpl(
+                activityMapper,
+                registrationMapper,
+                reviewMapper,
+                permissionService,
+                registrationTicketService,
+                activityPhaseResolver
+        );
+    }
 
     @Test
     void register_shouldInsertRegistrationWhenActivityApproved() {
@@ -158,6 +172,78 @@ class V1RegistrationServiceImplTest {
     }
 
     @Test
+    void register_shouldRejectWhenRegistrationDeadlineHasPassed() {
+        User student = new User();
+        student.setId(2L);
+        student.setRole(UserRole.STUDENT);
+        when(permissionService.verifyOperator(2L, UserRole.STUDENT)).thenReturn(student);
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setStartTime(LocalDateTime.now().plusDays(1));
+        activity.setEndTime(LocalDateTime.now().plusDays(2));
+        activity.setRegistrationDeadline(LocalDateTime.now().minusMinutes(1));
+        when(activityMapper.selectById(7L)).thenReturn(activity);
+
+        RegistrationCreateRequest request = new RegistrationCreateRequest();
+        request.setActivityId(7L);
+
+        assertThatThrownBy(() -> registrationService.register(request, 2L, UserRole.STUDENT))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.CONFLICT);
+    }
+
+    @Test
+    void register_shouldRejectWhenActivityAlreadyStarted() {
+        User student = new User();
+        student.setId(2L);
+        student.setRole(UserRole.STUDENT);
+        when(permissionService.verifyOperator(2L, UserRole.STUDENT)).thenReturn(student);
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setStartTime(LocalDateTime.now().minusMinutes(5));
+        activity.setEndTime(LocalDateTime.now().plusDays(1));
+        activity.setRegistrationDeadline(LocalDateTime.now().plusHours(1));
+        when(activityMapper.selectById(7L)).thenReturn(activity);
+
+        RegistrationCreateRequest request = new RegistrationCreateRequest();
+        request.setActivityId(7L);
+
+        assertThatThrownBy(() -> registrationService.register(request, 2L, UserRole.STUDENT))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.CONFLICT);
+    }
+
+    @Test
+    void register_shouldRejectWhenActivityFinished() {
+        User student = new User();
+        student.setId(2L);
+        student.setRole(UserRole.STUDENT);
+        when(permissionService.verifyOperator(2L, UserRole.STUDENT)).thenReturn(student);
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setStartTime(LocalDateTime.now().minusDays(2));
+        activity.setEndTime(LocalDateTime.now().minusMinutes(1));
+        activity.setRegistrationDeadline(LocalDateTime.now().minusDays(3));
+        when(activityMapper.selectById(7L)).thenReturn(activity);
+
+        RegistrationCreateRequest request = new RegistrationCreateRequest();
+        request.setActivityId(7L);
+
+        assertThatThrownBy(() -> registrationService.register(request, 2L, UserRole.STUDENT))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.CONFLICT);
+    }
+
+    @Test
     void cancelRegistration_shouldRejectWhenAlreadyCheckedIn() {
         User student = new User();
         student.setId(2L);
@@ -170,6 +256,35 @@ class V1RegistrationServiceImplTest {
         registration.setUserId(2L);
         registration.setStatus(RegistrationStatus.CHECKED_IN);
         when(registrationMapper.selectById(9L)).thenReturn(registration);
+
+        assertThatThrownBy(() -> registrationService.cancelRegistration(
+                9L, new RegistrationCancelRequest(), 2L, UserRole.STUDENT))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.CONFLICT);
+    }
+
+    @Test
+    void cancelRegistration_shouldRejectAfterActivityStart() {
+        User student = new User();
+        student.setId(2L);
+        student.setRole(UserRole.STUDENT);
+        when(permissionService.verifyOperator(2L, UserRole.STUDENT)).thenReturn(student);
+
+        ActivityRegistration registration = new ActivityRegistration();
+        registration.setId(9L);
+        registration.setActivityId(7L);
+        registration.setUserId(2L);
+        registration.setStatus(RegistrationStatus.REGISTERED);
+        when(registrationMapper.selectById(9L)).thenReturn(registration);
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setStartTime(LocalDateTime.now().minusMinutes(10));
+        activity.setEndTime(LocalDateTime.now().plusHours(2));
+        activity.setRegistrationDeadline(LocalDateTime.now().minusHours(1));
+        when(activityMapper.selectById(7L)).thenReturn(activity);
 
         assertThatThrownBy(() -> registrationService.cancelRegistration(
                 9L, new RegistrationCancelRequest(), 2L, UserRole.STUDENT))

@@ -330,6 +330,16 @@ Page({
       return feedback.error("开始时间必须早于结束时间");
     }
 
+    if (payload.registrationDeadline) {
+      const deadlineTimestamp = parseDateTimeTimestamp(payload.registrationDeadline);
+      if (!Number.isFinite(deadlineTimestamp)) {
+        return feedback.error("报名截止时间格式不正确");
+      }
+      if (deadlineTimestamp > startTimestamp) {
+        return feedback.error("报名截止时间不能晚于开始时间");
+      }
+    }
+
     if (!Number.isFinite(payload.maxParticipants) || payload.maxParticipants < 0) {
       return feedback.error("人数必须为非负数");
     }

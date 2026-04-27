@@ -1,5 +1,6 @@
 package com.campus.activity.view.v1;
 
+import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class RegistrationRecordView {
     private String location;
     private LocalDateTime activityStartTime;
     private LocalDateTime activityEndTime;
+    private ActivityStatus activityStatus;
     private RegistrationStatus registrationStatus;
     private LocalDateTime registeredAt;
     private LocalDateTime cancelledAt;
@@ -30,6 +32,8 @@ public class RegistrationRecordView {
     public void setActivityStartTime(LocalDateTime activityStartTime) { this.activityStartTime = activityStartTime; }
     public LocalDateTime getActivityEndTime() { return activityEndTime; }
     public void setActivityEndTime(LocalDateTime activityEndTime) { this.activityEndTime = activityEndTime; }
+    public ActivityStatus getActivityStatus() { return activityStatus; }
+    public void setActivityStatus(ActivityStatus activityStatus) { this.activityStatus = activityStatus; }
     public RegistrationStatus getRegistrationStatus() { return registrationStatus; }
     public void setRegistrationStatus(RegistrationStatus registrationStatus) { this.registrationStatus = registrationStatus; }
     public LocalDateTime getRegisteredAt() { return registeredAt; }

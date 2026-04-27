@@ -11,6 +11,18 @@ page {
 }
 
 .find-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.find-top-shell {
+  flex-shrink: 0;
+  padding: 0 20rpx;
+}
+
+.find-content {
   padding: 0 20rpx 20rpx;
 }
 
@@ -91,6 +103,7 @@ page {
 .category-row {
   white-space: nowrap;
   padding: 2rpx 2rpx;
+  margin-bottom: 12rpx;
 }
 
 .tab-chip {

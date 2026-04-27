@@ -17,6 +17,7 @@ import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
 import com.campus.activity.service.RegistrationTicketService;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.view.v1.TicketDetailView;
@@ -36,6 +37,7 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
     private final ActivityReviewMapper reviewMapper;
     private final OperatorPermissionService permissionService;
     private final RegistrationTicketService registrationTicketService;
+    private final ActivityPhaseResolver activityPhaseResolver;
 
     /**
      * 构造函数。
@@ -45,13 +47,15 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
             ActivityRegistrationMapper registrationMapper,
             ActivityReviewMapper reviewMapper,
             OperatorPermissionService permissionService,
-            RegistrationTicketService registrationTicketService
+            RegistrationTicketService registrationTicketService,
+            ActivityPhaseResolver activityPhaseResolver
     ) {
         this.activityMapper = activityMapper;
         this.registrationMapper = registrationMapper;
         this.reviewMapper = reviewMapper;
         this.permissionService = permissionService;
         this.registrationTicketService = registrationTicketService;
+        this.activityPhaseResolver = activityPhaseResolver;
     }
 
     /**
@@ -72,11 +76,9 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + request.getActivityId());
         }
-        if (ActivityStatus.CANCELLED.equals(activity.getStatus()) || ActivityStatus.DRAFT.equals(activity.getStatus())) {
+        ActivityStatus effectiveStatus = activityPhaseResolver.resolve(activity);
+        if (!ActivityStatus.REGISTRATION_OPEN.equals(effectiveStatus)) {
             throw new BusinessException(ErrorCode.CONFLICT, "activity cannot be registered now");
-        }
-        if (activity.getRegistrationDeadline() != null && LocalDateTime.now().isAfter(activity.getRegistrationDeadline())) {
-            throw new BusinessException(ErrorCode.CONFLICT, "registration deadline has passed");
         }
 
         // 报名前必须是审核通过活动。
@@ -150,6 +152,17 @@ public class V1RegistrationServiceImpl implements V1RegistrationService {
         }
         if (RegistrationStatus.CANCELLED.equals(registration.getStatus())) {
             throw new BusinessException(ErrorCode.CONFLICT, "registration already cancelled");
+        }
+
+        Activity activity = activityMapper.selectById(registration.getActivityId());
+        if (activity == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + registration.getActivityId());
+        }
+        ActivityStatus effectiveStatus = activityPhaseResolver.resolve(activity);
+        if (ActivityStatus.ONGOING.equals(effectiveStatus)
+                || ActivityStatus.FINISHED.equals(effectiveStatus)
+                || ActivityStatus.CANCELLED.equals(effectiveStatus)) {
+            throw new BusinessException(ErrorCode.CONFLICT, "activity has started and registration cannot be cancelled");
         }
 
         registration.setStatus(RegistrationStatus.CANCELLED);

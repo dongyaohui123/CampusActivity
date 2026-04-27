@@ -22,12 +22,14 @@ import com.campus.activity.mapper.ActivityFavoriteMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
 import com.campus.activity.service.impl.v1.V1ActivityFavoriteServiceImpl;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.view.v1.FavoriteActivityView;
+import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,8 +47,20 @@ class V1ActivityFavoriteServiceImplTest {
     @Mock
     private OperatorPermissionService permissionService;
 
-    @InjectMocks
+    private final ActivityPhaseResolver activityPhaseResolver = new ActivityPhaseResolver();
+
     private V1ActivityFavoriteServiceImpl favoriteService;
+
+    @BeforeEach
+    void setUp() {
+        favoriteService = new V1ActivityFavoriteServiceImpl(
+                activityMapper,
+                reviewMapper,
+                favoriteMapper,
+                permissionService,
+                activityPhaseResolver
+        );
+    }
 
     @Test
     void favoriteActivity_shouldInsertFavoriteWhenMissing() {
@@ -141,12 +155,17 @@ class V1ActivityFavoriteServiceImplTest {
         User operator = buildUser(1L, UserRole.STUDENT);
         FavoriteActivityView view = new FavoriteActivityView();
         view.setActivityId(9L);
+        view.setStatus(ActivityStatus.PUBLISHED);
+        view.setStartTime(LocalDateTime.now().plusDays(1));
+        view.setEndTime(LocalDateTime.now().plusDays(2));
+        view.setRegistrationDeadline(LocalDateTime.now().minusHours(1));
         when(permissionService.verifyOperator(1L, UserRole.STUDENT)).thenReturn(operator);
         when(favoriteMapper.selectUserFavoriteActivities(1L)).thenReturn(List.of(view));
 
         List<FavoriteActivityView> rows = favoriteService.getUserFavorites(1L, 1L, UserRole.STUDENT);
         assertThat(rows).hasSize(1);
         assertThat(rows.get(0).getActivityId()).isEqualTo(9L);
+        assertThat(rows.get(0).getStatus()).isEqualTo(ActivityStatus.REGISTRATION_CLOSED);
     }
 
     private User buildUser(Long id, UserRole role) {

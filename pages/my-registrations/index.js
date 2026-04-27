@@ -7,6 +7,10 @@ function displayTime(value) {
   return String(value).replace("T", " ");
 }
 
+function isPreStartActivity(status) {
+  return status === "REGISTRATION_OPEN" || status === "REGISTRATION_CLOSED";
+}
+
 Page({
   data: {
     i18n: {
@@ -48,7 +52,7 @@ Page({
         activityTitleDisplay: item.activityTitle || "未知活动",
         activityStartDisplay: displayTime(item.activityStartTime),
         activityEndDisplay: displayTime(item.activityEndTime),
-        canCancel: item.registrationStatus === "REGISTERED",
+        canCancel: item.registrationStatus === "REGISTERED" && isPreStartActivity(String(item.activityStatus || "")),
         canViewTicket: item.registrationStatus === "REGISTERED" || item.registrationStatus === "CHECKED_IN",
       }));
       this.setData({ registrations });

@@ -20,17 +20,27 @@ const TIME_ITEMS = [
 
 const LOCATION_ITEMS = [
   { key: "ALL", label: "不限" },
-  { key: "东校区", label: "东校区" },
-  { key: "西校区", label: "西校区" },
-  { key: "图书馆", label: "图书馆" },
+  { key: "南校区", label: "南校区" },
+  { key: "北校区", label: "北校区" },
   { key: "线上", label: "线上" },
 ];
+
+const SOUTH_CAMPUS_LOCATION_KEYWORDS = ["大学生活动中心", "操场"];
 
 const STATUS_ITEMS = [
   { key: "ALL", label: "不限" },
   { key: "OPEN", label: "报名中" },
   { key: "CLOSED", label: "已截止" },
 ];
+
+const STATUS_DISPLAY_MAP = {
+  PUBLISHED: "已发布",
+  REGISTRATION_OPEN: "报名中",
+  REGISTRATION_CLOSED: "报名已截止",
+  ONGOING: "进行中",
+  FINISHED: "已结束",
+  CANCELLED: "已取消",
+};
 
 function parseTime(value) {
   const time = new Date(value);
@@ -98,18 +108,32 @@ function getCategoryLabel(key) {
 }
 
 function deriveStatusKey(activity, now) {
-  if (activity.status === "OPEN" || activity.status === "CLOSED") {
-    return activity.status;
-  }
-  const start = parseTime(activity.startTime);
-  if (start && start < now) {
-    return "CLOSED";
-  }
-  return "OPEN";
+  return String(activity.status || "");
 }
 
 function getStatusDisplay(statusKey) {
-  return statusKey === "CLOSED" ? "已截止" : "报名中";
+  if (!statusKey) return "状态待定";
+  return STATUS_DISPLAY_MAP[statusKey] || statusKey;
+}
+
+function passStatusFilter(statusKey, selectedStatus) {
+  if (selectedStatus === "ALL") return true;
+  if (selectedStatus === "OPEN") return statusKey === "REGISTRATION_OPEN";
+  if (selectedStatus === "CLOSED") return statusKey && statusKey !== "REGISTRATION_OPEN";
+  return true;
+}
+
+/**
+ * 将自由文本地点归入页面筛选使用的校区/线上桶。
+ */
+function getLocationBucket(locationText) {
+  const location = String(locationText || "").trim();
+  if (!location) return "";
+  if (location.includes("线上")) return "线上";
+  if (SOUTH_CAMPUS_LOCATION_KEYWORDS.some((keyword) => location.includes(keyword))) {
+    return "南校区";
+  }
+  return "北校区";
 }
 
 /**
@@ -127,6 +151,7 @@ function normalizeActivity(item, now) {
     categoryLabel: getCategoryLabel(categoryKey),
     statusKey,
     statusDisplay: getStatusDisplay(statusKey),
+    isClosedStatus: statusKey !== "REGISTRATION_OPEN",
   };
 }
 
@@ -294,7 +319,7 @@ Page({
 
   passLocationFilter(itemLocation, selectedLocation) {
     if (selectedLocation === "ALL") return true;
-    return String(itemLocation || "").includes(selectedLocation);
+    return getLocationBucket(itemLocation) === selectedLocation;
   },
 
   /**
@@ -305,6 +330,7 @@ Page({
     const selectedCategory = this.data.selectedCategory;
     const selectedTime = this.data.selectedTime;
     const selectedLocation = this.data.selectedLocation;
+    const selectedStatus = this.data.selectedStatus;
     const now = new Date();
 
     const displayList = this.data.fullList.filter((item) => {
@@ -317,7 +343,8 @@ Page({
       const passCategory = selectedCategory === "ALL" || item.categoryKey === selectedCategory;
       const passTime = this.passTimeFilter(item.startTime, selectedTime, now);
       const passLocation = this.passLocationFilter(item.location, selectedLocation);
-      return passKeyword && passCategory && passTime && passLocation;
+      const passStatus = passStatusFilter(item.statusKey, selectedStatus);
+      return passKeyword && passCategory && passTime && passLocation && passStatus;
     });
 
     this.setData({

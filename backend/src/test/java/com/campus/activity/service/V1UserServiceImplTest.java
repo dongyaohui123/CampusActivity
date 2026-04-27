@@ -7,10 +7,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.user.UserPasswordChangeRequest;
 import com.campus.activity.entity.Activity;
+import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.User;
+import com.campus.activity.enums.ActivityStatus;
+import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
@@ -18,13 +22,16 @@ import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.impl.v1.V1UserServiceImpl;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.AvatarStorageService;
 import com.campus.activity.service.v1.AvatarUrlService;
 import com.campus.activity.service.v1.OperatorPermissionService;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -48,8 +55,22 @@ class V1UserServiceImplTest {
     @Mock
     private AvatarUrlService avatarUrlService;
 
-    @InjectMocks
+    private final ActivityPhaseResolver activityPhaseResolver = new ActivityPhaseResolver();
+
     private V1UserServiceImpl userService;
+
+    @BeforeEach
+    void setUp() {
+        userService = new V1UserServiceImpl(
+                userMapper,
+                registrationMapper,
+                activityMapper,
+                permissionService,
+                avatarStorageService,
+                avatarUrlService,
+                activityPhaseResolver
+        );
+    }
 
     @Test
     void changeUserPassword_shouldUpdatePasswordWhenOldPasswordMatches() {
@@ -141,6 +162,34 @@ class V1UserServiceImplTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(ex -> ((BusinessException) ex).getErrorCode())
                 .isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void getUserRegistrations_shouldIncludeResolvedActivityStatus() {
+        User operator = buildUser(1L, "old-password");
+        when(permissionService.verifyOperator(1L, UserRole.STUDENT)).thenReturn(operator);
+
+        ActivityRegistration registration = new ActivityRegistration();
+        registration.setId(9L);
+        registration.setActivityId(7L);
+        registration.setUserId(1L);
+        registration.setStatus(RegistrationStatus.REGISTERED);
+        when(registrationMapper.selectList(any(QueryWrapper.class))).thenReturn(List.of(registration));
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setTitle("Campus Hackday");
+        activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setStartTime(LocalDateTime.now().plusDays(1));
+        activity.setEndTime(LocalDateTime.now().plusDays(2));
+        activity.setRegistrationDeadline(LocalDateTime.now().minusHours(1));
+        when(activityMapper.selectBatchIds(List.of(7L))).thenReturn(List.of(activity));
+
+        var rows = userService.getUserRegistrations(1L, 1L, UserRole.STUDENT);
+
+        assertThat(rows).hasSize(1);
+        assertThat(rows.get(0).getActivityId()).isEqualTo(7L);
+        assertThat(rows.get(0).getActivityStatus()).isEqualTo(ActivityStatus.REGISTRATION_CLOSED);
     }
 
     private User buildUser(Long id, String passwordHash) {

@@ -12,6 +12,7 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.UserMapper;
+import com.campus.activity.service.v1.ActivityPhaseResolver;
 import com.campus.activity.service.v1.AvatarStorageService;
 import com.campus.activity.service.v1.AvatarUrlService;
 import com.campus.activity.service.v1.OperatorPermissionService;
@@ -41,6 +42,7 @@ public class V1UserServiceImpl implements V1UserService {
     private final OperatorPermissionService permissionService;
     private final AvatarStorageService avatarStorageService;
     private final AvatarUrlService avatarUrlService;
+    private final ActivityPhaseResolver activityPhaseResolver;
 
     /**
      * 构造函数。
@@ -51,7 +53,8 @@ public class V1UserServiceImpl implements V1UserService {
             ActivityMapper activityMapper,
             OperatorPermissionService permissionService,
             AvatarStorageService avatarStorageService,
-            AvatarUrlService avatarUrlService
+            AvatarUrlService avatarUrlService,
+            ActivityPhaseResolver activityPhaseResolver
     ) {
         this.userMapper = userMapper;
         this.registrationMapper = registrationMapper;
@@ -59,6 +62,7 @@ public class V1UserServiceImpl implements V1UserService {
         this.permissionService = permissionService;
         this.avatarStorageService = avatarStorageService;
         this.avatarUrlService = avatarUrlService;
+        this.activityPhaseResolver = activityPhaseResolver;
     }
 
     /**
@@ -217,6 +221,7 @@ public class V1UserServiceImpl implements V1UserService {
                 view.setLocation(activity.getLocation());
                 view.setActivityStartTime(activity.getStartTime());
                 view.setActivityEndTime(activity.getEndTime());
+                view.setActivityStatus(activityPhaseResolver.resolve(activity));
             }
             result.add(view);
         }

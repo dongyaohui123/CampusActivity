@@ -1,6 +1,6 @@
-﻿<scroll-view class="find-scroll" scroll-y>
-  <view class="find-page">
-    <!-- 顶部区：标题、搜索、分类 -->
+<view class="find-page">
+  <view class="find-top-shell">
+    <!-- 顶部区：标题、搜索 -->
     <view class="top-panel" style="padding-top: {{topPanelPaddingTopPx}}px;">
       <view class="title-row" style="min-height: {{titleRowMinHeightPx}}px; padding-right: {{titleRightSafePx}}px;">
         <text class="page-title">{{i18n.pageTitle}}</text>
@@ -16,7 +16,11 @@
           placeholder-class="search-placeholder"
         />
       </view>
+    </view>
+  </view>
 
+  <scroll-view class="find-scroll" scroll-y>
+    <view class="find-content">
       <scroll-view class="category-row" scroll-x enable-flex>
         <block wx:for="{{categories}}" wx:key="key">
           <view
@@ -28,99 +32,99 @@
           </view>
         </block>
       </scroll-view>
-    </view>
 
-    <!-- 筛选区：时间/地点/状态 -->
-    <view class="filter-card {{filterExpanded ? 'open' : ''}}">
-      <view class="filter-head" bindtap="toggleFilterPanel">
-        <view class="filter-head-left">
-          <text class="filter-title">{{i18n.filterTitle}}</text>
-          <text class="filter-summary">{{filterSummary}}</text>
-        </view>
-        <view class="arrow {{filterExpanded ? 'up' : ''}}"></view>
-      </view>
-
-      <view wx:if="{{filterExpanded}}" class="filter-body">
-        <view class="filter-group">
-          <text class="group-label">时间</text>
-          <view class="chip-row">
-            <block wx:for="{{timeOptions}}" wx:key="key">
-              <view
-                class="chip {{selectedTime === item.key ? 'active' : ''}}"
-                data-key="{{item.key}}"
-                bindtap="onTimeTap"
-              >
-                {{item.label}}
-              </view>
-            </block>
+      <!-- 筛选区：时间/地点/状态 -->
+      <view class="filter-card {{filterExpanded ? 'open' : ''}}">
+        <view class="filter-head" bindtap="toggleFilterPanel">
+          <view class="filter-head-left">
+            <text class="filter-title">{{i18n.filterTitle}}</text>
+            <text class="filter-summary">{{filterSummary}}</text>
           </view>
+          <view class="arrow {{filterExpanded ? 'up' : ''}}"></view>
         </view>
 
-        <view class="filter-group">
-          <text class="group-label">地点</text>
-          <view class="chip-row">
-            <block wx:for="{{locationOptions}}" wx:key="key">
-              <view
-                class="chip {{selectedLocation === item.key ? 'active' : ''}}"
-                data-key="{{item.key}}"
-                bindtap="onLocationTap"
-              >
-                {{item.label}}
-              </view>
-            </block>
-          </view>
-        </view>
-
-        <view class="filter-group">
-          <text class="group-label">状态（仅展示）</text>
-          <view class="chip-row">
-            <block wx:for="{{statusOptions}}" wx:key="key">
-              <view
-                class="chip {{selectedStatus === item.key ? 'active' : ''}}"
-                data-key="{{item.key}}"
-                bindtap="onStatusTap"
-              >
-                {{item.label}}
-              </view>
-            </block>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 结果区 -->
-    <view class="result-head">
-      <text class="result-title">{{i18n.resultTitle}}</text>
-      <text class="result-count">{{resultCount}} 条结果</text>
-    </view>
-
-    <view wx:if="{{loading}}" class="loading-wrap">
-      <text class="loading-text">{{i18n.loading}}</text>
-    </view>
-
-    <view wx:if="{{!loading && displayList.length > 0}}" class="list-wrap">
-      <block wx:for="{{displayList}}" wx:key="id">
-        <view class="activity-card fade-up" bindtap="goDetail" data-id="{{item.id}}" style="animation-delay: {{index * 40}}ms;">
-          <image class="activity-cover" src="{{item.cover}}" mode="aspectFill" />
-          <view class="activity-body">
-            <view class="title-line">
-              <text class="status-tag {{item.statusKey === 'CLOSED' ? 'closed' : ''}}">{{item.statusDisplay}}</text>
-              <text class="activity-title">{{item.title}}</text>
+        <view wx:if="{{filterExpanded}}" class="filter-body">
+          <view class="filter-group">
+            <text class="group-label">时间</text>
+            <view class="chip-row">
+              <block wx:for="{{timeOptions}}" wx:key="key">
+                <view
+                  class="chip {{selectedTime === item.key ? 'active' : ''}}"
+                  data-key="{{item.key}}"
+                  bindtap="onTimeTap"
+                >
+                  {{item.label}}
+                </view>
+              </block>
             </view>
-            <text class="meta-line">时间：{{item.timeDisplay}}</text>
-            <text class="meta-line">地点：{{item.locationDisplay}}</text>
-            <text class="category-pill">{{item.categoryLabel}}</text>
+          </view>
+
+          <view class="filter-group">
+            <text class="group-label">地点</text>
+            <view class="chip-row">
+              <block wx:for="{{locationOptions}}" wx:key="key">
+                <view
+                  class="chip {{selectedLocation === item.key ? 'active' : ''}}"
+                  data-key="{{item.key}}"
+                  bindtap="onLocationTap"
+                >
+                  {{item.label}}
+                </view>
+              </block>
+            </view>
+          </view>
+
+          <view class="filter-group">
+            <text class="group-label">状态</text>
+            <view class="chip-row">
+              <block wx:for="{{statusOptions}}" wx:key="key">
+                <view
+                  class="chip {{selectedStatus === item.key ? 'active' : ''}}"
+                  data-key="{{item.key}}"
+                  bindtap="onStatusTap"
+                >
+                  {{item.label}}
+                </view>
+              </block>
+            </view>
           </view>
         </view>
-      </block>
-    </view>
+      </view>
 
-    <view wx:if="{{!loading && displayList.length === 0}}" class="empty-wrap">
-      <text class="empty-title">{{i18n.emptyTitle}}</text>
-      <text class="empty-desc">{{i18n.emptyDesc}}</text>
+      <!-- 结果区 -->
+      <view class="result-head">
+        <text class="result-title">{{i18n.resultTitle}}</text>
+        <text class="result-count">{{resultCount}} 条结果</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-wrap">
+        <text class="loading-text">{{i18n.loading}}</text>
+      </view>
+
+      <view wx:if="{{!loading && displayList.length > 0}}" class="list-wrap">
+        <block wx:for="{{displayList}}" wx:key="id">
+          <view class="activity-card fade-up" bindtap="goDetail" data-id="{{item.id}}" style="animation-delay: {{index * 40}}ms;">
+            <image class="activity-cover" src="{{item.cover}}" mode="aspectFill" />
+            <view class="activity-body">
+              <view class="title-line">
+                <text class="status-tag {{item.isClosedStatus ? 'closed' : ''}}">{{item.statusDisplay}}</text>
+                <text class="activity-title">{{item.title}}</text>
+              </view>
+              <text class="meta-line">时间：{{item.timeDisplay}}</text>
+              <text class="meta-line">地点：{{item.locationDisplay}}</text>
+              <text class="category-pill">{{item.categoryLabel}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <view wx:if="{{!loading && displayList.length === 0}}" class="empty-wrap">
+        <text class="empty-title">{{i18n.emptyTitle}}</text>
+        <text class="empty-desc">{{i18n.emptyDesc}}</text>
+      </view>
     </view>
-  </view>
-</scroll-view>
+  </scroll-view>
+</view>
 
 <!-- 底部主导航 -->
 <van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>

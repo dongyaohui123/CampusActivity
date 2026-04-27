@@ -45,6 +45,24 @@ function normalizeRegistrationStatus(registration) {
   return REGISTRATION_STATUS_MAP[status] || status;
 }
 
+function isRegistrationOpenActivity(status) {
+  return status === "REGISTRATION_OPEN";
+}
+
+function isPreStartActivity(status) {
+  return status === "REGISTRATION_OPEN" || status === "REGISTRATION_CLOSED";
+}
+
+function deriveRegistrationActions(activity, currentRegistration) {
+  const activityStatus = String((activity && activity.status) || "");
+  const registrationStatus = String((currentRegistration && currentRegistration.registrationStatus) || "");
+  return {
+    canRegister: isRegistrationOpenActivity(activityStatus) && (!registrationStatus || registrationStatus === "CANCELLED"),
+    canCancel: registrationStatus === "REGISTERED" && isPreStartActivity(activityStatus),
+    canViewTicket: registrationStatus === "REGISTERED" || registrationStatus === "CHECKED_IN",
+  };
+}
+
 function buildSharePayload(data) {
   const activityId = Number(data.activityId || 0);
   const title = String((data.activity && data.activity.title) || data.i18n.shareTitleFallback || "校园活动").trim();
@@ -92,7 +110,7 @@ function resolveCtaState(ctx) {
   return {
     ctaMode: "disabled",
     ctaText: i18n.ctaUnavailable,
-    ctaHint: `${i18n.currentStatus}: ${registrationStatusText}`,
+    ctaHint: `${i18n.statusLabel}: ${activity.statusText}`,
   };
 }
 
@@ -276,14 +294,13 @@ Page({
   async loadRegistrationState() {
     const rows = await getMyRegistrations();
     const currentRegistration = (rows || []).find((item) => Number(item.activityId) === this.data.activityId) || null;
-    const canRegister = !currentRegistration || currentRegistration.registrationStatus === "CANCELLED";
-    const canCancel = Boolean(currentRegistration && currentRegistration.registrationStatus === "REGISTERED");
-    const canViewTicket = Boolean(
-      currentRegistration &&
-        (currentRegistration.registrationStatus === "REGISTERED" ||
-          currentRegistration.registrationStatus === "CHECKED_IN")
-    );
-    this.setData({ currentRegistration, canRegister, canCancel, canViewTicket });
+    const actions = deriveRegistrationActions(this.data.activity, currentRegistration);
+    this.setData({
+      currentRegistration,
+      canRegister: actions.canRegister,
+      canCancel: actions.canCancel,
+      canViewTicket: actions.canViewTicket,
+    });
     this.refreshPresentationState();
   },
 
