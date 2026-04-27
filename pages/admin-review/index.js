@@ -44,15 +44,14 @@ function normalizeReviewStatusTone(status) {
 function mapPendingItem(item) {
   const reviewStatus = String(item.reviewStatus || "PENDING").toUpperCase();
   const activityId = Number(item.activityId || 0);
-  const organizerId = Number(item.organizerId || 0);
+  const organizerName = String(item.organizerName || "").trim();
 
   return {
     ...item,
     title: String(item.title || "").trim() || "未命名活动",
     activityId,
     activityIdDisplay: activityId > 0 ? String(activityId) : "-",
-    organizerId,
-    organizerIdDisplay: organizerId > 0 ? String(organizerId) : "-",
+    organizerNameDisplay: organizerName || "-",
     startDisplay: displayTime(item.startTime),
     endDisplay: displayTime(item.endTime),
     reviewStatusText: normalizeReviewStatusText(reviewStatus),
@@ -73,11 +72,11 @@ Page({
       roleHintSuffix: "，请先切换为管理员后再进行活动审核。",
       reviewCommentTitle: "审核意见",
       reviewCommentTip: "通过时可留空，驳回时必须填写审核意见。",
-      reviewCommentPlaceholder: "请输入审核意见",
+      reviewCommentPlaceholder: "通过可留空，驳回请填写审核意见",
       pendingSectionTitle: "待审核活动",
       loading: "加载中...",
       activityIdLabel: "活动编号",
-      organizerLabel: "组织者编号",
+      organizerLabel: "组织者姓名",
       timeLabel: "活动时间",
       approve: "通过",
       reject: "驳回",
@@ -86,7 +85,7 @@ Page({
     operatorRole: "",
     operatorRoleText: "未登录",
     loading: false,
-    reviewComment: "请补充活动说明后再提交",
+    reviewComment: "",
     pendingList: [],
     pendingCount: 0,
   },

@@ -55,7 +55,7 @@
           </view>
           <view class="meta-row">
             <text class="meta-label">{{i18n.organizerLabel}}</text>
-            <text class="meta-value">{{item.organizerIdDisplay}}</text>
+            <text class="meta-value">{{item.organizerNameDisplay}}</text>
           </view>
 
           <view class="action-row">

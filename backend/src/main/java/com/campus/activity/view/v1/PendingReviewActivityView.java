@@ -10,6 +10,7 @@ public class PendingReviewActivityView {
     private Long activityId;
     private String title;
     private Long organizerId;
+    private String organizerName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private ReviewStatus reviewStatus;
@@ -21,6 +22,8 @@ public class PendingReviewActivityView {
     public void setTitle(String title) { this.title = title; }
     public Long getOrganizerId() { return organizerId; }
     public void setOrganizerId(Long organizerId) { this.organizerId = organizerId; }
+    public String getOrganizerName() { return organizerName; }
+    public void setOrganizerName(String organizerName) { this.organizerName = organizerName; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }

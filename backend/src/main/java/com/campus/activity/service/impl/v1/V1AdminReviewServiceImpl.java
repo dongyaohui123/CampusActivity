@@ -16,6 +16,7 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1AdminReviewService;
 import com.campus.activity.view.v1.PendingReviewActivityView;
@@ -37,6 +38,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
     private final ActivityReviewMapper reviewMapper;
     private final ActivityMapper activityMapper;
     private final ActivityAuditLogMapper auditLogMapper;
+    private final UserMapper userMapper;
     private final OperatorPermissionService permissionService;
 
     /**
@@ -46,11 +48,13 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
             ActivityReviewMapper reviewMapper,
             ActivityMapper activityMapper,
             ActivityAuditLogMapper auditLogMapper,
+            UserMapper userMapper,
             OperatorPermissionService permissionService
     ) {
         this.reviewMapper = reviewMapper;
         this.activityMapper = activityMapper;
         this.auditLogMapper = auditLogMapper;
+        this.userMapper = userMapper;
         this.permissionService = permissionService;
     }
 
@@ -84,6 +88,15 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
                 ? Collections.emptyMap()
                 : activityMapper.selectBatchIds(activityIds).stream()
                         .collect(Collectors.toMap(Activity::getId, a -> a));
+        List<Long> organizerIds = activityMap.values().stream()
+                .map(Activity::getOrganizerId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, User> organizerMap = organizerIds.isEmpty()
+                ? Collections.emptyMap()
+                : userMapper.selectBatchIds(organizerIds).stream()
+                        .collect(Collectors.toMap(User::getId, u -> u));
 
         return pendingReviews.stream()
                 .map(review -> {
@@ -95,6 +108,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
                     view.setActivityId(activity.getId());
                     view.setTitle(activity.getTitle());
                     view.setOrganizerId(activity.getOrganizerId());
+                    view.setOrganizerName(resolveDisplayName(organizerMap.get(activity.getOrganizerId())));
                     view.setStartTime(activity.getStartTime());
                     view.setEndTime(activity.getEndTime());
                     view.setReviewStatus(review.getReviewStatus());
@@ -103,6 +117,21 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private String resolveDisplayName(User organizer) {
+        if (organizer == null) {
+            return "-";
+        }
+        String nickname = organizer.getNickname();
+        if (nickname != null && !nickname.isBlank()) {
+            return nickname.trim();
+        }
+        String username = organizer.getUsername();
+        if (username != null && !username.isBlank()) {
+            return username.trim();
+        }
+        return "-";
     }
 
     /**
