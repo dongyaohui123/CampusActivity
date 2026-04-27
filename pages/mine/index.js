@@ -1,5 +1,11 @@
-﻿const { getMyRegistrations, listOrganizerActivities, listPendingReviews } = require("../../utils/api");
-const { getLoginUser, clearLoginUser } = require("../../utils/auth");
+const {
+  getMyRegistrations,
+  listOrganizerActivities,
+  listPendingReviews,
+  updateUserProfile,
+  uploadUserAvatar,
+} = require("../../utils/api");
+const { getLoginUser, clearLoginUser, setLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
 const ORGANIZER_PUBLISHED_STATUS = [
@@ -92,9 +98,6 @@ function getRoleTabDefs(role, i18n) {
   return [];
 }
 
-/**
- * 根据登录态和角色生成快捷入口卡片。
- */
 function getQuickActions(i18n, loginUser) {
   if (!loginUser) {
     return [
@@ -282,9 +285,23 @@ Page({
       viewRecords: "报名记录",
       goManage: "组织管理",
       organizerPrefix: "组织者ID：",
+      editProfile: "编辑资料",
+      editProfileTitle: "编辑个人资料",
+      nicknameLabel: "昵称",
+      nicknamePlaceholder: "请输入昵称",
+      avatarLabel: "头像",
+      chooseAvatar: "使用微信头像",
+      chooseFromAlbum: "相册/拍摄并裁剪",
+      saveProfile: "保存",
+      cancel: "取消",
     },
     loginUser: null,
     avatarText: "访客",
+    editProfileVisible: false,
+    editNickname: "",
+    editAvatarPreview: "",
+    editAvatarTempPath: "",
+    profileSaving: false,
     quickActions: [],
     sectionEntry: {
       text: "",
@@ -308,9 +325,6 @@ Page({
     this.restoreLoginState();
   },
 
-  /**
-   * 恢复登录态后并行加载统计与卡片数据。
-   */
   async restoreLoginState() {
     const loginUser = getLoginUser();
     const { i18n } = this.data;
@@ -369,9 +383,6 @@ Page({
     });
   },
 
-  /**
-   * 按角色加载活动卡片，统一抽象到 tab + card 结构渲染。
-   */
   async loadMineActivityCards(loginUser) {
     if (!loginUser) return;
     const { i18n } = this.data;
@@ -399,8 +410,7 @@ Page({
     const activeActivityTab =
       activityTabs.find((tab) => tab.key === this.data.activeActivityTab)?.key || (activityTabs[0] && activityTabs[0].key) || "";
     const filteredActivityCards = cards.filter((card) => card.tabKey === activeActivityTab);
-    const activityEmptyText =
-      role === "ORGANIZER" ? i18n.emptyOrganizer : role === "ADMIN" ? i18n.emptyAdmin : i18n.emptyStudent;
+    const activityEmptyText = role === "ORGANIZER" ? i18n.emptyOrganizer : role === "ADMIN" ? i18n.emptyAdmin : i18n.emptyStudent;
 
     this.setData({
       activityTabs,
@@ -442,9 +452,146 @@ Page({
     this.handleAction(action);
   },
 
-  /**
-   * 我的页统一动作分发器。
-   */
+  onEditProfileTap() {
+    const { loginUser } = this.data;
+    if (!loginUser) {
+      this.goToAuth();
+      return;
+    }
+    this.setData({
+      editProfileVisible: true,
+      editNickname: String(loginUser.nickname || "").trim(),
+      editAvatarPreview: String(loginUser.avatarUrl || "").trim(),
+      editAvatarTempPath: "",
+    });
+  },
+
+  onEditProfileClose() {
+    if (this.data.profileSaving) {
+      return;
+    }
+    this.setData({
+      editProfileVisible: false,
+      editNickname: "",
+      editAvatarPreview: "",
+      editAvatarTempPath: "",
+    });
+  },
+
+  onEditNicknameInput(event) {
+    this.setData({ editNickname: event.detail || "" });
+  },
+
+  onChooseAvatar(event) {
+    const avatarUrl = String((event && event.detail && event.detail.avatarUrl) || "").trim();
+    if (!avatarUrl) {
+      return;
+    }
+    this.setData({
+      editAvatarTempPath: avatarUrl,
+      editAvatarPreview: avatarUrl,
+    });
+  },
+
+  openAvatarCropper(tempFilePath) {
+    const sourcePath = String(tempFilePath || "").trim();
+    if (!sourcePath) {
+      feedback.error("未找到可裁剪的图片");
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/avatar-crop/index?src=${encodeURIComponent(sourcePath)}`,
+      events: {
+        cropped: (data) => {
+          const croppedFilePath = String((data && data.tempFilePath) || "").trim();
+          if (!croppedFilePath) {
+            return;
+          }
+          this.setData({
+            editAvatarTempPath: croppedFilePath,
+            editAvatarPreview: croppedFilePath,
+          });
+        },
+      },
+      fail: () => {
+        feedback.error("打开裁剪页失败");
+      },
+    });
+  },
+
+  onChooseAvatarFallback() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["album", "camera"],
+      success: (res) => {
+        const file = res && res.tempFiles && res.tempFiles[0];
+        const tempFilePath = String((file && file.tempFilePath) || "").trim();
+        if (!tempFilePath) {
+          return;
+        }
+        this.openAvatarCropper(tempFilePath);
+      },
+      fail: () => {
+        feedback.error("头像选择失败");
+      },
+    });
+  },
+
+  async onSaveProfileTap() {
+    const { loginUser, editNickname, editAvatarTempPath } = this.data;
+    if (!loginUser || this.data.profileSaving) {
+      return;
+    }
+    const nickname = String(editNickname || "").trim();
+    if (!nickname) {
+      feedback.error("昵称不能为空");
+      return;
+    }
+    if (nickname.length > 100) {
+      feedback.error("昵称长度不能超过100");
+      return;
+    }
+
+    const payload = {};
+    if (nickname !== String(loginUser.nickname || "").trim()) {
+      payload.nickname = nickname;
+    }
+
+    this.setData({ profileSaving: true });
+    try {
+      if (editAvatarTempPath) {
+        const uploadResult = await uploadUserAvatar(loginUser.id, editAvatarTempPath);
+        const uploadedAvatarUrl = String((uploadResult && uploadResult.avatarUrl) || "").trim();
+        if (!uploadedAvatarUrl) {
+          feedback.error("头像上传失败");
+          return;
+        }
+        payload.avatarUrl = uploadedAvatarUrl;
+      }
+
+      if (!Object.keys(payload).length) {
+        feedback.info("资料未修改");
+        return;
+      }
+
+      const updatedUser = await updateUserProfile(loginUser.id, payload);
+      setLoginUser(updatedUser);
+      this.setData({
+        editProfileVisible: false,
+        editNickname: "",
+        editAvatarPreview: "",
+        editAvatarTempPath: "",
+      });
+      await this.restoreLoginState();
+      feedback.success("资料已更新");
+    } catch (e) {
+      // API layer already displayed error.
+    } finally {
+      this.setData({ profileSaving: false });
+    }
+  },
+
   handleAction(action, payload) {
     const loginUser = this.data.loginUser;
     if (action === "help") {
@@ -509,6 +656,11 @@ Page({
     this.setData({
       loginUser: null,
       avatarText: "访客",
+      editProfileVisible: false,
+      editNickname: "",
+      editAvatarPreview: "",
+      editAvatarTempPath: "",
+      profileSaving: false,
       quickActions: getQuickActions(i18n, null),
       sectionEntry: getSectionEntry(i18n, null),
       stats: { participatedCount: 0, initiatedCount: 0, managedOrgCount: 0 },

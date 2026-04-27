@@ -1,8 +1,9 @@
-﻿package com.campus.activity.controller.v1;
+package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
+import com.campus.activity.dto.v1.auth.WechatLoginRequest;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.view.v1.LoginUserView;
 import jakarta.validation.Valid;
@@ -51,5 +52,16 @@ public class V1AuthController {
     @PostMapping("/register")
     public ApiResponse<LoginUserView> register(@Valid @RequestBody RegisterRequest request) {
         return ApiResponse.success("register success", authService.register(request));
+    }
+
+    /**
+     * WeChat mini-program login.
+     *
+     * @param request wechat login request
+     * @return login user info
+     */
+    @PostMapping("/wechat-login")
+    public ApiResponse<LoginUserView> wechatLogin(@Valid @RequestBody WechatLoginRequest request) {
+        return ApiResponse.success("wechat login success", authService.wechatLogin(request));
     }
 }

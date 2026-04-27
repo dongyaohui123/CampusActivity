@@ -1,4 +1,5 @@
-﻿const { setOperatorContext, clearOperatorContext } = require("./operator-context");
+const { setOperatorContext, clearOperatorContext } = require("./operator-context");
+const { normalizeAvatarUrl } = require("./avatar-url");
 
 const LOGIN_USER_KEY = "login_user";
 
@@ -26,7 +27,7 @@ function normalizeLoginUser(user) {
     nickname: user.nickname || "",
     role,
     status: user.status || "",
-    avatarUrl: user.avatarUrl || "",
+    avatarUrl: normalizeAvatarUrl(user.avatarUrl),
     phone: user.phone || "",
   };
 }

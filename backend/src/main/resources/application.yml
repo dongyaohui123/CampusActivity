@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   application:
     name: activity-backend
 
@@ -23,3 +23,15 @@ mybatis-plus:
 logging:
   level:
     com.campus.activity.mapper: debug
+
+wechat:
+  miniapp:
+    appid: wx89bee6c990f52064
+    secret: 59a101a98efc3f34564bd75724fcaf7c
+
+app:
+  upload:
+    avatar-dir: ${APP_UPLOAD_AVATAR_DIR:./uploads/avatars}
+    avatar-url-prefix: ${APP_UPLOAD_AVATAR_URL_PREFIX:/static/avatars}
+    avatar-max-size-kb: ${APP_UPLOAD_AVATAR_MAX_SIZE_KB:1024}
+    public-base-url: ${APP_UPLOAD_PUBLIC_BASE_URL:http://127.0.0.1:8080}

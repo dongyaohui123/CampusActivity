@@ -1,0 +1,39 @@
+<view class="crop-page">
+  <view class="crop-nav">
+    <view class="nav-action" bindtap="onCancelTap">取消</view>
+    <view class="nav-title">裁剪头像</view>
+    <view class="nav-action nav-confirm {{exporting ? 'nav-action-disabled' : ''}}" bindtap="onConfirmTap">
+      {{exporting ? "处理中" : "确认"}}
+    </view>
+  </view>
+
+  <view class="crop-body">
+    <view wx:if="{{ready}}" class="crop-stage" style="width: {{cropSize}}px; height: {{cropSize}}px;">
+      <movable-area class="crop-area" style="width: {{cropSize}}px; height: {{cropSize}}px;">
+        <movable-view
+          class="crop-movable"
+          direction="all"
+          inertia="{{false}}"
+          out-of-bounds="{{false}}"
+          x="{{positionX}}"
+          y="{{positionY}}"
+          scale
+          scale-min="{{minScale}}"
+          scale-max="{{maxScale}}"
+          scale-value="{{scale}}"
+          bindchange="onTransformChange"
+          bindscale="onTransformScale"
+          style="width: {{renderWidth}}px; height: {{renderHeight}}px;"
+        >
+          <image class="crop-image" src="{{sourceImage}}" mode="scaleToFill" />
+        </movable-view>
+      </movable-area>
+      <view class="crop-frame"></view>
+    </view>
+
+    <view wx:else class="crop-loading">图片加载中...</view>
+    <view class="crop-tip">拖动和双指缩放，框选 1:1 头像范围</view>
+  </view>
+
+  <canvas canvas-id="avatarCropCanvas" class="crop-canvas"></canvas>
+</view>
