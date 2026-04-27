@@ -66,18 +66,18 @@
   <!-- 底部操作区：快捷按钮 + 主 CTA -->
   <view wx:if="{{activity}}" class="action-bar">
     <view class="quick-group">
-      <view class="quick-btn" data-action="favorite" bindtap="onQuickActionTap">
-        <view class="quick-icon">
-          <van-icon name="star-o" class="quick-vant-icon" />
+      <view class="quick-btn {{favorited ? 'quick-btn-active' : ''}}" data-action="favorite" bindtap="onQuickActionTap">
+        <view class="quick-icon {{favorited ? 'quick-icon-active' : ''}}">
+          <van-icon name="{{favorited ? 'star' : 'star-o'}}" class="quick-vant-icon {{favorited ? 'quick-vant-icon-active' : ''}}" />
         </view>
-        <text class="quick-label">{{i18n.favorite}}</text>
+        <text class="quick-label">{{favorited ? i18n.favorited : i18n.favorite}}</text>
       </view>
-      <view class="quick-btn" data-action="share" bindtap="onQuickActionTap">
+      <button class="quick-btn quick-share-btn" open-type="share">
         <view class="quick-icon">
           <van-icon name="share-o" class="quick-vant-icon" />
         </view>
         <text class="quick-label">{{i18n.share}}</text>
-      </view>
+      </button>
       <view class="quick-btn" data-action="service" bindtap="onQuickActionTap">
         <view class="quick-icon">
           <van-icon name="service-o" class="quick-vant-icon" />

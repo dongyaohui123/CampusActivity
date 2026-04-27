@@ -8,6 +8,7 @@
                   "pages/change-password/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",
+                  "pages/my-favorites/index",
                   "pages/organizer-activities/index",
                   "pages/admin-review/index"
               ],

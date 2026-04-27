@@ -103,7 +103,7 @@ function getQuickActions(i18n, loginUser) {
     return [
       { iconName: "contact-o", title: i18n.goLogin, desc: i18n.goLoginDesc, action: "login" },
       { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
-      { iconName: "question-o", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
+      { iconName: "star-o", title: i18n.myFavorites, desc: i18n.myFavoritesDesc, action: "favorites" },
       { iconName: "service-o", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
     ];
   }
@@ -116,7 +116,7 @@ function getQuickActions(i18n, loginUser) {
   return [
     { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
     roleAction,
-    { iconName: "question-o", title: i18n.helpCenter, desc: i18n.helpDesc, action: "help" },
+    { iconName: "star-o", title: i18n.myFavorites, desc: i18n.myFavoritesDesc, action: "favorites" },
     { iconName: "service-o", title: i18n.contact, desc: i18n.contactDesc, action: "contact" },
   ];
 }
@@ -239,8 +239,8 @@ Page({
       myOrgDesc: "管理活动与发布流程",
       reviewManage: "审核管理",
       reviewDesc: "处理活动审核任务",
-      helpCenter: "帮助中心",
-      helpDesc: "常见问题与使用说明",
+      myFavorites: "我的收藏",
+      myFavoritesDesc: "查看已收藏的校园活动",
       contact: "联系客服",
       contactDesc: "反馈问题和建议",
       settingsTitle: "设置",
@@ -598,10 +598,6 @@ Page({
 
   handleAction(action, payload) {
     const loginUser = this.data.loginUser;
-    if (action === "help") {
-      feedback.info("帮助中心开发中");
-      return;
-    }
     if (action === "contact") {
       feedback.info("联系客服：400-000-0000");
       return;
@@ -621,6 +617,14 @@ Page({
     }
     if (action === "findActivity") {
       wx.reLaunch({ url: "/pages/activity-list/index" });
+      return;
+    }
+    if (action === "favorites") {
+      if (!loginUser) {
+        this.goToAuth();
+        return;
+      }
+      wx.navigateTo({ url: "/pages/my-favorites/index" });
       return;
     }
 

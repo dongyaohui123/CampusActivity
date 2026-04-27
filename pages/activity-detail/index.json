@@ -1,4 +1,6 @@
 {
+  "enableShareAppMessage": true,
+  "enableShareTimeline": true,
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index"
   }

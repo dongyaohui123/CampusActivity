@@ -1,18 +1,24 @@
-﻿const {
+const {
   getPublicActivityDetail,
   getMyRegistrations,
+  getActivityFavoriteStatus,
+  favoriteActivity,
+  unfavoriteActivity,
   registerActivity,
   cancelRegistration,
 } = require("../../utils/api");
-const { getOperatorContext } = require("../../utils/operator-context");
+const { getOperatorContext, hasOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
 
 const DEFAULT_COVER = "https://picsum.photos/900/506?random=18";
 
 const ACTIVITY_STATUS_MAP = {
   DRAFT: "草稿",
-  PUBLISHED: "进行中",
-  CLOSED: "已结束",
+  PUBLISHED: "已发布",
+  REGISTRATION_OPEN: "报名中",
+  REGISTRATION_CLOSED: "报名截止",
+  ONGOING: "进行中",
+  FINISHED: "已结束",
   CANCELLED: "已取消",
 };
 
@@ -37,6 +43,17 @@ function normalizeRegistrationStatus(registration) {
   if (!registration || !registration.registrationStatus) return "未报名";
   const status = registration.registrationStatus;
   return REGISTRATION_STATUS_MAP[status] || status;
+}
+
+function buildSharePayload(data) {
+  const activityId = Number(data.activityId || 0);
+  const title = String((data.activity && data.activity.title) || data.i18n.shareTitleFallback || "校园活动").trim();
+  const imageUrl = String(data.coverDisplay || DEFAULT_COVER).trim();
+  return {
+    title,
+    path: `/pages/activity-detail/index?activityId=${activityId}`,
+    imageUrl,
+  };
 }
 
 /**
@@ -105,14 +122,20 @@ Page({
       cancelSuccess: "已取消报名",
       registerRecordMissing: "未找到可取消的报名记录",
       favorite: "收藏",
+      favorited: "已收藏",
+      favoriteSuccess: "已收藏活动",
+      unfavoriteSuccess: "已取消收藏",
+      favoriteLoginHint: "请先登录后再收藏活动",
       share: "分享",
+      shareTitleFallback: "校园活动",
       service: "客服",
+      serviceTip: "客服功能建设中",
       actionTodo: "功能建设中",
     },
     activityId: 0,
     loading: false,
     activity: null,
-    operatorRole: "STUDENT",
+    operatorRole: "",
     currentRegistration: null,
     canRegister: false,
     canCancel: false,
@@ -122,10 +145,13 @@ Page({
     ctaMode: "disabled",
     ctaText: "暂不可报名",
     ctaHint: "活动信息加载失败，请稍后重试",
+    favorited: false,
+    favoriteLoading: false,
   },
 
   onLoad(options) {
     this.initNavSafeArea();
+    this.initShareMenu();
     this.setData({ activityId: Number(options.activityId || 0) });
   },
 
@@ -138,12 +164,35 @@ Page({
     this.setData({ navSafeHeightPx });
   },
 
+  initShareMenu() {
+    try {
+      if (typeof wx.showShareMenu === "function") {
+        wx.showShareMenu({
+          menus: ["shareAppMessage", "shareTimeline"],
+        });
+      }
+    } catch (e) {}
+  },
+
   onClickNavLeft() {
     wx.navigateBack({ delta: 1 });
   },
 
   onShow() {
     this.loadAll();
+  },
+
+  onShareAppMessage() {
+    return buildSharePayload(this.data);
+  },
+
+  onShareTimeline() {
+    const payload = buildSharePayload(this.data);
+    return {
+      title: payload.title,
+      query: `activityId=${this.data.activityId}`,
+      imageUrl: payload.imageUrl,
+    };
   },
 
   /**
@@ -173,7 +222,7 @@ Page({
 
   async loadAll() {
     const { operatorRole } = getOperatorContext();
-    this.setData({ loading: true, operatorRole });
+    this.setData({ loading: true, operatorRole: operatorRole || "" });
     try {
       await this.loadDetail();
       if (operatorRole === "STUDENT") {
@@ -182,8 +231,20 @@ Page({
         this.setData({ currentRegistration: null, canRegister: false, canCancel: false });
         this.refreshPresentationState();
       }
+
+      if (hasOperatorContext()) {
+        await this.loadFavoriteState();
+      } else {
+        this.setData({ favorited: false });
+      }
     } catch (e) {
-      this.setData({ activity: null, currentRegistration: null, canRegister: false, canCancel: false });
+      this.setData({
+        activity: null,
+        currentRegistration: null,
+        canRegister: false,
+        canCancel: false,
+        favorited: false,
+      });
       this.refreshPresentationState();
       feedback.error(this.data.i18n.loadFailed);
     } finally {
@@ -221,6 +282,11 @@ Page({
     this.refreshPresentationState();
   },
 
+  async loadFavoriteState() {
+    const state = await getActivityFavoriteStatus(this.data.activityId);
+    this.setData({ favorited: Boolean(state && state.favorited) });
+  },
+
   async onRegisterTap() {
     try {
       await registerActivity(this.data.activityId, "miniapp register");
@@ -242,6 +308,33 @@ Page({
     } catch (e) {}
   },
 
+  async onFavoriteTap() {
+    if (this.data.favoriteLoading) {
+      return;
+    }
+    if (!hasOperatorContext()) {
+      feedback.info(this.data.i18n.favoriteLoginHint);
+      this.goToAuth();
+      return;
+    }
+
+    this.setData({ favoriteLoading: true });
+    try {
+      if (this.data.favorited) {
+        await unfavoriteActivity(this.data.activityId);
+        this.setData({ favorited: false });
+        feedback.success(this.data.i18n.unfavoriteSuccess);
+      } else {
+        await favoriteActivity(this.data.activityId);
+        this.setData({ favorited: true });
+        feedback.success(this.data.i18n.favoriteSuccess);
+      }
+    } catch (e) {
+    } finally {
+      this.setData({ favoriteLoading: false });
+    }
+  },
+
   onCtaTap() {
     if (this.data.ctaMode === "register") {
       this.onRegisterTap();
@@ -260,10 +353,18 @@ Page({
       wx.reLaunch({ url: "/pages/index/index" });
       return;
     }
-    if (action === "share") {
-      feedback.info("请使用右上角分享给好友");
+    if (action === "favorite") {
+      this.onFavoriteTap();
+      return;
+    }
+    if (action === "service") {
+      feedback.info(this.data.i18n.serviceTip);
       return;
     }
     feedback.info(this.data.i18n.actionTodo);
+  },
+
+  goToAuth() {
+    wx.navigateTo({ url: "/pages/auth/index?mode=login" });
   },
 });

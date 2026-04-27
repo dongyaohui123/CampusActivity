@@ -287,6 +287,55 @@ function getMyRegistrations(userId) {
 }
 
 /**
+ * 当前用户收藏活动列表。
+ * 若未传 userId，默认取当前操作上下文中的 operatorUserId。
+ */
+function getMyFavorites(userId) {
+  const ctx = getOperatorContext();
+  const targetUserId = Number(userId || ctx.operatorUserId);
+  if (!Number.isFinite(targetUserId) || targetUserId <= 0) {
+    return Promise.reject({ message: "请先登录" });
+  }
+  return request({
+    path: `/api/v1/users/${targetUserId}/favorites`,
+    method: "GET",
+    withOperator: true,
+  });
+}
+
+/**
+ * 查询活动收藏状态。
+ */
+function getActivityFavoriteStatus(activityId) {
+  return request({
+    path: `/api/v1/activities/${activityId}/favorite`,
+    method: "GET",
+    withOperator: true,
+  });
+}
+
+/**
+ * 收藏活动。
+ */
+function favoriteActivity(activityId) {
+  return request({
+    path: `/api/v1/activities/${activityId}/favorite`,
+    method: "POST",
+    data: {},
+  });
+}
+
+/**
+ * 取消收藏活动。
+ */
+function unfavoriteActivity(activityId) {
+  return request({
+    path: `/api/v1/activities/${activityId}/favorite`,
+    method: "DELETE",
+  });
+}
+
+/**
  * 学生报名活动。
  */
 function registerActivity(activityId, remark) {
@@ -407,6 +456,10 @@ module.exports = {
   listPublicActivities,
   getPublicActivityDetail,
   getMyRegistrations,
+  getMyFavorites,
+  getActivityFavoriteStatus,
+  favoriteActivity,
+  unfavoriteActivity,
   registerActivity,
   cancelRegistration,
   listOrganizerActivities,

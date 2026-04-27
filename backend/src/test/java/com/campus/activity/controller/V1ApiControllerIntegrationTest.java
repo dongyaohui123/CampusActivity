@@ -3,6 +3,7 @@ package com.campus.activity.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,12 +23,15 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.service.ActivityService;
 import com.campus.activity.service.UserService;
 import com.campus.activity.service.v1.V1AdminReviewService;
+import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.service.v1.V1PublicActivityService;
 import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.service.v1.V1UserService;
+import com.campus.activity.view.v1.ActivityFavoriteStateView;
 import com.campus.activity.view.v1.AvatarUploadView;
+import com.campus.activity.view.v1.FavoriteActivityView;
 import com.campus.activity.view.v1.LoginUserView;
 import java.util.List;
 import org.springframework.mock.web.MockMultipartFile;
@@ -68,6 +72,9 @@ class V1ApiControllerIntegrationTest {
 
     @MockBean
     private V1AuthService v1AuthService;
+
+    @MockBean
+    private V1ActivityFavoriteService v1ActivityFavoriteService;
 
     @Test
     void listPublicActivities_shouldReturnUnifiedSuccessBody() throws Exception {
@@ -285,5 +292,99 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("profile updated"))
                 .andExpect(jsonPath("$.data.nickname").value("NewNick"));
+    }
+
+    @Test
+    void getFavoriteState_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityFavoriteStateView view = new ActivityFavoriteStateView();
+        view.setFavorited(Boolean.TRUE);
+        when(v1ActivityFavoriteService.getFavoriteState(8L, 2L, UserRole.STUDENT)).thenReturn(view);
+
+        mockMvc.perform(get("/api/v1/activities/8/favorite")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("favorite state"))
+                .andExpect(jsonPath("$.data.favorited").value(true));
+    }
+
+    @Test
+    void favoriteActivity_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityFavoriteStateView view = new ActivityFavoriteStateView();
+        view.setFavorited(Boolean.TRUE);
+        when(v1ActivityFavoriteService.favoriteActivity(8L, 2L, UserRole.STUDENT)).thenReturn(view);
+
+        mockMvc.perform(post("/api/v1/activities/8/favorite")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity favorited"))
+                .andExpect(jsonPath("$.data.favorited").value(true));
+    }
+
+    @Test
+    void unfavoriteActivity_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityFavoriteStateView view = new ActivityFavoriteStateView();
+        view.setFavorited(Boolean.FALSE);
+        when(v1ActivityFavoriteService.unfavoriteActivity(8L, 2L, UserRole.STUDENT)).thenReturn(view);
+
+        mockMvc.perform(delete("/api/v1/activities/8/favorite")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity unfavorited"))
+                .andExpect(jsonPath("$.data.favorited").value(false));
+    }
+
+    @Test
+    void getUserFavorites_shouldReturnUnifiedSuccessBody() throws Exception {
+        FavoriteActivityView view = new FavoriteActivityView();
+        view.setActivityId(8L);
+        view.setTitle("Campus Hackday");
+        when(v1ActivityFavoriteService.getUserFavorites(12L, 12L, UserRole.STUDENT)).thenReturn(List.of(view));
+
+        mockMvc.perform(get("/api/v1/users/12/favorites")
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data[0].activityId").value(8))
+                .andExpect(jsonPath("$.data[0].title").value("Campus Hackday"));
+    }
+
+    @Test
+    void getFavoriteState_shouldValidateOperatorUserId() throws Exception {
+        mockMvc.perform(get("/api/v1/activities/8/favorite")
+                        .param("operatorUserId", "0")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void getUserFavorites_shouldReturnForbiddenWhenRoleDenied() throws Exception {
+        when(v1ActivityFavoriteService.getUserFavorites(12L, 2L, UserRole.STUDENT))
+                .thenThrow(new BusinessException(ErrorCode.FORBIDDEN, "only self or admin can access this resource"));
+
+        mockMvc.perform(get("/api/v1/users/12/favorites")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+    }
+
+    @Test
+    void favoriteActivity_shouldReturnNotFoundWhenActivityHidden() throws Exception {
+        when(v1ActivityFavoriteService.favoriteActivity(8L, 2L, UserRole.STUDENT))
+                .thenThrow(new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly visible"));
+
+        mockMvc.perform(post("/api/v1/activities/8/favorite")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(40400));
     }
 }

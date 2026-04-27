@@ -5,8 +5,10 @@ import com.campus.activity.dto.v1.user.UserPasswordChangeRequest;
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
 import com.campus.activity.entity.User;
 import com.campus.activity.enums.UserRole;
+import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1UserService;
 import com.campus.activity.view.v1.AvatarUploadView;
+import com.campus.activity.view.v1.FavoriteActivityView;
 import com.campus.activity.view.v1.RegistrationRecordView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -32,14 +34,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping({"/api/v1/users", "/api/v1/user"})
 public class V1UserController {
     private final V1UserService userService;
+    private final V1ActivityFavoriteService activityFavoriteService;
 
     /**
      * 构造函数。
      *
      * @param userService 用户服务
      */
-    public V1UserController(V1UserService userService) {
+    public V1UserController(V1UserService userService, V1ActivityFavoriteService activityFavoriteService) {
         this.userService = userService;
+        this.activityFavoriteService = activityFavoriteService;
     }
 
     /**
@@ -129,5 +133,17 @@ public class V1UserController {
             @RequestParam("operatorRole") UserRole operatorRole
     ) {
         return ApiResponse.success(userService.getUserRegistrations(userId, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 查询用户收藏活动列表。
+     */
+    @GetMapping("/{userId}/favorites")
+    public ApiResponse<List<FavoriteActivityView>> getUserFavorites(
+            @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(activityFavoriteService.getUserFavorites(userId, operatorUserId, operatorRole));
     }
 }
