@@ -2,6 +2,7 @@
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
+import com.campus.activity.dto.v1.user.UserPasswordChangeRequest;
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.ActivityRegistration;
@@ -111,6 +112,36 @@ public class V1UserServiceImpl implements V1UserService {
         userMapper.updateById(user);
         user.setPasswordHash(null);
         return user;
+    }
+
+    /**
+     * 修改用户密码。
+     *
+     * @param userId 目标用户 ID
+     * @param request 修改密码请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     */
+    @Override
+    @Transactional
+    public void changeUserPassword(Long userId, UserPasswordChangeRequest request, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireSelf(operator, userId);
+
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "user not found: " + userId);
+        }
+        if (!Objects.equals(user.getPasswordHash(), request.getOldPassword())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "old password is incorrect");
+        }
+        if (Objects.equals(request.getOldPassword(), request.getNewPassword())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "new password must be different from old password");
+        }
+
+        user.setPasswordHash(request.getNewPassword());
+        user.setForcePasswordChange(Boolean.FALSE);
+        userMapper.updateById(user);
     }
 
     /**

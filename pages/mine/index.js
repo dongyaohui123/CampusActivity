@@ -240,6 +240,10 @@ Page({
       helpDesc: "常见问题与使用说明",
       contact: "联系客服",
       contactDesc: "反馈问题和建议",
+      settingsTitle: "设置",
+      settingsDesc: "账号与安全",
+      changePassword: "修改密码",
+      changePasswordDesc: "更新登录密码并重新登录",
       findActivity: "找活动",
       findActivityDesc: "浏览并报名校园活动",
       logout: "退出登录",
@@ -480,6 +484,10 @@ Page({
 
     if (action === "myActivity") {
       wx.navigateTo({ url: "/pages/my-registrations/index" });
+      return;
+    }
+    if (action === "changePassword") {
+      wx.navigateTo({ url: "/pages/change-password/index" });
       return;
     }
     if (action === "myOrg") {

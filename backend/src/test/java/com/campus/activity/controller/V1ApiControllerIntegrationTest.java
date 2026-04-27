@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -113,6 +114,38 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("registration created"))
                 .andExpect(jsonPath("$.data.id").value(5));
+    }
+
+    @Test
+    void changePassword_shouldReturnUnifiedSuccessBody() throws Exception {
+        String body = """
+                {
+                  "oldPassword":"123456",
+                  "newPassword":"654321"
+                }
+                """;
+
+        mockMvc.perform(put("/api/v1/users/2/password")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("password changed"));
+    }
+
+    @Test
+    void changePassword_shouldValidateRequiredFields() throws Exception {
+        String body = "{}";
+
+        mockMvc.perform(put("/api/v1/users/2/password")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
     }
 
     @Test

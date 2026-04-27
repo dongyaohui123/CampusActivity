@@ -34,6 +34,21 @@ function registerUser(username, password, nickname, phone) {
 }
 
 /**
+ * 用户：修改密码。
+ */
+function changePassword(userId, oldPassword, newPassword) {
+  return request({
+    path: `/api/v1/users/${userId}/password`,
+    method: "PUT",
+    data: {
+      oldPassword: String(oldPassword || ""),
+      newPassword: String(newPassword || ""),
+    },
+    withOperator: true,
+  });
+}
+
+/**
  * 公共活动：列表。
  */
 function listPublicActivities(params) {
@@ -187,6 +202,7 @@ function rejectReview(activityId, comment) {
 module.exports = {
   login,
   registerUser,
+  changePassword,
   listPublicActivities,
   getPublicActivityDetail,
   getMyRegistrations,

@@ -105,6 +105,24 @@
       </block>
     </view>
 
+    <view wx:if="{{loginUser}}" class="settings-panel">
+      <view class="panel-head">
+        <view class="panel-title">{{i18n.settingsTitle}}</view>
+        <view class="panel-subtitle">{{i18n.settingsDesc}}</view>
+      </view>
+
+      <view class="setting-item" data-action="changePassword" bindtap="onMenuTap">
+        <view class="setting-icon-wrap">
+          <van-icon name="lock" custom-class="setting-icon" />
+        </view>
+        <view class="setting-main">
+          <view class="setting-title">{{i18n.changePassword}}</view>
+          <view class="setting-desc">{{i18n.changePasswordDesc}}</view>
+        </view>
+        <van-icon name="arrow" custom-class="setting-arrow" />
+      </view>
+    </view>
+
     <view wx:if="{{loginUser}}" class="logout-wrap">
       <van-button type="default" custom-class="logout-btn" bind:click="onLogoutTap">{{i18n.logout}}</van-button>
     </view>

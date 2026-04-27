@@ -1,6 +1,7 @@
-﻿package com.campus.activity.controller.v1;
+package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
+import com.campus.activity.dto.v1.user.UserPasswordChangeRequest;
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
 import com.campus.activity.entity.User;
 import com.campus.activity.enums.UserRole;
@@ -72,6 +73,26 @@ public class V1UserController {
     ) {
         return ApiResponse.success("profile updated",
                 userService.updateUserProfile(userId, request, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 修改用户密码。
+     *
+     * @param userId 目标用户 ID
+     * @param request 修改密码参数
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 统一成功响应
+     */
+    @PutMapping("/{userId}/password")
+    public ApiResponse<Void> changeUserPassword(
+            @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,
+            @Valid @RequestBody UserPasswordChangeRequest request,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        userService.changeUserPassword(userId, request, operatorUserId, operatorRole);
+        return ApiResponse.success("password changed", null);
     }
 
     /**

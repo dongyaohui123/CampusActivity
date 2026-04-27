@@ -1,4 +1,4 @@
-﻿package com.campus.activity.controller.v1;
+package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.registration.RegistrationCancelRequest;
