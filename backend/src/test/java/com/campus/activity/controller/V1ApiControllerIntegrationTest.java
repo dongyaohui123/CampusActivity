@@ -35,6 +35,8 @@ import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.FavoriteActivityView;
 import com.campus.activity.view.v1.LoginUserView;
+import com.campus.activity.view.v1.OrganizerActivityOptionsView;
+import com.campus.activity.view.v1.OrganizerActivityTypeOptionView;
 import com.campus.activity.view.v1.TicketDetailView;
 import java.util.List;
 import org.springframework.mock.web.MockMultipartFile;
@@ -85,13 +87,15 @@ class V1ApiControllerIntegrationTest {
         item.setId(1L);
         item.setTitle("Campus Hackday");
         item.setStatus(ActivityStatus.PUBLISHED);
+        item.setLocationCampus("SOUTH");
         when(v1PublicActivityService.listPublicActivities(null, null, null)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/api/v1/activities"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data[0].id").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Campus Hackday"));
+                .andExpect(jsonPath("$.data[0].title").value("Campus Hackday"))
+                .andExpect(jsonPath("$.data[0].locationCampus").value("SOUTH"));
     }
 
     @Test
@@ -259,6 +263,29 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("check-in success"))
                 .andExpect(jsonPath("$.data.registrationId").value(5));
+    }
+
+    @Test
+    void organizerActivityOptions_shouldReturnUnifiedSuccessBody() throws Exception {
+        OrganizerActivityTypeOptionView typeOption = new OrganizerActivityTypeOptionView();
+        typeOption.setId(7L);
+        typeOption.setName("算法竞赛");
+
+        OrganizerActivityOptionsView optionsView = new OrganizerActivityOptionsView();
+        optionsView.setCampusTypes(List.of("SOUTH", "NORTH", "ONLINE"));
+        optionsView.setActivityTypes(List.of(typeOption));
+        when(v1OrganizerActivityService.getActivityOptions(1L, UserRole.ORGANIZER)).thenReturn(optionsView);
+
+        mockMvc.perform(get("/api/v1/organizer/activities/options")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.campusTypes[0]").value("SOUTH"))
+                .andExpect(jsonPath("$.data.campusTypes[1]").value("NORTH"))
+                .andExpect(jsonPath("$.data.campusTypes[2]").value("ONLINE"))
+                .andExpect(jsonPath("$.data.activityTypes[0].id").value(7))
+                .andExpect(jsonPath("$.data.activityTypes[0].name").value("算法竞赛"));
     }
 
     @Test

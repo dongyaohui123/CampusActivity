@@ -397,6 +397,17 @@ function listOrganizerActivities(params) {
 }
 
 /**
+ * 组织者发布活动选项（地点、类型）。
+ */
+function getOrganizerActivityOptions() {
+  return request({
+    path: "/api/v1/organizer/activities/options",
+    method: "GET",
+    withOperator: true,
+  });
+}
+
+/**
  * 组织者创建活动。
  */
 function createOrganizerActivity(payload) {
@@ -512,6 +523,7 @@ module.exports = {
   getRegistrationTicket,
   getRegistrationTicketQrCodeUrl,
   listOrganizerActivities,
+  getOrganizerActivityOptions,
   createOrganizerActivity,
   updateOrganizerActivity,
   submitActivityReview,

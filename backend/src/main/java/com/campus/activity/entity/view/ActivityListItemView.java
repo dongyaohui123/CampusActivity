@@ -33,6 +33,9 @@ public class ActivityListItemView {
 
     /** Comma-joined category names for fast list rendering. */
     private String categoryNames;
+    private Long activityTypeId;
+    private String activityTypeName;
+    private String locationCampus;
 
     public Long getId() {
         return id;
@@ -176,5 +179,29 @@ public class ActivityListItemView {
 
     public void setCategoryNames(String categoryNames) {
         this.categoryNames = categoryNames;
+    }
+
+    public Long getActivityTypeId() {
+        return activityTypeId;
+    }
+
+    public void setActivityTypeId(Long activityTypeId) {
+        this.activityTypeId = activityTypeId;
+    }
+
+    public String getActivityTypeName() {
+        return activityTypeName;
+    }
+
+    public void setActivityTypeName(String activityTypeName) {
+        this.activityTypeName = activityTypeName;
+    }
+
+    public String getLocationCampus() {
+        return locationCampus;
+    }
+
+    public void setLocationCampus(String locationCampus) {
+        this.locationCampus = locationCampus;
     }
 }

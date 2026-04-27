@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.LocationCampusMappingMapper">
+
+    <resultMap id="LocationCampusMappingResultMap" type="com.campus.activity.entity.LocationCampusMapping">
+        <id property="id" column="id"/>
+        <result property="locationName" column="location_name"/>
+        <result property="campusCode" column="campus_code"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, location_name, campus_code, enabled, created_at, updated_at
+    </sql>
+
+    <select id="selectEnabledCampusCodes" resultType="java.lang.String">
+        SELECT DISTINCT campus_code
+        FROM location_campus_mapping
+        WHERE enabled = 1
+        ORDER BY
+            CASE campus_code
+                WHEN 'SOUTH' THEN 1
+                WHEN 'NORTH' THEN 2
+                WHEN 'ONLINE' THEN 3
+                ELSE 9
+            END
+    </select>
+
+    <select id="selectEnabledByLocationName" resultMap="LocationCampusMappingResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM location_campus_mapping
+        WHERE location_name = #{locationName}
+          AND enabled = 1
+        LIMIT 1
+    </select>
+
+    <insert id="upsertMapping">
+        INSERT INTO location_campus_mapping(
+            location_name,
+            campus_code,
+            enabled,
+            created_at,
+            updated_at
+        ) VALUES(
+            #{locationName},
+            #{campusCode},
+            1,
+            NOW(),
+            NOW()
+        )
+        ON DUPLICATE KEY UPDATE
+            campus_code = VALUES(campus_code),
+            enabled = 1,
+            updated_at = NOW()
+    </insert>
+</mapper>

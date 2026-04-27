@@ -2,6 +2,7 @@ package com.campus.activity.dto.v1.activity;
 
 import com.campus.activity.enums.Visibility;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -18,6 +19,10 @@ public class OrganizerActivityUpdateRequest {
     private String coverUrl;
     @Size(max = 255, message = "location length must be <= 255")
     private String location;
+    @Pattern(regexp = "^(SOUTH|NORTH|ONLINE)$", message = "campusCode must be SOUTH/NORTH/ONLINE")
+    private String campusCode;
+    @Min(value = 1, message = "activityTypeId must be >= 1")
+    private Long activityTypeId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime registrationDeadline;
@@ -36,6 +41,10 @@ public class OrganizerActivityUpdateRequest {
     public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    public String getCampusCode() { return campusCode; }
+    public void setCampusCode(String campusCode) { this.campusCode = campusCode; }
+    public Long getActivityTypeId() { return activityTypeId; }
+    public void setActivityTypeId(Long activityTypeId) { this.activityTypeId = activityTypeId; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }

@@ -7,33 +7,43 @@ import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
 import com.campus.activity.entity.Activity;
+import com.campus.activity.entity.ActivityCategory;
+import com.campus.activity.entity.ActivityCategoryRel;
 import com.campus.activity.entity.ActivityAuditLog;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.ActivityReview;
+import com.campus.activity.entity.LocationCampusMapping;
 import com.campus.activity.entity.User;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.AuditAction;
+import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.ReviewStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
+import com.campus.activity.mapper.ActivityCategoryMapper;
+import com.campus.activity.mapper.ActivityCategoryRelMapper;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.mapper.LocationCampusMappingMapper;
 import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
 import com.campus.activity.view.v1.CheckinResultView;
+import com.campus.activity.view.v1.OrganizerActivityOptionsView;
+import com.campus.activity.view.v1.OrganizerActivityTypeOptionView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,10 +55,20 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityService {
+    private static final String DEFAULT_CATEGORY_NAME = "未分类";
+    private static final String CAMPUS_SOUTH = "SOUTH";
+    private static final String CAMPUS_NORTH = "NORTH";
+    private static final String CAMPUS_ONLINE = "ONLINE";
+    private static final List<String> DEFAULT_CAMPUS_TYPES = List.of(CAMPUS_SOUTH, CAMPUS_NORTH, CAMPUS_ONLINE);
+    private static final Set<String> SUPPORTED_CAMPUS_TYPES = Set.of(CAMPUS_SOUTH, CAMPUS_NORTH, CAMPUS_ONLINE);
+
     private final ActivityMapper activityMapper;
+    private final ActivityCategoryMapper activityCategoryMapper;
+    private final ActivityCategoryRelMapper activityCategoryRelMapper;
     private final ActivityReviewMapper reviewMapper;
     private final ActivityAuditLogMapper auditLogMapper;
     private final ActivityRegistrationMapper registrationMapper;
+    private final LocationCampusMappingMapper locationCampusMappingMapper;
     private final UserMapper userMapper;
     private final OperatorPermissionService permissionService;
 
@@ -57,16 +77,22 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
      */
     public V1OrganizerActivityServiceImpl(
             ActivityMapper activityMapper,
+            ActivityCategoryMapper activityCategoryMapper,
+            ActivityCategoryRelMapper activityCategoryRelMapper,
             ActivityReviewMapper reviewMapper,
             ActivityAuditLogMapper auditLogMapper,
             ActivityRegistrationMapper registrationMapper,
+            LocationCampusMappingMapper locationCampusMappingMapper,
             UserMapper userMapper,
             OperatorPermissionService permissionService
     ) {
         this.activityMapper = activityMapper;
+        this.activityCategoryMapper = activityCategoryMapper;
+        this.activityCategoryRelMapper = activityCategoryRelMapper;
         this.reviewMapper = reviewMapper;
         this.auditLogMapper = auditLogMapper;
         this.registrationMapper = registrationMapper;
+        this.locationCampusMappingMapper = locationCampusMappingMapper;
         this.userMapper = userMapper;
         this.permissionService = permissionService;
     }
@@ -85,6 +111,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
         permissionService.requireRole(operator, UserRole.ORGANIZER);
         validateActivityTime(request.getStartTime(), request.getEndTime(), request.getRegistrationDeadline());
+        String campusCode = normalizeCampusCode(request.getCampusCode(), true);
+        String validatedLocation = normalizeLocationByCampus(request.getLocation(), campusCode);
+        ActivityCategory validatedCategory = requireActiveCategory(request.getActivityTypeId());
 
         Activity activity = new Activity();
         activity.setOrganizerId(operator.getId());
@@ -93,7 +122,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         activity.setSummary(request.getSummary());
         activity.setContent(request.getContent());
         activity.setCoverUrl(request.getCoverUrl());
-        activity.setLocation(request.getLocation());
+        activity.setLocation(validatedLocation);
         activity.setStartTime(request.getStartTime());
         activity.setEndTime(request.getEndTime());
         activity.setRegistrationDeadline(request.getRegistrationDeadline());
@@ -103,6 +132,8 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         activity.setFeatured(request.getFeatured() != null ? request.getFeatured() : Boolean.FALSE);
         activity.setStatus(ActivityStatus.DRAFT);
         activityMapper.insert(activity);
+        replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
+        upsertLocationMapping(validatedLocation, campusCode);
         return activity;
     }
 
@@ -135,6 +166,13 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         LocalDateTime mergedDeadline = request.getRegistrationDeadline() != null
                 ? request.getRegistrationDeadline() : activity.getRegistrationDeadline();
         validateActivityTime(mergedStart, mergedEnd, mergedDeadline);
+        ActivityCategory validatedCategory = null;
+        if (request.getActivityTypeId() != null) {
+            validatedCategory = requireActiveCategory(request.getActivityTypeId());
+        }
+        String effectiveCampusCode = request.getCampusCode() != null
+                ? normalizeCampusCode(request.getCampusCode(), true)
+                : resolveCampusCodeByLocation(activity.getLocation());
 
         if (request.getTitle() != null) {
             activity.setTitle(request.getTitle());
@@ -148,8 +186,9 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         if (request.getCoverUrl() != null) {
             activity.setCoverUrl(request.getCoverUrl());
         }
-        if (request.getLocation() != null) {
-            activity.setLocation(request.getLocation());
+        if (request.getLocation() != null || request.getCampusCode() != null) {
+            String locationSource = request.getLocation() != null ? request.getLocation() : activity.getLocation();
+            activity.setLocation(normalizeLocationByCampus(locationSource, effectiveCampusCode));
         }
         if (request.getStartTime() != null) {
             activity.setStartTime(request.getStartTime());
@@ -171,6 +210,12 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         }
 
         activityMapper.updateById(activity);
+        if (validatedCategory != null) {
+            replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
+        }
+        if (request.getLocation() != null || request.getCampusCode() != null) {
+            upsertLocationMapping(activity.getLocation(), effectiveCampusCode);
+        }
         return activity;
     }
 
@@ -222,6 +267,30 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         log.setCreatedAt(LocalDateTime.now());
         auditLogMapper.insert(log);
         return activity;
+    }
+
+    /**
+     * 查询组织者发布活动可选项。
+     */
+    @Override
+    public OrganizerActivityOptionsView getActivityOptions(Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+
+        List<String> campusTypes = buildCampusTypeOptions(locationCampusMappingMapper.selectEnabledCampusCodes());
+        List<ActivityCategory> categories = activityCategoryMapper.selectActiveLeafCategories();
+        if (categories == null || categories.isEmpty()) {
+            categories = activityCategoryMapper.selectActiveCategories();
+        }
+
+        List<OrganizerActivityTypeOptionView> activityTypes = categories == null
+                ? Collections.emptyList()
+                : categories.stream().map(this::toTypeOption).toList();
+
+        OrganizerActivityOptionsView optionsView = new OrganizerActivityOptionsView();
+        optionsView.setCampusTypes(campusTypes);
+        optionsView.setActivityTypes(activityTypes);
+        return optionsView;
     }
 
     /**
@@ -383,12 +452,115 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
                 || request.getContent() != null
                 || request.getCoverUrl() != null
                 || StringUtils.hasText(request.getLocation())
+                || StringUtils.hasText(request.getCampusCode())
+                || request.getActivityTypeId() != null
                 || request.getStartTime() != null
                 || request.getEndTime() != null
                 || request.getRegistrationDeadline() != null
                 || request.getMaxParticipants() != null
                 || request.getVisibility() != null
                 || request.getFeatured() != null;
+    }
+
+    private List<String> buildCampusTypeOptions(List<String> existingCampusCodes) {
+        if (existingCampusCodes == null || existingCampusCodes.isEmpty()) {
+            return new ArrayList<>(DEFAULT_CAMPUS_TYPES);
+        }
+        List<String> normalized = existingCampusCodes.stream()
+                .map(code -> normalizeCampusCode(code, false))
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+        if (normalized.isEmpty()) {
+            return new ArrayList<>(DEFAULT_CAMPUS_TYPES);
+        }
+        return new ArrayList<>(DEFAULT_CAMPUS_TYPES);
+    }
+
+    private String normalizeCampusCode(String campusCode, boolean required) {
+        String normalized = String.valueOf(campusCode == null ? "" : campusCode).trim().toUpperCase();
+        if (!StringUtils.hasText(normalized)) {
+            if (required) {
+                throw new BusinessException(ErrorCode.BAD_REQUEST, "campusCode is required");
+            }
+            return "";
+        }
+        if (!SUPPORTED_CAMPUS_TYPES.contains(normalized)) {
+            if (!required) {
+                return "";
+            }
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "campusCode is invalid: " + campusCode);
+        }
+        return normalized;
+    }
+
+    private String normalizeLocationByCampus(String location, String campusCode) {
+        String normalized = location == null ? "" : location.trim();
+        if (CAMPUS_ONLINE.equals(campusCode)) {
+            return StringUtils.hasText(normalized) ? normalized : "线上";
+        }
+        if (!StringUtils.hasText(normalized)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "location is required for SOUTH/NORTH campus");
+        }
+        return normalized;
+    }
+
+    private String resolveCampusCodeByLocation(String location) {
+        String normalized = location == null ? "" : location.trim();
+        if (!StringUtils.hasText(normalized)) {
+            return "";
+        }
+        LocationCampusMapping mapping = locationCampusMappingMapper.selectEnabledByLocationName(normalized);
+        if (mapping != null) {
+            String mappedCode = normalizeCampusCode(mapping.getCampusCode(), false);
+            if (StringUtils.hasText(mappedCode)) {
+                return mappedCode;
+            }
+        }
+        if (normalized.contains("线上")) {
+            return CAMPUS_ONLINE;
+        }
+        return CAMPUS_NORTH;
+    }
+
+    private void upsertLocationMapping(String location, String campusCode) {
+        if (!StringUtils.hasText(location) || !StringUtils.hasText(campusCode)) {
+            return;
+        }
+        locationCampusMappingMapper.upsertMapping(location.trim(), campusCode);
+    }
+
+    /**
+     * 校验活动类型必须存在且启用。
+     */
+    private ActivityCategory requireActiveCategory(Long activityTypeId) {
+        if (activityTypeId == null || activityTypeId <= 0) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "activityTypeId is required");
+        }
+        ActivityCategory category = activityCategoryMapper.selectById(activityTypeId);
+        if (category == null || category.getStatus() != BasicStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "activityTypeId is invalid: " + activityTypeId);
+        }
+        return category;
+    }
+
+    /**
+     * 单选语义：先清空旧关系，再写入新关系。
+     */
+    private void replaceActivityCategoryRelation(Long activityId, Long categoryId) {
+        activityCategoryRelMapper.deleteByActivityId(activityId);
+        ActivityCategoryRel relation = new ActivityCategoryRel();
+        relation.setActivityId(activityId);
+        relation.setCategoryId(categoryId);
+        relation.setCreatedAt(LocalDateTime.now());
+        activityCategoryRelMapper.insertRelation(relation);
+    }
+
+    private OrganizerActivityTypeOptionView toTypeOption(ActivityCategory category) {
+        OrganizerActivityTypeOptionView option = new OrganizerActivityTypeOptionView();
+        option.setId(category.getId());
+        option.setName(StringUtils.hasText(category.getName()) ? category.getName() : DEFAULT_CATEGORY_NAME);
+        return option;
     }
 
     /**

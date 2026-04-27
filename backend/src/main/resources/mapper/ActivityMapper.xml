@@ -47,6 +47,9 @@
         <result property="reviewStatus" column="review_status" javaType="com.campus.activity.enums.ReviewStatus"/>
         <result property="organizerName" column="organizer_name"/>
         <result property="categoryNames" column="category_names"/>
+        <result property="activityTypeId" column="activity_type_id"/>
+        <result property="activityTypeName" column="activity_type_name"/>
+        <result property="locationCampus" column="location_campus"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -88,12 +91,27 @@
             a.published_at,
             ar.review_status,
             op.organizer_name,
-            GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names
+            GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names,
+            MIN(ac.id) AS activity_type_id,
+            SUBSTRING_INDEX(
+                GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.sort_no ASC, ac.id ASC SEPARATOR ','),
+                ',',
+                1
+            ) AS activity_type_name,
+            COALESCE(
+                MAX(lcm.campus_code),
+                CASE
+                    WHEN a.location LIKE '%线上%' THEN 'ONLINE'
+                    WHEN TRIM(COALESCE(a.location, '')) != '' THEN 'NORTH'
+                    ELSE ''
+                END
+            ) AS location_campus
         FROM activities a
         LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id
         LEFT JOIN activity_reviews ar ON ar.activity_id = a.id
         LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id
         LEFT JOIN activity_categories ac ON ac.id = acr.category_id
+        LEFT JOIN location_campus_mapping lcm ON lcm.location_name = a.location AND lcm.enabled = 1
         <where>
             <if test="status != null">
                 AND a.status = #{status}

@@ -12,6 +12,7 @@ import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
 import com.campus.activity.view.v1.CheckinResultView;
+import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
@@ -123,6 +124,17 @@ public class V1OrganizerActivityController {
         return ApiResponse.success(organizerActivityService.listOwnActivities(
                 operatorUserId, operatorRole, keyword, startFrom, startTo
         ));
+    }
+
+    /**
+     * 查询发布活动可选项（地点、活动类型）。
+     */
+    @GetMapping("/options")
+    public ApiResponse<OrganizerActivityOptionsView> getActivityOptions(
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(organizerActivityService.getActivityOptions(operatorUserId, operatorRole));
     }
 
     /**

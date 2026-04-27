@@ -1,5 +1,6 @@
-﻿const {
+const {
   listOrganizerActivities,
+  getOrganizerActivityOptions,
   createOrganizerActivity,
   updateOrganizerActivity,
   submitActivityReview,
@@ -12,6 +13,11 @@ const DATE_FIELD_LABEL_KEY = {
   startTime: "startTimeLabel",
   endTime: "endTimeLabel",
   registrationDeadline: "deadlineLabel",
+};
+const CAMPUS_CODE_LABEL = {
+  SOUTH: "南校区",
+  NORTH: "北校区",
+  ONLINE: "线上",
 };
 
 function pad2(value) {
@@ -78,11 +84,28 @@ function extractPickerTimestamp(detail) {
   return NaN;
 }
 
+function toCampusLabel(campusCode) {
+  return CAMPUS_CODE_LABEL[String(campusCode || "").toUpperCase()] || "未知校区";
+}
+
+function normalizeCampusCode(value) {
+  const normalized = String(value || "").trim().toUpperCase();
+  if (normalized === "SOUTH" || normalized === "NORTH" || normalized === "ONLINE") {
+    return normalized;
+  }
+  return "";
+}
+
 function buildFormFromActivity(activity) {
+  const activityTypeId = Number(activity.activityTypeId);
+  const campusCode = normalizeCampusCode(activity.locationCampus);
   return {
     title: activity.title || "",
     summary: activity.summary || "",
     location: activity.location || "",
+    campusCode,
+    activityTypeId: Number.isFinite(activityTypeId) && activityTypeId > 0 ? activityTypeId : null,
+    activityTypeName: activity.activityTypeName || "",
     startTime: toDateTimeDisplay(activity.startTime),
     endTime: toDateTimeDisplay(activity.endTime),
     registrationDeadline: toDateTimeDisplay(activity.registrationDeadline),
@@ -97,6 +120,9 @@ function emptyForm() {
     title: "",
     summary: "",
     location: "",
+    campusCode: "",
+    activityTypeId: null,
+    activityTypeName: "",
     startTime: "",
     endTime: "",
     registrationDeadline: "",
@@ -120,7 +146,9 @@ Page({
       publishOptions: "发布设置",
       titleLabel: "标题",
       summaryLabel: "摘要",
+      campusTypeLabel: "校区类型",
       locationLabel: "地点",
+      activityTypeLabel: "活动类型",
       startTimeLabel: "开始时间",
       endTimeLabel: "结束时间",
       deadlineLabel: "报名截止时间",
@@ -141,7 +169,9 @@ Page({
       empty: "暂无活动",
       phTitle: "例如：校园歌手大赛",
       phSummary: "一句话摘要",
-      phLocation: "例如：大学生活动中心",
+      campusTypePlaceholder: "请选择校区类型",
+      phLocation: "请输入具体地点（线上可留空）",
+      typePickerPlaceholder: "请选择活动类型",
       myActivityList: "已发布活动",
       timePickerPlaceholder: "请选择日期和时间",
       required: "*",
@@ -152,7 +182,13 @@ Page({
     editingActivityId: null,
     reviewComment: "",
     form: emptyForm(),
+    campusTypeOptions: [],
+    campusTypePickerColumns: [],
+    activityTypeOptions: [],
+    activityTypePickerColumns: [],
     visibilityOptions: VISIBILITY_OPTIONS,
+    showCampusTypePicker: false,
+    showTypePicker: false,
     showVisibilityPicker: false,
     showDateTimePicker: false,
     activeDateField: "",
@@ -162,14 +198,48 @@ Page({
     dateTimeMax: new Date(2035, 11, 31, 23, 59, 59).getTime(),
   },
 
-  onShow() {
+  async onShow() {
     const { operatorRole } = getOperatorContext();
     this.setData({ operatorRole });
-    if (operatorRole === "ORGANIZER") this.loadActivities();
+    if (operatorRole === "ORGANIZER") {
+      await this.initOrganizerPage();
+    }
   },
 
   onClickNavLeft() {
     wx.navigateBack({ delta: 1 });
+  },
+
+  async initOrganizerPage() {
+    await this.loadActivityOptions();
+    await this.loadActivities();
+  },
+
+  async loadActivityOptions() {
+    try {
+      const options = await getOrganizerActivityOptions();
+      const campusTypesRaw = Array.isArray(options && options.campusTypes) ? options.campusTypes : [];
+      const campusTypes = campusTypesRaw
+        .map((code) => normalizeCampusCode(code))
+        .filter((code, index, array) => code && array.indexOf(code) === index);
+      const orderedCampusTypes = ["SOUTH", "NORTH", "ONLINE"].filter((code) => campusTypes.includes(code));
+      const finalCampusTypes = orderedCampusTypes.length > 0 ? orderedCampusTypes : ["SOUTH", "NORTH", "ONLINE"];
+      const activityTypes = Array.isArray(options && options.activityTypes) ? options.activityTypes : [];
+      this.setData({
+        campusTypeOptions: finalCampusTypes,
+        campusTypePickerColumns: finalCampusTypes.map((code) => toCampusLabel(code)),
+        activityTypeOptions: activityTypes,
+        activityTypePickerColumns: activityTypes.map((item) => item.name || ""),
+      });
+    } catch (e) {
+      this.setData({
+        campusTypeOptions: [],
+        campusTypePickerColumns: [],
+        activityTypeOptions: [],
+        activityTypePickerColumns: [],
+      });
+      feedback.error("活动选项加载失败");
+    }
   },
 
   async loadActivities() {
@@ -242,6 +312,67 @@ Page({
     this.setData({ showDateTimePicker: false, activeDateField: "" });
   },
 
+  onOpenCampusTypePicker() {
+    if (!Array.isArray(this.data.campusTypeOptions) || this.data.campusTypeOptions.length === 0) {
+      feedback.error("暂无可选校区类型");
+      return;
+    }
+    this.setData({ showCampusTypePicker: true });
+  },
+
+  onCloseCampusTypePicker() {
+    this.setData({ showCampusTypePicker: false });
+  },
+
+  onCampusTypeConfirm(event) {
+    const rawIndex = Array.isArray(event.detail.index) ? event.detail.index[0] : event.detail.index;
+    const index = Number(rawIndex);
+    const selected = Number.isFinite(index) ? this.data.campusTypeOptions[index] : null;
+    if (!selected) {
+      this.setData({ showCampusTypePicker: false });
+      return;
+    }
+    this.setData({
+      "form.campusCode": selected,
+      showCampusTypePicker: false,
+    });
+  },
+
+  onCampusTypeCancel() {
+    this.setData({ showCampusTypePicker: false });
+  },
+
+  onOpenTypePicker() {
+    if (!Array.isArray(this.data.activityTypeOptions) || this.data.activityTypeOptions.length === 0) {
+      feedback.error("暂无可选活动类型，请先维护活动分类");
+      return;
+    }
+    this.setData({ showTypePicker: true });
+  },
+
+  onCloseTypePicker() {
+    this.setData({ showTypePicker: false });
+  },
+
+  onTypeConfirm(event) {
+    const rawIndex = Array.isArray(event.detail.index) ? event.detail.index[0] : event.detail.index;
+    const index = Number(rawIndex);
+    const selected = Number.isFinite(index) ? this.data.activityTypeOptions[index] : null;
+    if (!selected) {
+      this.setData({ showTypePicker: false });
+      return;
+    }
+    this.setData({
+      "form.activityTypeId": Number(selected.id),
+      "form.activityTypeName": selected.name || "",
+      showTypePicker: false,
+    });
+  },
+
+  onTypeCancel() {
+    this.setData({ showTypePicker: false });
+  },
+
   onOpenVisibilityPicker() {
     this.setData({ showVisibilityPicker: true });
   },
@@ -276,6 +407,8 @@ Page({
       editingActivityId: null,
       form: emptyForm(),
       reviewComment: "",
+      showCampusTypePicker: false,
+      showTypePicker: false,
       showVisibilityPicker: false,
       showDateTimePicker: false,
       activeDateField: "",
@@ -287,9 +420,25 @@ Page({
     const target = this.data.activities.find((item) => Number(item.id) === activityId);
     if (!target) return;
 
+    const nextForm = buildFormFromActivity(target);
+    if (!nextForm.campusCode) {
+      const locationText = String(nextForm.location || "");
+      nextForm.campusCode = locationText.includes("线上") ? "ONLINE" : "NORTH";
+    }
+    if (!nextForm.activityTypeName && Number.isFinite(Number(nextForm.activityTypeId))) {
+      const typeMatch = (this.data.activityTypeOptions || []).find(
+        (item) => Number(item.id) === Number(nextForm.activityTypeId)
+      );
+      if (typeMatch) {
+        nextForm.activityTypeName = typeMatch.name || "";
+      }
+    }
+
     this.setData({
       editingActivityId: activityId,
-      form: buildFormFromActivity(target),
+      form: nextForm,
+      showCampusTypePicker: false,
+      showTypePicker: false,
       showDateTimePicker: false,
       activeDateField: "",
     });
@@ -300,7 +449,9 @@ Page({
     const payload = {
       title: String(form.title || "").trim(),
       summary: String(form.summary || "").trim(),
+      campusCode: normalizeCampusCode(form.campusCode),
       location: String(form.location || "").trim(),
+      activityTypeId: Number(form.activityTypeId),
       startTime: normalizeDateTimeInput(form.startTime),
       endTime: normalizeDateTimeInput(form.endTime),
       maxParticipants: Number(form.maxParticipants || 0),
@@ -320,8 +471,26 @@ Page({
     if (this.data.operatorRole !== "ORGANIZER") return feedback.error("请先切换为组织者");
 
     const payload = this.buildPayload();
-    if (!payload.title || !payload.location || !payload.startTime || !payload.endTime) {
-      return feedback.error("标题、地点、开始和结束时间必填");
+    if (!payload.title || !payload.campusCode || !payload.startTime || !payload.endTime || !payload.activityTypeId) {
+      return feedback.error("标题、校区类型、活动类型、开始和结束时间必填");
+    }
+
+    const hasValidCampus = (this.data.campusTypeOptions || []).some(
+      (item) => item === payload.campusCode
+    );
+    if (!hasValidCampus) {
+      return feedback.error("请选择有效校区类型");
+    }
+
+    if (payload.campusCode !== "ONLINE" && !payload.location) {
+      return feedback.error("南校区/北校区活动必须填写具体地点");
+    }
+
+    const hasValidType = (this.data.activityTypeOptions || []).some(
+      (item) => Number(item.id) === Number(payload.activityTypeId)
+    );
+    if (!hasValidType) {
+      return feedback.error("请选择有效活动类型");
     }
 
     const startTimestamp = parseDateTimeTimestamp(payload.startTime);

@@ -25,8 +25,6 @@ const LOCATION_ITEMS = [
   { key: "线上", label: "线上" },
 ];
 
-const SOUTH_CAMPUS_LOCATION_KEYWORDS = ["大学生活动中心", "操场"];
-
 const STATUS_ITEMS = [
   { key: "ALL", label: "不限" },
   { key: "OPEN", label: "报名中" },
@@ -123,17 +121,12 @@ function passStatusFilter(statusKey, selectedStatus) {
   return true;
 }
 
-/**
- * 将自由文本地点归入页面筛选使用的校区/线上桶。
- */
-function getLocationBucket(locationText) {
-  const location = String(locationText || "").trim();
-  if (!location) return "";
-  if (location.includes("线上")) return "线上";
-  if (SOUTH_CAMPUS_LOCATION_KEYWORDS.some((keyword) => location.includes(keyword))) {
-    return "南校区";
+function normalizeLocationCampus(locationCampus) {
+  const normalized = String(locationCampus || "").trim().toUpperCase();
+  if (normalized === "SOUTH" || normalized === "NORTH" || normalized === "ONLINE") {
+    return normalized;
   }
-  return "北校区";
+  return "";
 }
 
 /**
@@ -142,6 +135,7 @@ function getLocationBucket(locationText) {
 function normalizeActivity(item, now) {
   const categoryKey = classifyByText(item);
   const statusKey = deriveStatusKey(item, now);
+  const locationCampus = normalizeLocationCampus(item.locationCampus);
   return {
     ...item,
     cover: item.coverUrl || item.cover || DEFAULT_COVER,
@@ -149,6 +143,7 @@ function normalizeActivity(item, now) {
     locationDisplay: item.location || "地点待定",
     categoryKey,
     categoryLabel: getCategoryLabel(categoryKey),
+    locationCampus,
     statusKey,
     statusDisplay: getStatusDisplay(statusKey),
     isClosedStatus: statusKey !== "REGISTRATION_OPEN",
@@ -319,7 +314,12 @@ Page({
 
   passLocationFilter(itemLocation, selectedLocation) {
     if (selectedLocation === "ALL") return true;
-    return getLocationBucket(itemLocation) === selectedLocation;
+    const codeByFilter = {
+      南校区: "SOUTH",
+      北校区: "NORTH",
+      线上: "ONLINE",
+    };
+    return String(itemLocation || "").toUpperCase() === codeByFilter[selectedLocation];
   },
 
   /**
@@ -342,7 +342,7 @@ Page({
 
       const passCategory = selectedCategory === "ALL" || item.categoryKey === selectedCategory;
       const passTime = this.passTimeFilter(item.startTime, selectedTime, now);
-      const passLocation = this.passLocationFilter(item.location, selectedLocation);
+      const passLocation = this.passLocationFilter(item.locationCampus, selectedLocation);
       const passStatus = passStatusFilter(item.statusKey, selectedStatus);
       return passKeyword && passCategory && passTime && passLocation && passStatus;
     });

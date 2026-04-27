@@ -10,6 +10,7 @@ import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
 import com.campus.activity.view.v1.CheckinResultView;
+import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,6 +49,11 @@ public interface V1OrganizerActivityService {
      * @return 活动信息
      */
     Activity submitForReview(Long activityId, SubmitReviewRequest request, Long operatorUserId, UserRole operatorRole);
+
+    /**
+     * 查询发布活动可选项（地点、活动类型）。
+     */
+    OrganizerActivityOptionsView getActivityOptions(Long operatorUserId, UserRole operatorRole);
 
     /**
      * 查询主办方活动列表。

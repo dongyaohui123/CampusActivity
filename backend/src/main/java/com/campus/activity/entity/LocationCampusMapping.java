@@ -3,25 +3,21 @@ package com.campus.activity.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.campus.activity.enums.BasicStatus;
 import java.time.LocalDateTime;
 
 /**
- * activity_categories: activity category tree.
+ * location_campus_mapping: 可发布地点与校区映射。
  */
-@TableName("activity_categories")
-public class ActivityCategory {
-
+@TableName("location_campus_mapping")
+public class LocationCampusMapping {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private Long parentId;
+    private String locationName;
 
-    private String name;
+    private String campusCode;
 
-    private Integer sortNo;
-
-    private BasicStatus status;
+    private Boolean enabled;
 
     private LocalDateTime createdAt;
 
@@ -35,36 +31,28 @@ public class ActivityCategory {
         this.id = id;
     }
 
-    public Long getParentId() {
-        return parentId;
+    public String getLocationName() {
+        return locationName;
     }
 
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
     }
 
-    public String getName() {
-        return name;
+    public String getCampusCode() {
+        return campusCode;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCampusCode(String campusCode) {
+        this.campusCode = campusCode;
     }
 
-    public Integer getSortNo() {
-        return sortNo;
+    public Boolean getEnabled() {
+        return enabled;
     }
 
-    public void setSortNo(Integer sortNo) {
-        this.sortNo = sortNo;
-    }
-
-    public BasicStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BasicStatus status) {
-        this.status = status;
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public LocalDateTime getCreatedAt() {

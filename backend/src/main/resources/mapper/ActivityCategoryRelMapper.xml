@@ -27,6 +27,11 @@
         VALUES(#{activityId}, #{categoryId}, #{createdAt})
     </insert>
 
+    <delete id="deleteByActivityId">
+        DELETE FROM activity_category_rel
+        WHERE activity_id = #{activityId}
+    </delete>
+
     <!-- Composite-key delete. -->
     <delete id="deleteByActivityIdAndCategoryId">
         DELETE FROM activity_category_rel

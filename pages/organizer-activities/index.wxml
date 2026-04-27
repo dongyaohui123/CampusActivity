@@ -33,11 +33,29 @@
         placeholder="{{i18n.phSummary}}"
       />
       <van-field
+        label="{{i18n.campusTypeLabel}} {{i18n.required}}"
+        value="{{form.campusCode === 'SOUTH' ? '南校区' : (form.campusCode === 'NORTH' ? '北校区' : (form.campusCode === 'ONLINE' ? '线上' : ''))}}"
+        readonly
+        is-link
+        bind:click="onOpenCampusTypePicker"
+        bind:click-input="onOpenCampusTypePicker"
+        placeholder="{{i18n.campusTypePlaceholder}}"
+      />
+      <van-field
         data-field="location"
-        label="{{i18n.locationLabel}} {{i18n.required}}"
+        label="{{i18n.locationLabel}}"
         value="{{form.location}}"
         bind:change="onFormInput"
         placeholder="{{i18n.phLocation}}"
+      />
+      <van-field
+        label="{{i18n.activityTypeLabel}} {{i18n.required}}"
+        value="{{form.activityTypeName}}"
+        readonly
+        is-link
+        bind:click="onOpenTypePicker"
+        bind:click-input="onOpenTypePicker"
+        placeholder="{{i18n.typePickerPlaceholder}}"
       />
 
       <van-field
@@ -137,6 +155,24 @@
     <van-empty wx:if="{{!loading && activities.length === 0 && operatorRole === 'ORGANIZER'}}" image="search" description="{{i18n.empty}}" />
   </view>
 </scroll-view>
+
+<van-popup show="{{showCampusTypePicker}}" position="bottom" round bind:close="onCloseCampusTypePicker">
+  <van-picker
+    show-toolbar
+    columns="{{campusTypePickerColumns}}"
+    bind:confirm="onCampusTypeConfirm"
+    bind:cancel="onCampusTypeCancel"
+  />
+</van-popup>
+
+<van-popup show="{{showTypePicker}}" position="bottom" round bind:close="onCloseTypePicker">
+  <van-picker
+    show-toolbar
+    columns="{{activityTypePickerColumns}}"
+    bind:confirm="onTypeConfirm"
+    bind:cancel="onTypeCancel"
+  />
+</van-popup>
 
 <van-popup show="{{showVisibilityPicker}}" position="bottom" round bind:close="onCloseVisibilityPicker">
   <van-picker
