@@ -77,6 +77,26 @@ function updateUserProfile(userId, payload) {
 }
 
 /**
+ * 用户：修改密码。
+ */
+function changePassword(userId, oldPassword, newPassword) {
+  const ctx = getOperatorContext();
+  const targetUserId = Number(userId || ctx.operatorUserId);
+  if (!Number.isFinite(targetUserId) || targetUserId <= 0) {
+    return Promise.reject({ message: "请先登录" });
+  }
+  return request({
+    path: `/api/v1/users/${targetUserId}/password`,
+    method: "PUT",
+    data: {
+      oldPassword: String(oldPassword || ""),
+      newPassword: String(newPassword || ""),
+    },
+    withOperator: true,
+  });
+}
+
+/**
  * 用户头像：上传文件，返回 avatarUrl。
  */
 function uploadUserAvatar(userId, filePath) {
@@ -383,6 +403,7 @@ module.exports = {
   wechatLogin,
   updateUserProfile,
   uploadUserAvatar,
+  changePassword,
   listPublicActivities,
   getPublicActivityDetail,
   getMyRegistrations,

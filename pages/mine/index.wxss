@@ -263,6 +263,69 @@ page {
   padding: 20rpx;
 }
 
+.settings-panel {
+  margin: 24rpx;
+  margin-top: 0;
+  border-radius: 22rpx;
+  background: #ffffff;
+  border: 1rpx solid #edf0f5;
+  box-shadow: 0 10rpx 26rpx rgba(31, 45, 61, 0.09);
+  padding: 20rpx;
+}
+
+.panel-subtitle {
+  font-size: 22rpx;
+  color: #6f7f96;
+}
+
+.setting-item {
+  margin-top: 18rpx;
+  padding: 18rpx 4rpx;
+  display: flex;
+  align-items: center;
+  border-top: 1rpx solid #eef2f6;
+}
+
+.setting-icon-wrap {
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #edf3ff 0%, #f5f8ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.setting-icon {
+  font-size: 34rpx !important;
+  color: #2f7cf5 !important;
+}
+
+.setting-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 18rpx;
+}
+
+.setting-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.setting-desc {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #7a8699;
+  line-height: 1.4;
+}
+
+.setting-arrow {
+  font-size: 28rpx !important;
+  color: #a0acbd !important;
+}
+
 .activity-top {
   display: flex;
   align-items: flex-start;

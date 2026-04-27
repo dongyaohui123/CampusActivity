@@ -1,6 +1,7 @@
 package com.campus.activity.service.v1;
 
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
+import com.campus.activity.dto.v1.user.UserPasswordChangeRequest;
 import com.campus.activity.entity.User;
 import com.campus.activity.view.v1.RegistrationRecordView;
 import com.campus.activity.view.v1.AvatarUploadView;
@@ -33,15 +34,26 @@ public interface V1UserService {
     User updateUserProfile(Long userId, UserProfileUpdateRequest request, Long operatorUserId, com.campus.activity.enums.UserRole operatorRole);
 
     /**
-     * Uploads avatar file and returns the public URL.
+     * 上传用户头像并返回公开访问地址。
      *
-     * @param userId target user ID
-     * @param file avatar file
-     * @param operatorUserId operator user ID
-     * @param operatorRole operator role
-     * @return uploaded avatar URL payload
+     * @param userId 目标用户 ID
+     * @param file 头像文件
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 头像上传结果
      */
     AvatarUploadView uploadAvatar(Long userId, MultipartFile file, Long operatorUserId, com.campus.activity.enums.UserRole operatorRole);
+
+    /**
+     * 修改用户密码。
+     *
+     * @param userId 目标用户 ID
+     * @param request 修改密码请求
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     */
+    void changeUserPassword(Long userId, UserPasswordChangeRequest request, Long operatorUserId,
+            com.campus.activity.enums.UserRole operatorRole);
 
     /**
      * 获取用户报名记录。

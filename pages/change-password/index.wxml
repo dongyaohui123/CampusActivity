@@ -1,0 +1,77 @@
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onBackTap" />
+
+<scroll-view class="password-scroll" scroll-y type="list">
+  <view class="password-page">
+    <view class="hero-card">
+      <view class="hero-badge">SECURE</view>
+      <view class="hero-title">{{i18n.pageTitle}}</view>
+      <view class="hero-desc">{{i18n.pageDesc}}</view>
+    </view>
+
+    <view class="form-card">
+      <view class="field-row">
+        <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
+        <input
+          class="field-input"
+          data-field="oldPassword"
+          value="{{oldPassword}}"
+          bindinput="onInput"
+          password="{{!showOldPassword}}"
+          placeholder="{{i18n.oldPasswordPlaceholder}}"
+          placeholder-class="password-placeholder"
+        />
+        <button class="eye-btn" data-target="showOldPassword" bindtap="onTogglePassword">
+          <van-icon class-prefix="van-icon" name="{{showOldPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+        </button>
+      </view>
+
+      <view class="field-row">
+        <van-icon class-prefix="van-icon" name="shield-o" custom-class="field-icon" />
+        <input
+          class="field-input"
+          data-field="newPassword"
+          value="{{newPassword}}"
+          bindinput="onInput"
+          password="{{!showNewPassword}}"
+          placeholder="{{i18n.newPasswordPlaceholder}}"
+          placeholder-class="password-placeholder"
+        />
+        <button class="eye-btn" data-target="showNewPassword" bindtap="onTogglePassword">
+          <van-icon class-prefix="van-icon" name="{{showNewPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+        </button>
+      </view>
+
+      <view class="field-row">
+        <van-icon class-prefix="van-icon" name="passed" custom-class="field-icon" />
+        <input
+          class="field-input"
+          data-field="confirmPassword"
+          value="{{confirmPassword}}"
+          bindinput="onInput"
+          password="{{!showConfirmPassword}}"
+          placeholder="{{i18n.confirmPasswordPlaceholder}}"
+          placeholder-class="password-placeholder"
+        />
+        <button class="eye-btn" data-target="showConfirmPassword" bindtap="onTogglePassword">
+          <van-icon class-prefix="van-icon" name="{{showConfirmPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
+        </button>
+      </view>
+
+      <button class="primary-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="onSubmitTap">
+        <text>{{i18n.submitBtn}}</text>
+        <text class="btn-arrow">→</text>
+      </button>
+    </view>
+
+    <view class="tips-card">
+      <view class="tips-head">
+        <van-icon name="info-o" custom-class="tips-icon" />
+        <text class="tips-title">{{i18n.securityTitle}}</text>
+      </view>
+      <view class="tips-text">{{i18n.securityTips}}</view>
+    </view>
+  </view>
+</scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

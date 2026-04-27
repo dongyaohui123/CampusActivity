@@ -19,7 +19,7 @@
 ### 学生端
 - 活动浏览：按分类、时间、地点、状态筛选活动列表
 - 活动报名：报名/取消报名，查看报名记录
-- 个人中心：编辑资料、上传头像、查看统计数据
+- 个人中心：编辑资料、上传头像、修改密码、查看统计数据
 
 ### 组织者端
 - 活动管理：创建、编辑、发布活动
@@ -32,6 +32,7 @@
 
 ### 认证
 - 用户名 + 密码登录/注册
+- 登录后自主修改密码
 - 微信小程序 OAuth 一键登录（`wx.login` → `openid`）
 
 ## 项目结构
@@ -49,14 +50,16 @@ CampusActivity/
 │   ├── index/                #   首页（轮播、快捷入口、推荐活动）
 │   ├── activity-list/        #   活动搜索/筛选列表
 │   ├── activity-detail/      #   活动详情与报名
+│   ├── avatar-crop/          #   头像裁剪
 │   ├── auth/                 #   登录/注册
+│   ├── change-password/      #   修改密码
 │   ├── mine/                 #   个人中心（资料、统计、角色面板）
 │   ├── my-registrations/     #   我的报名
 │   ├── organizer-activities/ #   组织者活动管理
 │   └── admin-review/         #   管理员审核面板
 │
 ├── utils/                    # 前端工具模块
-│   ├── api.js                #   API 调用封装（17 个接口）
+│   ├── api.js                #   API 调用封装
 │   ├── request.js            #   统一请求封装（自动注入操作者上下文）
 │   ├── auth.js               #   登录态管理
 │   └── operator-context.js   #   操作者上下文（userId + role）
@@ -181,6 +184,7 @@ mvn spring-boot:run
 | GET | `/users/{id}` | 获取用户资料 |
 | PUT | `/users/{id}/profile` | 更新资料 |
 | POST | `/users/{id}/avatar` | 上传头像（multipart） |
+| PUT | `/users/{id}/password` | 修改密码 |
 | GET | `/users/{id}/registrations` | 我的报名记录 |
 
 ### 管理员 `* /api/v1/admin/reviews`
@@ -223,9 +227,11 @@ API 使用**操作者参数**模式进行认证授权。所有写操作和部分
 | `spring.datasource.username` | `root` | 数据库用户 |
 | `spring.datasource.password` | `root` | 数据库密码 |
 | `wechat.miniapp.appid` | `wx89bee6c990f52064` | 微信小程序 AppID |
-| `wechat.miniapp.secret` | — | 微信小程序 Secret |
+| `wechat.miniapp.secret` | 已在仓库配置 | 微信小程序 Secret |
 | `app.upload.avatar-dir` | `./uploads/avatars` | 头像上传目录 |
+| `app.upload.avatar-url-prefix` | `/static/avatars` | 头像静态访问前缀 |
 | `app.upload.avatar-max-size-kb` | `1024` | 头像最大上传大小 |
+| `app.upload.public-base-url` | `http://127.0.0.1:8080` | 头像公开访问基地址 |
 
 以上配置均支持通过环境变量覆盖（`DB_URL`、`DB_USERNAME`、`DB_PASSWORD` 等）。
 

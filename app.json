@@ -5,6 +5,7 @@
                   "pages/mine/index",
                   "pages/avatar-crop/index",
                   "pages/auth/index",
+                  "pages/change-password/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",
                   "pages/organizer-activities/index",
