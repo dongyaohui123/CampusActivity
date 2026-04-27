@@ -31,19 +31,47 @@ page {
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  flex-shrink: 0;
+}
+
+.avatar-text {
+  width: 100%;
+  height: 100%;
+  padding: 0 10rpx;
+  box-sizing: border-box;
+  border-radius: inherit;
   background: #ffffff;
-  border: 6rpx solid rgba(255, 255, 255, 0.35);
   color: #2f7cf5;
   font-size: 28rpx;
   font-weight: 700;
-  text-align: center;
-  line-height: 92rpx;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
   text-overflow: ellipsis;
-  padding: 0 10rpx;
-  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.profile-edit-btn {
   flex-shrink: 0;
+  margin-left: 10rpx;
+  padding: 10rpx 16rpx;
+  border-radius: 999rpx;
+  color: #2f7cf5;
+  font-size: 22rpx;
+  background: #ffffff;
 }
 
 .user-meta {
@@ -303,4 +331,63 @@ page {
   border-color: #ffd7d7 !important;
   color: #ee0a24 !important;
   background: #ffffff !important;
+}
+
+.edit-popup {
+  padding: 26rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.edit-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.edit-row {
+  margin-top: 22rpx;
+}
+
+.edit-label {
+  margin-bottom: 10rpx;
+  color: #4a5a73;
+  font-size: 23rpx;
+}
+
+.avatar-row .avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.popup-avatar-preview {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #f3f5f8;
+  flex-shrink: 0;
+}
+
+.avatar-btn {
+  margin: 0;
+  padding: 0 18rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #2f7cf5;
+  background: #edf3ff;
+  border: 1rpx solid #d4e5ff;
+  white-space: nowrap;
+}
+
+.avatar-btn::after {
+  border: 0;
+}
+
+.edit-footer {
+  margin-top: 28rpx;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
 }

@@ -1,18 +1,23 @@
 package com.campus.activity.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.entity.ActivityRegistration;
+import com.campus.activity.entity.User;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
+import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.service.ActivityService;
 import com.campus.activity.service.UserService;
@@ -22,7 +27,10 @@ import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.service.v1.V1PublicActivityService;
 import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.service.v1.V1UserService;
+import com.campus.activity.view.v1.AvatarUploadView;
+import com.campus.activity.view.v1.LoginUserView;
 import java.util.List;
+import org.springframework.mock.web.MockMultipartFile;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -126,5 +134,124 @@ class V1ApiControllerIntegrationTest {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void wechatLogin_shouldValidateCodeRequired() throws Exception {
+        String body = "{}";
+        mockMvc.perform(post("/api/v1/auth/wechat-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void wechatLogin_shouldReturnUnifiedSuccessBody() throws Exception {
+        LoginUserView view = new LoginUserView();
+        view.setId(12L);
+        view.setUsername("wx_u_abc");
+        view.setNickname("WechatUser");
+        view.setRole(UserRole.STUDENT);
+        when(v1AuthService.wechatLogin(any())).thenReturn(view);
+
+        String body = """
+                {
+                  "code":"wx-login-code",
+                  "nickname":"WechatUser"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/wechat-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("wechat login success"))
+                .andExpect(jsonPath("$.data.id").value(12))
+                .andExpect(jsonPath("$.data.username").value("wx_u_abc"));
+    }
+
+    @Test
+    void uploadAvatar_shouldReturnUnifiedSuccessBody() throws Exception {
+        AvatarUploadView view = new AvatarUploadView();
+        view.setAvatarUrl("http://127.0.0.1:8080/static/avatars/u_12_123456_654321.png");
+        when(v1UserService.uploadAvatar(any(), any(), any(), any())).thenReturn(view);
+
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "avatar".getBytes());
+        mockMvc.perform(multipart("/api/v1/users/12/avatar")
+                        .file(file)
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("avatar uploaded"))
+                .andExpect(jsonPath("$.data.avatarUrl").value("http://127.0.0.1:8080/static/avatars/u_12_123456_654321.png"));
+    }
+
+    @Test
+    void uploadAvatar_shouldReturnBadRequestWhenFileMissing() throws Exception {
+        when(v1UserService.uploadAvatar(any(), isNull(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "avatar file is required"));
+
+        mockMvc.perform(multipart("/api/v1/users/12/avatar")
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
+    void uploadAvatar_shouldReturnBadRequestWhenFileTypeInvalid() throws Exception {
+        when(v1UserService.uploadAvatar(any(), any(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "avatar image type must be jpeg/png/webp"));
+
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.gif", "image/gif", "gif".getBytes());
+        mockMvc.perform(multipart("/api/v1/users/12/avatar")
+                        .file(file)
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
+    void uploadAvatar_shouldReturnBadRequestWhenFileTooLarge() throws Exception {
+        when(v1UserService.uploadAvatar(any(), any(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "avatar image size must be <= 1024KB"));
+
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[1025 * 1024]);
+        mockMvc.perform(multipart("/api/v1/users/12/avatar")
+                        .file(file)
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
+    void updateProfile_shouldReturnUnifiedSuccessBody() throws Exception {
+        User user = new User();
+        user.setId(12L);
+        user.setUsername("wx_u_12");
+        user.setNickname("NewNick");
+        user.setRole(UserRole.STUDENT);
+        user.setStatus(UserStatus.ACTIVE);
+        when(v1UserService.updateUserProfile(any(), any(), any(), any())).thenReturn(user);
+
+        String body = """
+                {
+                  "nickname":"NewNick"
+                }
+                """;
+        mockMvc.perform(put("/api/v1/users/12/profile")
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("profile updated"))
+                .andExpect(jsonPath("$.data.nickname").value("NewNick"));
     }
 }

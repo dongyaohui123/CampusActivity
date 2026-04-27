@@ -3,6 +3,7 @@
                   "pages/index/index",
                   "pages/activity-list/index",
                   "pages/mine/index",
+                  "pages/avatar-crop/index",
                   "pages/auth/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",

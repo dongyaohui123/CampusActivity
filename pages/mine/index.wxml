@@ -1,16 +1,19 @@
-﻿<van-nav-bar title="{{i18n.navTitle}}" />
+<van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="mine-scroll" scroll-y type="list">
   <view class="mine-page">
-    <!-- 个人信息与统计区 -->
     <view class="profile-header">
       <view class="header-top">
-        <view class="avatar">{{avatarText}}</view>
+        <view class="avatar">
+          <image wx:if="{{loginUser && loginUser.avatarUrl}}" class="avatar-img" src="{{loginUser.avatarUrl}}" mode="aspectFill" />
+          <view wx:else class="avatar-text">{{avatarText}}</view>
+        </view>
         <view class="user-meta">
           <view class="user-name">{{loginUser ? (loginUser.nickname || loginUser.username) : i18n.guestName}}</view>
           <view wx:if="{{loginUser}}" class="user-id">{{i18n.userIdPrefix}}{{loginUser.id}}</view>
           <view class="user-desc">{{loginUser ? i18n.welcomeBack : i18n.guestDesc}}</view>
         </view>
+        <view wx:if="{{loginUser}}" class="profile-edit-btn" bindtap="onEditProfileTap">{{i18n.editProfile}}</view>
       </view>
 
       <view class="count-row">
@@ -29,7 +32,6 @@
       </view>
     </view>
 
-    <!-- 快捷入口区 -->
     <view class="quick-card">
       <view wx:for="{{quickActions}}" wx:key="action" class="quick-item" data-action="{{item.action}}" bindtap="onQuickActionTap">
         <view class="quick-icon">
@@ -40,7 +42,6 @@
       </view>
     </view>
 
-    <!-- 我的活动区 -->
     <view class="activity-panel">
       <view class="panel-head">
         <view class="panel-title">{{i18n.myActivity}}</view>
@@ -111,7 +112,34 @@
   </view>
 </scroll-view>
 
-<!-- 底部主导航 -->
+<van-popup show="{{editProfileVisible}}" round position="bottom" bind:close="onEditProfileClose">
+  <view class="edit-popup">
+    <view class="edit-title">{{i18n.editProfileTitle}}</view>
+    <view class="edit-row">
+      <view class="edit-label">{{i18n.nicknameLabel}}</view>
+      <van-field
+        value="{{editNickname}}"
+        placeholder="{{i18n.nicknamePlaceholder}}"
+        maxlength="100"
+        border="{{false}}"
+        bind:input="onEditNicknameInput"
+      />
+    </view>
+    <view class="edit-row avatar-row">
+      <view class="edit-label">{{i18n.avatarLabel}}</view>
+      <view class="avatar-actions">
+        <image wx:if="{{editAvatarPreview}}" class="popup-avatar-preview" src="{{editAvatarPreview}}" mode="aspectFill" />
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">{{i18n.chooseAvatar}}</button>
+        <van-button size="small" plain bind:click="onChooseAvatarFallback">{{i18n.chooseFromAlbum}}</van-button>
+      </view>
+    </view>
+    <view class="edit-footer">
+      <van-button size="small" plain bind:click="onEditProfileClose">{{i18n.cancel}}</van-button>
+      <van-button size="small" type="primary" loading="{{profileSaving}}" bind:click="onSaveProfileTap">{{i18n.saveProfile}}</van-button>
+    </view>
+  </view>
+</van-popup>
+
 <van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
   <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
   <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>

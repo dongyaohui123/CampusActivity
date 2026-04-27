@@ -1,4 +1,4 @@
-﻿package com.campus.activity.service.impl.v1;
+package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;

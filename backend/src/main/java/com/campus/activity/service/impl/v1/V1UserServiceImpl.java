@@ -1,4 +1,4 @@
-﻿package com.campus.activity.service.impl.v1;
+package com.campus.activity.service.impl.v1;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
@@ -11,8 +11,11 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.UserMapper;
+import com.campus.activity.service.v1.AvatarStorageService;
+import com.campus.activity.service.v1.AvatarUrlService;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1UserService;
+import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.RegistrationRecordView;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务实现（v1）。
@@ -34,6 +38,8 @@ public class V1UserServiceImpl implements V1UserService {
     private final ActivityRegistrationMapper registrationMapper;
     private final ActivityMapper activityMapper;
     private final OperatorPermissionService permissionService;
+    private final AvatarStorageService avatarStorageService;
+    private final AvatarUrlService avatarUrlService;
 
     /**
      * 构造函数。
@@ -42,12 +48,16 @@ public class V1UserServiceImpl implements V1UserService {
             UserMapper userMapper,
             ActivityRegistrationMapper registrationMapper,
             ActivityMapper activityMapper,
-            OperatorPermissionService permissionService
+            OperatorPermissionService permissionService,
+            AvatarStorageService avatarStorageService,
+            AvatarUrlService avatarUrlService
     ) {
         this.userMapper = userMapper;
         this.registrationMapper = registrationMapper;
         this.activityMapper = activityMapper;
         this.permissionService = permissionService;
+        this.avatarStorageService = avatarStorageService;
+        this.avatarUrlService = avatarUrlService;
     }
 
     /**
@@ -69,6 +79,7 @@ public class V1UserServiceImpl implements V1UserService {
         }
         // 返回前移除敏感字段。
         user.setPasswordHash(null);
+        user.setAvatarUrl(avatarUrlService.toPublicUrl(user.getAvatarUrl()));
         return user;
     }
 
@@ -99,7 +110,7 @@ public class V1UserServiceImpl implements V1UserService {
             user.setNickname(request.getNickname());
         }
         if (request.getAvatarUrl() != null) {
-            user.setAvatarUrl(request.getAvatarUrl());
+            user.setAvatarUrl(avatarUrlService.normalizeForStorage(request.getAvatarUrl()));
         }
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone());
@@ -110,7 +121,24 @@ public class V1UserServiceImpl implements V1UserService {
 
         userMapper.updateById(user);
         user.setPasswordHash(null);
+        user.setAvatarUrl(avatarUrlService.toPublicUrl(user.getAvatarUrl()));
         return user;
+    }
+
+    @Override
+    public AvatarUploadView uploadAvatar(Long userId, MultipartFile file, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireSelfOrAdmin(operator, userId);
+
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "user not found: " + userId);
+        }
+
+        String avatarUrl = avatarStorageService.storeAvatar(userId, file);
+        AvatarUploadView view = new AvatarUploadView();
+        view.setAvatarUrl(avatarUrlService.toPublicUrl(avatarUrl));
+        return view;
     }
 
     /**

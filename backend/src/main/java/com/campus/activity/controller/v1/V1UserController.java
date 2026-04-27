@@ -1,22 +1,26 @@
-﻿package com.campus.activity.controller.v1;
+package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.user.UserProfileUpdateRequest;
 import com.campus.activity.entity.User;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1UserService;
+import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.RegistrationRecordView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户中心控制器（v1）。
@@ -24,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Validated
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping({"/api/v1/users", "/api/v1/user"})
 public class V1UserController {
     private final V1UserService userService;
 
@@ -72,6 +76,21 @@ public class V1UserController {
     ) {
         return ApiResponse.success("profile updated",
                 userService.updateUserProfile(userId, request, operatorUserId, operatorRole));
+    }
+
+    @RequestMapping(
+            value = {"/{userId}/avatar", "/{userId}/avatar/"},
+            method = {RequestMethod.POST, RequestMethod.PUT},
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ApiResponse<AvatarUploadView> uploadAvatar(
+            @PathVariable("userId") @Min(value = 1, message = "userId must be >= 1") Long userId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success("avatar uploaded",
+                userService.uploadAvatar(userId, file, operatorUserId, operatorRole));
     }
 
     /**

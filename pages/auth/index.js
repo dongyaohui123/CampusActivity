@@ -1,4 +1,4 @@
-﻿const { login, registerUser } = require("../../utils/api");
+const { login, registerUser, wechatLogin } = require("../../utils/api");
 const { setLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
 
@@ -69,13 +69,18 @@ Page({
     feedback.info("忘记密码功能开发中");
   },
 
-  onSocialTap() {
-    feedback.info("功能开发中");
+  async onSocialTap(event) {
+    const provider = String(event.currentTarget.dataset.provider || "").toLowerCase();
+    if (provider !== "wechat") {
+      feedback.info("功能开发中");
+      return;
+    }
+    if (this.data.loading) {
+      return;
+    }
+    await this.submitWechatLogin();
   },
 
-  /**
-   * 提交按钮总入口：根据当前 Tab 选择登录或注册流程。
-   */
   async onSubmitTap() {
     if (this.data.loading) {
       return;
@@ -146,9 +151,94 @@ Page({
     }
   },
 
-  /**
-   * 登录/注册后回跳：有历史页则返回，否则进入“我的”页。
-   */
+  async submitWechatLogin() {
+    this.setData({ loading: true });
+    try {
+      const profile = await this.tryGetWechatProfile();
+      let code = await this.getWechatLoginCode();
+      try {
+        const user = await this.loginWithWechatCode(code, profile);
+        setLoginUser(user);
+        feedback.success("微信登录成功");
+        this.backAfterAuth();
+      } catch (e) {
+        if (this.shouldRetryWechatCode(e)) {
+          code = await this.getWechatLoginCode();
+          const user = await this.loginWithWechatCode(code, profile);
+          setLoginUser(user);
+          feedback.success("微信登录成功");
+          this.backAfterAuth();
+          return;
+        }
+        throw e;
+      }
+    } catch (e) {
+      // request 层已统一提示错误
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  loginWithWechatCode(code, profile) {
+    const payload = { code };
+    if (profile) {
+      if (profile.nickName) {
+        payload.nickname = String(profile.nickName).trim();
+      }
+      if (profile.avatarUrl) {
+        payload.avatarUrl = String(profile.avatarUrl).trim();
+      }
+      if (Number.isInteger(profile.gender) && profile.gender >= 0 && profile.gender <= 2) {
+        payload.gender = profile.gender;
+      }
+    }
+    return wechatLogin(payload);
+  },
+
+  shouldRetryWechatCode(error) {
+    const message = String((error && error.message) || "").toLowerCase();
+    if (!message) {
+      return false;
+    }
+    return message.includes("invalid code")
+      || message.includes("code been used")
+      || message.includes("errcode=40029")
+      || message.includes("errcode=40163");
+  },
+
+  getWechatLoginCode() {
+    return new Promise((resolve, reject) => {
+      wx.login({
+        success: (res) => {
+          const code = String((res && res.code) || "").trim();
+          if (!code) {
+            feedback.error("微信登录失败：未获取到登录凭证");
+            reject(new Error("wechat login code missing"));
+            return;
+          }
+          resolve(code);
+        },
+        fail: () => {
+          feedback.error("微信登录失败，请稍后重试");
+          reject(new Error("wechat login failed"));
+        },
+      });
+    });
+  },
+
+  tryGetWechatProfile() {
+    if (typeof wx.getUserProfile !== "function") {
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      wx.getUserProfile({
+        desc: "用于完善您的个人资料",
+        success: (res) => resolve((res && res.userInfo) || null),
+        fail: () => resolve(null),
+      });
+    });
+  },
+
   backAfterAuth() {
     const pages = getCurrentPages();
     if (pages.length > 1) {
