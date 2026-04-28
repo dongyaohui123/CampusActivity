@@ -2,6 +2,7 @@ const {
   getMyRegistrations,
   getRegistrationTicketQrCodeUrl,
   listOrganizerActivities,
+  listManageableActivities,
   listPendingReviews,
   updateUserProfile,
   uploadUserAvatar,
@@ -99,7 +100,7 @@ function getRoleTabDefs(role, i18n) {
   return [];
 }
 
-function getQuickActions(i18n, loginUser) {
+function getQuickActions(i18n, loginUser, canShowManageActivityEntry) {
   if (!loginUser) {
     return [
       { iconName: "contact-o", title: i18n.goLogin, desc: i18n.goLoginDesc, action: "login" },
@@ -111,8 +112,8 @@ function getQuickActions(i18n, loginUser) {
   const roleAction =
     loginUser.role === "ADMIN"
       ? { iconName: "search", title: i18n.reviewManage, desc: i18n.reviewDesc, action: "review" }
-      : loginUser.role === "ORGANIZER"
-        ? { iconName: "cluster-o", title: i18n.myOrg, desc: i18n.myOrgDesc, action: "myOrg" }
+      : canShowManageActivityEntry
+        ? { iconName: "cluster-o", title: i18n.manageActivities, desc: i18n.manageActivitiesDesc, action: "manageActivities" }
         : { iconName: "search", title: i18n.findActivity, desc: i18n.findActivityDesc, action: "findActivity" };
   return [
     { iconName: "friends-o", title: i18n.myActivity, desc: i18n.myActivityDesc, action: "myActivity" },
@@ -122,10 +123,10 @@ function getQuickActions(i18n, loginUser) {
   ];
 }
 
-function getSectionEntry(i18n, loginUser) {
+function getSectionEntry(i18n, loginUser, canShowManageActivityEntry) {
   if (!loginUser) return { text: i18n.goLogin, action: "login" };
-  if (loginUser.role === "ORGANIZER") return { text: i18n.goMyOrg, action: "myOrg" };
   if (loginUser.role === "ADMIN") return { text: i18n.goReviewManage, action: "review" };
+  if (canShowManageActivityEntry) return { text: i18n.goManageActivities, action: "manageActivities" };
   return { text: i18n.goMyRegistrations, action: "myActivity" };
 }
 
@@ -207,7 +208,7 @@ function mapOrganizerCard(item, i18n, index) {
         tone: "plain",
       },
       {
-        action: "myOrg",
+        action: "organizerManage",
         itemId: activityId,
         label: i18n.goManage,
         tone: "primary",
@@ -256,11 +257,11 @@ Page({
       userIdPrefix: "用户ID：",
       participatedCount: "参与活动数",
       initiatedCount: "发起活动数",
-      managedOrgCount: "管理组织数",
+      managedOrgCount: "可管理活动数",
       myActivity: "我的活动",
       myActivityDesc: "查看报名记录和状态",
-      myOrg: "我的组织",
-      myOrgDesc: "管理活动与发布流程",
+      manageActivities: "管理活动",
+      manageActivitiesDesc: "扫码签到与查看报名名单",
       reviewManage: "审核管理",
       reviewDesc: "处理活动审核任务",
       myFavorites: "我的收藏",
@@ -277,7 +278,7 @@ Page({
       goLogin: "去登录",
       goLoginDesc: "登录后即可同步个人活动数据",
       goMyRegistrations: "查看报名记录",
-      goMyOrg: "进入组织管理",
+      goManageActivities: "进入管理活动",
       goReviewManage: "进入审核管理",
       loading: "加载中...",
       unknownActivity: "未知活动",
@@ -351,6 +352,8 @@ Page({
     filteredActivityCards: [],
     loadingActivities: false,
     activityEmptyText: "",
+    manageableActivities: [],
+    canShowManageActivityEntry: false,
   },
 
   onShow() {
@@ -360,13 +363,26 @@ Page({
   async restoreLoginState() {
     const loginUser = getLoginUser();
     const { i18n } = this.data;
-    const quickActions = getQuickActions(i18n, loginUser);
-    const sectionEntry = getSectionEntry(i18n, loginUser);
+    let manageableActivities = [];
+    if (loginUser) {
+      try {
+        manageableActivities = await listManageableActivities({});
+      } catch (e) {
+        manageableActivities = [];
+      }
+    }
+    const canShowManageActivityEntry = Boolean(
+      loginUser && (loginUser.role === "ORGANIZER" || (manageableActivities || []).length > 0)
+    );
+    const quickActions = getQuickActions(i18n, loginUser, canShowManageActivityEntry);
+    const sectionEntry = getSectionEntry(i18n, loginUser, canShowManageActivityEntry);
     this.setData({
       loginUser,
       avatarText: getAvatarText(loginUser),
       quickActions,
       sectionEntry,
+      manageableActivities,
+      canShowManageActivityEntry,
     });
     if (!loginUser) {
       this.setData({
@@ -377,13 +393,15 @@ Page({
         filteredActivityCards: [],
         activityEmptyText: i18n.guestActivityHint,
         loadingActivities: false,
+        manageableActivities: [],
+        canShowManageActivityEntry: false,
       });
       return;
     }
-    await Promise.all([this.loadStats(loginUser), this.loadMineActivityCards(loginUser)]);
+    await Promise.all([this.loadStats(loginUser, manageableActivities), this.loadMineActivityCards(loginUser)]);
   },
 
-  async loadStats(loginUser) {
+  async loadStats(loginUser, manageableActivities) {
     if (!loginUser) return;
     let participatedCount = 0;
     let initiatedCount = 0;
@@ -403,7 +421,9 @@ Page({
       } catch (e) {
         initiatedCount = 0;
       }
-      managedOrgCount = 1;
+      managedOrgCount = (manageableActivities || []).length;
+    } else {
+      managedOrgCount = (manageableActivities || []).length;
     }
 
     this.setData({
@@ -679,10 +699,6 @@ Page({
       return;
     }
     if (action === "organizerCheckin") {
-      if (loginUser.role !== "ORGANIZER") {
-        feedback.error("仅组织者可使用");
-        return;
-      }
       const activityId = Number(payload && payload.itemId);
       if (!activityId) {
         feedback.error("活动信息缺失");
@@ -691,7 +707,15 @@ Page({
       wx.navigateTo({ url: `/pages/organizer-checkin/index?activityId=${activityId}` });
       return;
     }
-    if (action === "myOrg") {
+    if (action === "manageActivities") {
+      if (!this.data.canShowManageActivityEntry) {
+        feedback.error("暂无可管理活动");
+        return;
+      }
+      wx.navigateTo({ url: "/pages/managed-activities/index" });
+      return;
+    }
+    if (action === "organizerManage") {
       if (loginUser.role !== "ORGANIZER") {
         feedback.error("仅组织者可查看");
         return;
@@ -723,8 +747,8 @@ Page({
       editAvatarPreview: "",
       editAvatarTempPath: "",
       profileSaving: false,
-      quickActions: getQuickActions(i18n, null),
-      sectionEntry: getSectionEntry(i18n, null),
+      quickActions: getQuickActions(i18n, null, false),
+      sectionEntry: getSectionEntry(i18n, null, false),
       stats: { participatedCount: 0, initiatedCount: 0, managedOrgCount: 0 },
       activityTabs: [],
       activeActivityTab: "",
@@ -732,6 +756,8 @@ Page({
       filteredActivityCards: [],
       activityEmptyText: i18n.guestActivityHint,
       loadingActivities: false,
+      manageableActivities: [],
+      canShowManageActivityEntry: false,
     });
     feedback.success("已退出登录");
   },

@@ -560,6 +560,52 @@ function approveReview(activityId, payload) {
 }
 
 /**
+ * 当前用户可管理活动列表。
+ */
+function listManageableActivities(params) {
+  return request({
+    path: "/api/v1/activities/manageable",
+    method: "GET",
+    query: params || {},
+    withOperator: true,
+  });
+}
+
+/**
+ * 活动管理员列表。
+ */
+function listActivityManagers(activityId) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}/managers`,
+    method: "GET",
+    withOperator: true,
+  });
+}
+
+/**
+ * 添加活动管理员。
+ */
+function addActivityManager(activityId, payload) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}/managers`,
+    method: "POST",
+    data: payload || {},
+    withOperator: true,
+  });
+}
+
+/**
+ * 移除活动管理员。
+ */
+function removeActivityManager(activityId, managerUserId) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}/managers/${managerUserId}`,
+    method: "DELETE",
+    withOperator: true,
+  });
+}
+
+/**
  * 管理员：审核驳回。
  */
 function rejectReview(activityId, comment) {
@@ -581,6 +627,7 @@ module.exports = {
   uploadOrganizerActivityCover,
   changePassword,
   listPublicActivities,
+  listManageableActivities,
   getPublicActivityDetail,
   getMyRegistrations,
   getMyFavorites,
@@ -598,6 +645,9 @@ module.exports = {
   submitActivityReview,
   listOrganizerActivityRegistrations,
   organizerCheckIn,
+  listActivityManagers,
+  addActivityManager,
+  removeActivityManager,
   listPendingReviews,
   approveReview,
   rejectReview,

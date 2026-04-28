@@ -1,6 +1,7 @@
 package com.campus.activity.service.v1;
 
 import com.campus.activity.entity.User;
+import com.campus.activity.enums.ActivityManagerPermission;
 import com.campus.activity.enums.UserRole;
 
 /**
@@ -39,4 +40,18 @@ public interface OperatorPermissionService {
      * @param targetUserId 目标用户 ID
      */
     void requireSelf(User operator, Long targetUserId);
+
+    /**
+     * 要求操作人是活动组织者，或是具备指定权限的活动管理员。
+     *
+     * @param activityId 活动 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @param requiredPermission 活动管理员需要具备的权限点
+     * @return 操作人实体
+     */
+    User verifyOrganizerOrActivityManager(Long activityId,
+                                          Long operatorUserId,
+                                          UserRole operatorRole,
+                                          ActivityManagerPermission requiredPermission);
 }

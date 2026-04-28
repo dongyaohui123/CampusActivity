@@ -6,24 +6,29 @@ import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
+import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.ActivityCategory;
 import com.campus.activity.entity.ActivityCategoryRel;
+import com.campus.activity.entity.ActivityManagerPermissionGrant;
 import com.campus.activity.entity.ActivityAuditLog;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.ActivityReview;
 import com.campus.activity.entity.LocationCampusMapping;
 import com.campus.activity.entity.User;
 import com.campus.activity.entity.view.ActivityListItemView;
+import com.campus.activity.enums.ActivityManagerPermission;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.AuditAction;
 import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.ReviewStatus;
 import com.campus.activity.enums.UserRole;
+import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityCategoryMapper;
 import com.campus.activity.mapper.ActivityCategoryRelMapper;
+import com.campus.activity.mapper.ActivityManagerPermissionGrantMapper;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
@@ -33,16 +38,21 @@ import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import com.campus.activity.view.v1.OrganizerActivityTypeOptionView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,12 +68,15 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     private static final String CAMPUS_SOUTH = "SOUTH";
     private static final String CAMPUS_NORTH = "NORTH";
     private static final String CAMPUS_ONLINE = "ONLINE";
+    private static final Set<ActivityManagerPermission> DEFAULT_MANAGER_PERMISSIONS =
+            EnumSet.of(ActivityManagerPermission.VIEW_REGISTRATIONS, ActivityManagerPermission.CHECK_IN);
     private static final List<String> DEFAULT_CAMPUS_TYPES = List.of(CAMPUS_SOUTH, CAMPUS_NORTH, CAMPUS_ONLINE);
     private static final Set<String> SUPPORTED_CAMPUS_TYPES = Set.of(CAMPUS_SOUTH, CAMPUS_NORTH, CAMPUS_ONLINE);
 
     private final ActivityMapper activityMapper;
     private final ActivityCategoryMapper activityCategoryMapper;
     private final ActivityCategoryRelMapper activityCategoryRelMapper;
+    private final ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper;
     private final ActivityReviewMapper reviewMapper;
     private final ActivityAuditLogMapper auditLogMapper;
     private final ActivityRegistrationMapper registrationMapper;
@@ -78,6 +91,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             ActivityMapper activityMapper,
             ActivityCategoryMapper activityCategoryMapper,
             ActivityCategoryRelMapper activityCategoryRelMapper,
+            ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper,
             ActivityReviewMapper reviewMapper,
             ActivityAuditLogMapper auditLogMapper,
             ActivityRegistrationMapper registrationMapper,
@@ -88,6 +102,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         this.activityMapper = activityMapper;
         this.activityCategoryMapper = activityCategoryMapper;
         this.activityCategoryRelMapper = activityCategoryRelMapper;
+        this.activityManagerPermissionGrantMapper = activityManagerPermissionGrantMapper;
         this.reviewMapper = reviewMapper;
         this.auditLogMapper = auditLogMapper;
         this.registrationMapper = registrationMapper;
@@ -323,9 +338,12 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             Long operatorUserId,
             UserRole operatorRole
     ) {
-        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
-        permissionService.requireRole(operator, UserRole.ORGANIZER);
-        getOwnedActivityOrThrow(activityId, operator.getId());
+        permissionService.verifyOrganizerOrActivityManager(
+                activityId,
+                operatorUserId,
+                operatorRole,
+                ActivityManagerPermission.VIEW_REGISTRATIONS
+        );
 
         QueryWrapper<ActivityRegistration> wrapper = new QueryWrapper<ActivityRegistration>()
                 .eq("activity_id", activityId)
@@ -377,9 +395,12 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             Long operatorUserId,
             UserRole operatorRole
     ) {
-        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
-        permissionService.requireRole(operator, UserRole.ORGANIZER);
-        getOwnedActivityOrThrow(activityId, operator.getId());
+        User operator = permissionService.verifyOrganizerOrActivityManager(
+                activityId,
+                operatorUserId,
+                operatorRole,
+                ActivityManagerPermission.CHECK_IN
+        );
 
         ActivityRegistration registration = registrationMapper.selectOne(
                 new QueryWrapper<ActivityRegistration>()
@@ -417,6 +438,127 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         result.setCheckedInAt(registration.getCheckinAt());
         result.setOperatorUserId(operator.getId());
         return result;
+    }
+
+    @Override
+    public List<ActivityManagerView> listActivityManagers(Long activityId, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        getOwnedActivityOrThrow(activityId, operator.getId());
+
+        List<ActivityManagerPermissionGrant> grants = activityManagerPermissionGrantMapper.selectList(
+                new QueryWrapper<ActivityManagerPermissionGrant>()
+                        .eq("activity_id", activityId)
+                        .eq("status", BasicStatus.ACTIVE.name())
+                        .orderByDesc("created_at", "id")
+        );
+        if (grants.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> managerUserIds = grants.stream()
+                .map(ActivityManagerPermissionGrant::getUserId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, User> userMap = userMapper.selectBatchIds(managerUserIds).stream()
+                .collect(Collectors.toMap(User::getId, user -> user));
+
+        List<ActivityManagerView> views = new ArrayList<>(grants.size());
+        for (ActivityManagerPermissionGrant grant : grants) {
+            ActivityManagerView view = new ActivityManagerView();
+            view.setUserId(grant.getUserId());
+            view.setStatus(grant.getStatus());
+            view.setCreatedAt(grant.getCreatedAt());
+            view.setPermissions(decodeManagerPermissions(grant.getPermissions()));
+            User manager = userMap.get(grant.getUserId());
+            if (manager != null) {
+                view.setNickname(manager.getNickname());
+                view.setPhone(manager.getPhone());
+            }
+            views.add(view);
+        }
+        return views;
+    }
+
+    @Override
+    @Transactional
+    public ActivityManagerView addActivityManager(Long activityId,
+                                                  AddActivityManagerRequest request,
+                                                  Long operatorUserId,
+                                                  UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        Activity ownedActivity = getOwnedActivityOrThrow(activityId, operator.getId());
+
+        if (ownedActivity.getOrganizerId().equals(request.getUserId())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "organizer does not need manager permission");
+        }
+
+        User managerUser = userMapper.selectById(request.getUserId());
+        if (managerUser == null || !UserStatus.ACTIVE.equals(managerUser.getStatus())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "manager user is invalid or inactive");
+        }
+
+        List<ActivityManagerPermission> permissions = normalizeManagerPermissions(request.getPermissions());
+        String encodedPermissions = encodeManagerPermissions(permissions);
+        LocalDateTime now = LocalDateTime.now();
+
+        ActivityManagerPermissionGrant existingGrant = activityManagerPermissionGrantMapper.selectOne(
+                new QueryWrapper<ActivityManagerPermissionGrant>()
+                        .eq("activity_id", activityId)
+                        .eq("user_id", request.getUserId())
+                        .last("LIMIT 1")
+        );
+        if (existingGrant == null) {
+            ActivityManagerPermissionGrant grant = new ActivityManagerPermissionGrant();
+            grant.setActivityId(activityId);
+            grant.setUserId(request.getUserId());
+            grant.setPermissions(encodedPermissions);
+            grant.setStatus(BasicStatus.ACTIVE);
+            grant.setCreatedBy(operator.getId());
+            grant.setCreatedAt(now);
+            grant.setUpdatedAt(now);
+            activityManagerPermissionGrantMapper.insert(grant);
+        } else {
+            existingGrant.setPermissions(encodedPermissions);
+            existingGrant.setStatus(BasicStatus.ACTIVE);
+            existingGrant.setUpdatedAt(now);
+            activityManagerPermissionGrantMapper.updateById(existingGrant);
+        }
+
+        ActivityManagerView view = new ActivityManagerView();
+        view.setUserId(managerUser.getId());
+        view.setNickname(managerUser.getNickname());
+        view.setPhone(managerUser.getPhone());
+        view.setPermissions(permissions);
+        view.setStatus(BasicStatus.ACTIVE);
+        view.setCreatedAt(existingGrant == null ? now : existingGrant.getCreatedAt());
+        return view;
+    }
+
+    @Override
+    @Transactional
+    public void removeActivityManager(Long activityId, Long managerUserId, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        Activity ownedActivity = getOwnedActivityOrThrow(activityId, operator.getId());
+        if (ownedActivity.getOrganizerId().equals(managerUserId)) {
+            throw new BusinessException(ErrorCode.CONFLICT, "cannot remove organizer as manager");
+        }
+
+        ActivityManagerPermissionGrant existingGrant = activityManagerPermissionGrantMapper.selectOne(
+                new QueryWrapper<ActivityManagerPermissionGrant>()
+                        .eq("activity_id", activityId)
+                        .eq("user_id", managerUserId)
+                        .last("LIMIT 1")
+        );
+        if (existingGrant == null) {
+            return;
+        }
+        existingGrant.setStatus(BasicStatus.DISABLED);
+        existingGrant.setUpdatedAt(LocalDateTime.now());
+        activityManagerPermissionGrantMapper.updateById(existingGrant);
     }
 
     /**
@@ -566,5 +708,58 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         if (registrationDeadline != null && registrationDeadline.isAfter(start)) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "registrationDeadline must be <= startTime");
         }
+    }
+
+    private List<ActivityManagerPermission> normalizeManagerPermissions(List<ActivityManagerPermission> input) {
+        if (input == null || input.isEmpty()) {
+            return DEFAULT_MANAGER_PERMISSIONS.stream()
+                    .sorted(Comparator.comparing(Enum::name))
+                    .toList();
+        }
+        Set<ActivityManagerPermission> deduped = new HashSet<>();
+        for (ActivityManagerPermission permission : input) {
+            if (permission != null) {
+                deduped.add(permission);
+            }
+        }
+        if (deduped.isEmpty()) {
+            return DEFAULT_MANAGER_PERMISSIONS.stream()
+                    .sorted(Comparator.comparing(Enum::name))
+                    .toList();
+        }
+        return deduped.stream().sorted(Comparator.comparing(Enum::name)).toList();
+    }
+
+    private String encodeManagerPermissions(List<ActivityManagerPermission> permissions) {
+        return normalizeManagerPermissions(permissions).stream()
+                .map(Enum::name)
+                .collect(Collectors.joining(","));
+    }
+
+    private List<ActivityManagerPermission> decodeManagerPermissions(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return DEFAULT_MANAGER_PERMISSIONS.stream()
+                    .sorted(Comparator.comparing(Enum::name))
+                    .toList();
+        }
+        Set<ActivityManagerPermission> parsed = Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .map(String::toUpperCase)
+                .map(value -> {
+                    try {
+                        return ActivityManagerPermission.valueOf(value);
+                    } catch (IllegalArgumentException ex) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (parsed.isEmpty()) {
+            return DEFAULT_MANAGER_PERMISSIONS.stream()
+                    .sorted(Comparator.comparing(Enum::name))
+                    .toList();
+        }
+        return parsed.stream().sorted(Comparator.comparing(Enum::name)).toList();
     }
 }

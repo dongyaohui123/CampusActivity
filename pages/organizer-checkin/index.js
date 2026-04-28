@@ -1,5 +1,5 @@
 const {
-  listOrganizerActivities,
+  listManageableActivities,
   listOrganizerActivityRegistrations,
   organizerCheckIn,
 } = require("../../utils/api");
@@ -58,7 +58,8 @@ Page({
     i18n: {
       navTitle: "扫码签到",
       loading: "加载中...",
-      roleHint: "仅组织者可进行扫码签到",
+      roleHint: "组织者或活动管理员可进行扫码签到",
+      noCheckinPermission: "当前活动未授权签到",
       scanNow: "立即扫码",
       manualLabel: "手动输入票码",
       manualPlaceholder: "支持直接输入票码或扫描二维码内容",
@@ -84,6 +85,7 @@ Page({
       pendingCount: 0,
     },
     manualTicketCode: "",
+    canCheckIn: false,
   },
 
   onLoad(options) {
@@ -93,7 +95,7 @@ Page({
   onShow() {
     const { operatorRole } = getOperatorContext();
     this.setData({ operatorRole: operatorRole || "" });
-    if (operatorRole === "ORGANIZER" && this.data.activityId) {
+    if (this.data.activityId) {
       this.loadAll();
     }
   },
@@ -106,7 +108,7 @@ Page({
     this.setData({ loading: true });
     try {
       const [activities, registrations] = await Promise.all([
-        listOrganizerActivities({}),
+        listManageableActivities({}),
         listOrganizerActivityRegistrations(this.data.activityId),
       ]);
       const activity =
@@ -116,6 +118,7 @@ Page({
           location: "-",
           startTime: "",
           endTime: "",
+          canCheckIn: false,
         };
       const normalizedRegistrations = normalizeRegistrations(registrations);
       this.setData({
@@ -124,12 +127,14 @@ Page({
           startDisplay: displayTime(activity.startTime),
           endDisplay: displayTime(activity.endTime),
         },
+        canCheckIn: Boolean(activity.canCheckIn),
         registrations: normalizedRegistrations,
         stats: buildStats(normalizedRegistrations),
       });
     } catch (e) {
       this.setData({
         activity: null,
+        canCheckIn: false,
         registrations: [],
         stats: { activeCount: 0, checkedInCount: 0, pendingCount: 0 },
       });
@@ -143,6 +148,10 @@ Page({
   },
 
   onScanTap() {
+    if (!this.data.canCheckIn) {
+      feedback.error(this.data.i18n.noCheckinPermission);
+      return;
+    }
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ["qrCode"],
@@ -159,6 +168,10 @@ Page({
   },
 
   async onManualSubmitTap() {
+    if (!this.data.canCheckIn) {
+      feedback.error(this.data.i18n.noCheckinPermission);
+      return;
+    }
     await this.submitTicketCode(this.data.manualTicketCode);
   },
 

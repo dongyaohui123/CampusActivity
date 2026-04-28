@@ -4,11 +4,13 @@ import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
+import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import java.time.LocalDateTime;
@@ -87,4 +89,22 @@ public interface V1OrganizerActivityService {
             Long operatorUserId,
             UserRole operatorRole
     );
+
+    /**
+     * 查询活动管理员列表。
+     */
+    List<ActivityManagerView> listActivityManagers(Long activityId, Long operatorUserId, UserRole operatorRole);
+
+    /**
+     * 添加或更新活动管理员权限。
+     */
+    ActivityManagerView addActivityManager(Long activityId,
+                                           AddActivityManagerRequest request,
+                                           Long operatorUserId,
+                                           UserRole operatorRole);
+
+    /**
+     * 移除活动管理员。
+     */
+    void removeActivityManager(Long activityId, Long managerUserId, Long operatorUserId, UserRole operatorRole);
 }

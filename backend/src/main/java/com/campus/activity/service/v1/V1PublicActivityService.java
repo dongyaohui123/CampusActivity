@@ -2,6 +2,8 @@ package com.campus.activity.service.v1;
 
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.view.ActivityListItemView;
+import com.campus.activity.enums.UserRole;
+import com.campus.activity.view.v1.ManageableActivityView;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,4 +28,9 @@ public interface V1PublicActivityService {
      * @return 活动详情
      */
     Activity getPublicActivityDetail(Long activityId);
+
+    /**
+     * Query activities manageable by the current operator.
+     */
+    List<ManageableActivityView> listManageableActivities(Long operatorUserId, UserRole operatorRole);
 }

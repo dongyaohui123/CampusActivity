@@ -5,12 +5,14 @@ import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
+import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1OrganizerActivityCoverService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
+import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
 import com.campus.activity.view.v1.ActivityCoverUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 /**
  * 组织者活动管理控制器（v1）。
@@ -196,5 +199,45 @@ public class V1OrganizerActivityController {
     ) {
         return ApiResponse.success("check-in success",
                 organizerActivityService.checkInByTicketCode(activityId, request, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 查询活动管理员列表。
+     */
+    @GetMapping("/{activityId}/managers")
+    public ApiResponse<List<ActivityManagerView>> listActivityManagers(
+            @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(organizerActivityService.listActivityManagers(activityId, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 添加活动管理员。
+     */
+    @PostMapping("/{activityId}/managers")
+    public ApiResponse<ActivityManagerView> addActivityManager(
+            @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
+            @Valid @RequestBody AddActivityManagerRequest request,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success("activity manager added",
+                organizerActivityService.addActivityManager(activityId, request, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 移除活动管理员。
+     */
+    @DeleteMapping("/{activityId}/managers/{managerUserId}")
+    public ApiResponse<Void> removeActivityManager(
+            @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
+            @PathVariable("managerUserId") @Min(value = 1, message = "managerUserId must be >= 1") Long managerUserId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        organizerActivityService.removeActivityManager(activityId, managerUserId, operatorUserId, operatorRole);
+        return ApiResponse.success("activity manager removed", null);
     }
 }

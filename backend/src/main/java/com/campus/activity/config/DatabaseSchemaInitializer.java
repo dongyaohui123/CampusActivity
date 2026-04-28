@@ -39,6 +39,7 @@ public class DatabaseSchemaInitializer implements ApplicationRunner {
 
         try (connection) {
             DatabaseMetaData metaData = connection.getMetaData();
+            ensureActivityManagerPermissionTable();
             ensureColumn(
                     metaData,
                     "activity_registrations",
@@ -63,9 +64,32 @@ public class DatabaseSchemaInitializer implements ApplicationRunner {
                     "uk_activity_registrations_ticket_code",
                     "CREATE UNIQUE INDEX uk_activity_registrations_ticket_code ON activity_registrations (ticket_code)"
             );
+            ensureIndex(
+                    metaData,
+                    "activity_manager_permissions",
+                    "uk_activity_manager_permissions_activity_user",
+                    "CREATE UNIQUE INDEX uk_activity_manager_permissions_activity_user " +
+                            "ON activity_manager_permissions (activity_id, user_id)"
+            );
         } catch (SQLException ex) {
-            throw new IllegalStateException("Failed to initialize ticket schema", ex);
+            throw new IllegalStateException("Failed to initialize runtime schema", ex);
         }
+    }
+
+    private void ensureActivityManagerPermissionTable() {
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS activity_manager_permissions (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    activity_id BIGINT NOT NULL,
+                    user_id BIGINT NOT NULL,
+                    permissions VARCHAR(255) NOT NULL,
+                    status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+                    created_by BIGINT NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    CONSTRAINT uk_activity_manager_permissions_activity_user UNIQUE (activity_id, user_id)
+                )
+                """);
     }
 
     private void ensureColumn(DatabaseMetaData metaData, String tableName, String columnName, String ddl) throws SQLException {
