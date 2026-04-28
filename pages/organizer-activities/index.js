@@ -168,6 +168,7 @@ Page({
       timeLabel: "时间",
       edit: "编辑",
       checkinManage: "签到管理",
+      managerManage: "管理员",
       submitReview: "提审",
       empty: "暂无活动",
       phTitle: "例如：校园歌手大赛",
@@ -568,6 +569,18 @@ Page({
     }
     wx.navigateTo({
       url: `/pages/organizer-checkin/index?activityId=${activityId}`,
+    });
+  },
+
+  onManagerTap(event) {
+    const activityId = Number(event.currentTarget.dataset.id);
+    const title = encodeURIComponent(String(event.currentTarget.dataset.title || ""));
+    if (!activityId) {
+      feedback.error("活动信息缺失");
+      return;
+    }
+    wx.navigateTo({
+      url: `/pages/activity-managers/index?activityId=${activityId}&title=${title}`,
     });
   },
 });

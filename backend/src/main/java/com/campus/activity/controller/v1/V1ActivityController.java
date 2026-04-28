@@ -7,6 +7,7 @@ import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1PublicActivityService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
+import com.campus.activity.view.v1.ManageableActivityView;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -74,6 +75,17 @@ public class V1ActivityController {
             @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId
     ) {
         return ApiResponse.success(publicActivityService.getPublicActivityDetail(activityId));
+    }
+
+    /**
+     * 查询当前用户可管理的活动列表。
+     */
+    @GetMapping("/manageable")
+    public ApiResponse<List<ManageableActivityView>> listManageableActivities(
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(publicActivityService.listManageableActivities(operatorUserId, operatorRole));
     }
 
     /**

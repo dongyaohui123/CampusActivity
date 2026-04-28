@@ -11,11 +11,14 @@ import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCheckinRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityCreateRequest;
 import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
+import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.ActivityCategory;
 import com.campus.activity.entity.ActivityCategoryRel;
+import com.campus.activity.entity.ActivityManagerPermissionGrant;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.User;
+import com.campus.activity.enums.ActivityManagerPermission;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
@@ -24,6 +27,7 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityCategoryMapper;
 import com.campus.activity.mapper.ActivityCategoryRelMapper;
+import com.campus.activity.mapper.ActivityManagerPermissionGrantMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
@@ -32,6 +36,7 @@ import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.impl.v1.V1OrganizerActivityServiceImpl;
 import com.campus.activity.service.v1.OperatorPermissionService;
 import com.campus.activity.view.v1.CheckinResultView;
+import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -54,6 +59,9 @@ class V1OrganizerActivityServiceImplTest {
 
     @Mock
     private ActivityCategoryRelMapper activityCategoryRelMapper;
+
+    @Mock
+    private ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper;
 
     @Mock
     private ActivityReviewMapper reviewMapper;
@@ -81,6 +89,7 @@ class V1OrganizerActivityServiceImplTest {
                 activityMapper,
                 activityCategoryMapper,
                 activityCategoryRelMapper,
+                activityManagerPermissionGrantMapper,
                 reviewMapper,
                 auditLogMapper,
                 registrationMapper,
@@ -282,12 +291,8 @@ class V1OrganizerActivityServiceImplTest {
     @Test
     void checkInByTicketCode_shouldMarkRegistrationCheckedIn() {
         User organizer = organizerUser(11L);
-        when(permissionService.verifyOperator(11L, UserRole.ORGANIZER)).thenReturn(organizer);
-
-        Activity activity = new Activity();
-        activity.setId(7L);
-        activity.setOrganizerId(11L);
-        when(activityMapper.selectById(7L)).thenReturn(activity);
+        when(permissionService.verifyOrganizerOrActivityManager(7L, 11L, UserRole.ORGANIZER,
+                com.campus.activity.enums.ActivityManagerPermission.CHECK_IN)).thenReturn(organizer);
 
         ActivityRegistration registration = new ActivityRegistration();
         registration.setId(22L);
@@ -316,12 +321,8 @@ class V1OrganizerActivityServiceImplTest {
     @Test
     void checkInByTicketCode_shouldRejectAlreadyCheckedInTicket() {
         User organizer = organizerUser(11L);
-        when(permissionService.verifyOperator(11L, UserRole.ORGANIZER)).thenReturn(organizer);
-
-        Activity activity = new Activity();
-        activity.setId(7L);
-        activity.setOrganizerId(11L);
-        when(activityMapper.selectById(7L)).thenReturn(activity);
+        when(permissionService.verifyOrganizerOrActivityManager(7L, 11L, UserRole.ORGANIZER,
+                com.campus.activity.enums.ActivityManagerPermission.CHECK_IN)).thenReturn(organizer);
 
         ActivityRegistration registration = new ActivityRegistration();
         registration.setActivityId(7L);
@@ -340,12 +341,8 @@ class V1OrganizerActivityServiceImplTest {
     @Test
     void checkInByTicketCode_shouldRejectWhenTicketBelongsToAnotherActivity() {
         User organizer = organizerUser(11L);
-        when(permissionService.verifyOperator(11L, UserRole.ORGANIZER)).thenReturn(organizer);
-
-        Activity activity = new Activity();
-        activity.setId(7L);
-        activity.setOrganizerId(11L);
-        when(activityMapper.selectById(7L)).thenReturn(activity);
+        when(permissionService.verifyOrganizerOrActivityManager(7L, 11L, UserRole.ORGANIZER,
+                com.campus.activity.enums.ActivityManagerPermission.CHECK_IN)).thenReturn(organizer);
 
         ActivityRegistration registration = new ActivityRegistration();
         registration.setActivityId(8L);
@@ -362,22 +359,78 @@ class V1OrganizerActivityServiceImplTest {
     }
 
     @Test
-    void checkInByTicketCode_shouldRejectWhenOrganizerDoesNotOwnActivity() {
+    void checkInByTicketCode_shouldRejectWhenOperatorLacksActivityPermission() {
+        OrganizerActivityCheckinRequest request = new OrganizerActivityCheckinRequest();
+        request.setTicketCode("TICKET-001");
+        when(permissionService.verifyOrganizerOrActivityManager(7L, 11L, UserRole.STUDENT,
+                com.campus.activity.enums.ActivityManagerPermission.CHECK_IN))
+                .thenThrow(new BusinessException(ErrorCode.FORBIDDEN, "permission denied for this activity"));
+
+        assertThatThrownBy(() -> organizerActivityService.checkInByTicketCode(7L, request, 11L, UserRole.STUDENT))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void addActivityManager_shouldInsertGrantWithDefaultPermissions() {
         User organizer = organizerUser(11L);
         when(permissionService.verifyOperator(11L, UserRole.ORGANIZER)).thenReturn(organizer);
 
         Activity activity = new Activity();
         activity.setId(7L);
-        activity.setOrganizerId(99L);
+        activity.setOrganizerId(11L);
         when(activityMapper.selectById(7L)).thenReturn(activity);
 
-        OrganizerActivityCheckinRequest request = new OrganizerActivityCheckinRequest();
-        request.setTicketCode("TICKET-001");
+        User manager = new User();
+        manager.setId(22L);
+        manager.setNickname("manager");
+        manager.setStatus(com.campus.activity.enums.UserStatus.ACTIVE);
+        when(userMapper.selectById(22L)).thenReturn(manager);
+        when(activityManagerPermissionGrantMapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
 
-        assertThatThrownBy(() -> organizerActivityService.checkInByTicketCode(7L, request, 11L, UserRole.ORGANIZER))
-                .isInstanceOf(BusinessException.class)
-                .extracting(ex -> ((BusinessException) ex).getErrorCode())
-                .isEqualTo(ErrorCode.FORBIDDEN);
+        AddActivityManagerRequest request = new AddActivityManagerRequest();
+        request.setUserId(22L);
+
+        ActivityManagerView view = organizerActivityService.addActivityManager(7L, request, 11L, UserRole.ORGANIZER);
+
+        assertThat(view.getUserId()).isEqualTo(22L);
+        assertThat(view.getPermissions()).containsExactly(ActivityManagerPermission.CHECK_IN, ActivityManagerPermission.VIEW_REGISTRATIONS);
+        ArgumentCaptor<ActivityManagerPermissionGrant> captor = ArgumentCaptor.forClass(ActivityManagerPermissionGrant.class);
+        verify(activityManagerPermissionGrantMapper).insert(captor.capture());
+        assertThat(captor.getValue().getActivityId()).isEqualTo(7L);
+        assertThat(captor.getValue().getPermissions()).isEqualTo("CHECK_IN,VIEW_REGISTRATIONS");
+    }
+
+    @Test
+    void listActivityManagers_shouldReturnResolvedUserInfoAndPermissions() {
+        User organizer = organizerUser(11L);
+        when(permissionService.verifyOperator(11L, UserRole.ORGANIZER)).thenReturn(organizer);
+
+        Activity activity = new Activity();
+        activity.setId(7L);
+        activity.setOrganizerId(11L);
+        when(activityMapper.selectById(7L)).thenReturn(activity);
+
+        ActivityManagerPermissionGrant grant = new ActivityManagerPermissionGrant();
+        grant.setActivityId(7L);
+        grant.setUserId(22L);
+        grant.setStatus(BasicStatus.ACTIVE);
+        grant.setPermissions("VIEW_REGISTRATIONS,CHECK_IN");
+        when(activityManagerPermissionGrantMapper.selectList(any(QueryWrapper.class))).thenReturn(List.of(grant));
+
+        User manager = new User();
+        manager.setId(22L);
+        manager.setNickname("manager");
+        manager.setPhone("13800138000");
+        when(userMapper.selectBatchIds(List.of(22L))).thenReturn(List.of(manager));
+
+        List<ActivityManagerView> views = organizerActivityService.listActivityManagers(7L, 11L, UserRole.ORGANIZER);
+
+        assertThat(views).hasSize(1);
+        assertThat(views.get(0).getUserId()).isEqualTo(22L);
+        assertThat(views.get(0).getNickname()).isEqualTo("manager");
+        assertThat(views.get(0).getPermissions()).containsExactly(ActivityManagerPermission.CHECK_IN, ActivityManagerPermission.VIEW_REGISTRATIONS);
     }
 
     private OrganizerActivityCreateRequest baseCreateRequest() {

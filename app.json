@@ -11,6 +11,9 @@
                   "pages/ticket/index",
                   "pages/my-favorites/index",
                   "pages/organizer-activities/index",
+                  "pages/activity-managers/index",
+                  "pages/managed-activities/index",
+                  "pages/managed-registrations/index",
                   "pages/organizer-checkin/index",
                   "pages/admin-review/index"
               ],

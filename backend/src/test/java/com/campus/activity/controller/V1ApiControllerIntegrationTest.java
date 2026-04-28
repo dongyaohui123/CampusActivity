@@ -34,15 +34,18 @@ import com.campus.activity.service.v1.V1PublicActivityService;
 import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.service.v1.V1UserService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
+import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.ActivityCoverUploadView;
 import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.FavoriteActivityView;
 import com.campus.activity.view.v1.LoginUserView;
+import com.campus.activity.view.v1.ManageableActivityView;
 import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import com.campus.activity.view.v1.OrganizerActivityTypeOptionView;
 import com.campus.activity.view.v1.TicketDetailView;
 import java.util.List;
+import com.campus.activity.enums.BasicStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +108,27 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.data[0].title").value("Campus Hackday"))
                 .andExpect(jsonPath("$.data[0].locationCampus").value("SOUTH"))
                 .andExpect(jsonPath("$.data[0].coverUrl").value("http://127.0.0.1:8080/static/activity-covers/ac_1.png"));
+    }
+
+    @Test
+    void listManageableActivities_shouldReturnUnifiedSuccessBody() throws Exception {
+        ManageableActivityView item = new ManageableActivityView();
+        item.setId(8L);
+        item.setTitle("Manageable Activity");
+        item.setCanCheckIn(Boolean.TRUE);
+        item.setCanViewRegistrations(Boolean.TRUE);
+        item.setIsOrganizer(Boolean.FALSE);
+        when(v1PublicActivityService.listManageableActivities(2L, UserRole.STUDENT))
+                .thenReturn(List.of(item));
+
+        mockMvc.perform(get("/api/v1/activities/manageable")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data[0].id").value(8))
+                .andExpect(jsonPath("$.data[0].canCheckIn").value(true))
+                .andExpect(jsonPath("$.data[0].canViewRegistrations").value(true));
     }
 
     @Test
@@ -296,6 +320,61 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("check-in success"))
                 .andExpect(jsonPath("$.data.registrationId").value(5));
+    }
+
+    @Test
+    void listActivityManagers_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityManagerView manager = new ActivityManagerView();
+        manager.setUserId(22L);
+        manager.setNickname("manager");
+        manager.setStatus(BasicStatus.ACTIVE);
+        manager.setPermissions(List.of(com.campus.activity.enums.ActivityManagerPermission.CHECK_IN));
+        when(v1OrganizerActivityService.listActivityManagers(8L, 1L, UserRole.ORGANIZER))
+                .thenReturn(List.of(manager));
+
+        mockMvc.perform(get("/api/v1/organizer/activities/8/managers")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data[0].userId").value(22))
+                .andExpect(jsonPath("$.data[0].nickname").value("manager"));
+    }
+
+    @Test
+    void addActivityManager_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityManagerView manager = new ActivityManagerView();
+        manager.setUserId(22L);
+        manager.setNickname("manager");
+        manager.setStatus(BasicStatus.ACTIVE);
+        when(v1OrganizerActivityService.addActivityManager(any(), any(), any(), any())).thenReturn(manager);
+
+        String body = """
+                {
+                  "userId":22,
+                  "permissions":["VIEW_REGISTRATIONS","CHECK_IN"]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/organizer/activities/8/managers")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity manager added"))
+                .andExpect(jsonPath("$.data.userId").value(22));
+    }
+
+    @Test
+    void removeActivityManager_shouldReturnUnifiedSuccessBody() throws Exception {
+        mockMvc.perform(delete("/api/v1/organizer/activities/8/managers/22")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity manager removed"));
     }
 
     @Test

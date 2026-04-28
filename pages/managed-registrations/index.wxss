@@ -1,0 +1,72 @@
+.registration-scroll {
+  height: 100vh;
+  background: #f6f7fb;
+}
+
+.page-body {
+  padding: 24rpx;
+}
+
+.activity-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  color: #666;
+  font-size: 24rpx;
+}
+
+.activity-title {
+  color: #222;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-top: 8rpx;
+}
+
+.activity-meta {
+  color: #666;
+  font-size: 24rpx;
+  margin-top: 6rpx;
+}
+
+.registration-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.registration-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.registration-name {
+  color: #222;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.registration-status {
+  color: #fa8c16;
+  background: #fff7e6;
+  border-radius: 20rpx;
+  padding: 6rpx 12rpx;
+  font-size: 22rpx;
+}
+
+.registration-status.is-success {
+  color: #52c41a;
+  background: #f6ffed;
+}
+
+.registration-meta {
+  color: #666;
+  font-size: 24rpx;
+  margin-top: 6rpx;
+}

@@ -160,6 +160,7 @@
           <view slot="tags" class="muted mb-12">{{i18n.statusLabel}}: {{item.status}} / {{i18n.reviewLabel}}: {{item.reviewStatus || '-'}}</view>
           <view slot="footer" class="row gap-12">
             <van-button class="list-op-btn" size="small" plain data-id="{{item.id}}" bind:click="onEditTap">{{i18n.edit}}</van-button>
+            <van-button class="list-op-btn" size="small" plain data-id="{{item.id}}" data-title="{{item.title}}" bind:click="onManagerTap">{{i18n.managerManage}}</van-button>
             <van-button class="list-op-btn" size="small" plain data-id="{{item.id}}" bind:click="onCheckinTap">{{i18n.checkinManage}}</van-button>
             <van-button class="list-op-btn" size="small" type="primary" data-id="{{item.id}}" bind:click="onSubmitReviewTap">{{i18n.submitReview}}</van-button>
           </view>
