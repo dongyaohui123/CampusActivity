@@ -160,6 +160,7 @@ public class V1AdminReviewServiceImpl implements V1AdminReviewService {
         reviewMapper.updateById(review);
 
         activity.setStatus(ActivityStatus.PUBLISHED);
+        activity.setFeatured(request != null && Boolean.TRUE.equals(request.getFeatured()));
         if (activity.getPublishedAt() == null) {
             activity.setPublishedAt(now);
         }

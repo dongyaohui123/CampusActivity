@@ -58,6 +58,11 @@
             <text class="meta-value">{{item.organizerNameDisplay}}</text>
           </view>
 
+          <view class="featured-row">
+            <text class="meta-label">{{i18n.featuredLabel}}</text>
+            <van-switch checked="{{featuredMap[item.activityId]}}" data-id="{{item.activityId}}" bind:change="onFeaturedChange" />
+          </view>
+
           <view class="action-row">
             <van-button
               class="list-op-btn action-btn-ghost"

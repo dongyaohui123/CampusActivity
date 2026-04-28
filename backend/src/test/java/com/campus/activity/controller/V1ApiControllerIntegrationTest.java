@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.campus.activity.common.ErrorCode;
+import com.campus.activity.entity.Activity;
+import com.campus.activity.entity.ActivityReview;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.User;
 import com.campus.activity.entity.view.ActivityListItemView;
@@ -235,6 +237,30 @@ class V1ApiControllerIntegrationTest {
     }
 
     @Test
+    void approveReview_shouldAcceptFeaturedFlag() throws Exception {
+        ActivityReview review = new ActivityReview();
+        review.setActivityId(8L);
+        when(v1AdminReviewService.approve(any(), any(), any(), any())).thenReturn(review);
+
+        String body = """
+                {
+                  "comment":"approved",
+                  "featured":true
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/admin/reviews/8/approve")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("review approved"))
+                .andExpect(jsonPath("$.data.activityId").value(8));
+    }
+
+    @Test
     void organizerCheckIn_shouldValidateTicketCodeRequired() throws Exception {
         String body = "{}";
 
@@ -270,6 +296,62 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("check-in success"))
                 .andExpect(jsonPath("$.data.registrationId").value(5));
+    }
+
+    @Test
+    void createOrganizerActivity_shouldWorkWithoutVisibilityAndFeaturedFields() throws Exception {
+        Activity activity = new Activity();
+        activity.setId(8L);
+        activity.setTitle("Campus Activity");
+        when(v1OrganizerActivityService.createActivity(any(), any(), any())).thenReturn(activity);
+
+        String body = """
+                {
+                  "title":"Campus Activity",
+                  "summary":"summary",
+                  "campusCode":"SOUTH",
+                  "location":"Main Hall",
+                  "activityTypeId":7,
+                  "startTime":"2026-05-01T10:00:00",
+                  "endTime":"2026-05-01T12:00:00",
+                  "maxParticipants":120
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/organizer/activities")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity created"))
+                .andExpect(jsonPath("$.data.id").value(8));
+    }
+
+    @Test
+    void updateOrganizerActivity_shouldWorkWithoutVisibilityAndFeaturedFields() throws Exception {
+        Activity activity = new Activity();
+        activity.setId(8L);
+        activity.setTitle("Campus Activity Updated");
+        when(v1OrganizerActivityService.updateActivity(any(), any(), any(), any())).thenReturn(activity);
+
+        String body = """
+                {
+                  "title":"Campus Activity Updated",
+                  "maxParticipants":200
+                }
+                """;
+
+        mockMvc.perform(put("/api/v1/organizer/activities/8")
+                        .param("operatorUserId", "1")
+                        .param("operatorRole", "ORGANIZER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity updated"))
+                .andExpect(jsonPath("$.data.id").value(8));
     }
 
     @Test

@@ -16,7 +16,6 @@ import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.ReviewStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityFavoriteMapper;
 import com.campus.activity.mapper.ActivityMapper;
@@ -109,10 +108,10 @@ class V1ActivityFavoriteServiceImplTest {
     }
 
     @Test
-    void favoriteActivity_shouldRejectNonPublicActivity() {
+    void favoriteActivity_shouldRejectUnavailableActivityStatus() {
         User operator = buildUser(1L, UserRole.STUDENT);
         Activity activity = buildPublicActivity(9L);
-        activity.setVisibility(Visibility.PRIVATE);
+        activity.setStatus(ActivityStatus.DRAFT);
 
         when(permissionService.verifyOperator(1L, UserRole.STUDENT)).thenReturn(operator);
         when(activityMapper.selectById(9L)).thenReturn(activity);
@@ -179,7 +178,6 @@ class V1ActivityFavoriteServiceImplTest {
     private Activity buildPublicActivity(Long id) {
         Activity activity = new Activity();
         activity.setId(id);
-        activity.setVisibility(Visibility.PUBLIC);
         activity.setStatus(ActivityStatus.PUBLISHED);
         return activity;
     }

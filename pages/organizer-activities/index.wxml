@@ -126,19 +126,6 @@
         value="{{form.maxParticipants}}"
         bind:change="onFormInput"
       />
-      <van-field
-        label="{{i18n.visibilityLabel}}"
-        value="{{visibilityOptions[form.visibilityIndex]}}"
-        readonly
-        is-link
-        bind:click="onOpenVisibilityPicker"
-        bind:click-input="onOpenVisibilityPicker"
-      />
-
-      <view class="switch-row">
-        <text>{{i18n.featuredLabel}}</text>
-        <van-switch checked="{{form.featured}}" bind:change="onFeaturedChange" />
-      </view>
 
       <view class="row gap-12 mt-16 action-row">
         <van-button class="action-btn" type="primary" bind:click="onSubmitTap" custom-style="border-radius: 18rpx;">
@@ -199,16 +186,6 @@
     columns="{{activityTypePickerColumns}}"
     bind:confirm="onTypeConfirm"
     bind:cancel="onTypeCancel"
-  />
-</van-popup>
-
-<van-popup show="{{showVisibilityPicker}}" position="bottom" round bind:close="onCloseVisibilityPicker">
-  <van-picker
-    show-toolbar
-    columns="{{visibilityOptions}}"
-    default-index="{{form.visibilityIndex}}"
-    bind:confirm="onVisibilityConfirm"
-    bind:cancel="onVisibilityCancel"
   />
 </van-popup>
 

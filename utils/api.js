@@ -547,12 +547,14 @@ function listPendingReviews() {
 /**
  * 管理员：审核通过。
  */
-function approveReview(activityId, comment) {
+function approveReview(activityId, payload) {
+  const requestPayload = payload && typeof payload === "object" ? payload : {};
   return request({
     path: `/api/v1/admin/reviews/${activityId}/approve`,
     method: "POST",
     data: {
-      comment: comment || "",
+      comment: String(requestPayload.comment || ""),
+      featured: Boolean(requestPayload.featured),
     },
   });
 }

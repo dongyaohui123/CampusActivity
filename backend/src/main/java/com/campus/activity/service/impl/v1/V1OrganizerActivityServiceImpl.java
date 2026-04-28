@@ -21,7 +21,6 @@ import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.ReviewStatus;
 import com.campus.activity.enums.UserRole;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityCategoryMapper;
 import com.campus.activity.mapper.ActivityCategoryRelMapper;
@@ -128,8 +127,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         activity.setRegistrationDeadline(request.getRegistrationDeadline());
         activity.setMaxParticipants(request.getMaxParticipants());
         activity.setRegisteredCount(0);
-        activity.setVisibility(request.getVisibility() != null ? request.getVisibility() : Visibility.PUBLIC);
-        activity.setFeatured(request.getFeatured() != null ? request.getFeatured() : Boolean.FALSE);
+        activity.setFeatured(Boolean.FALSE);
         activity.setStatus(ActivityStatus.DRAFT);
         activityMapper.insert(activity);
         replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
@@ -202,13 +200,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         if (request.getMaxParticipants() != null) {
             activity.setMaxParticipants(request.getMaxParticipants());
         }
-        if (request.getVisibility() != null) {
-            activity.setVisibility(request.getVisibility());
-        }
-        if (request.getFeatured() != null) {
-            activity.setFeatured(request.getFeatured());
-        }
-
         activityMapper.updateById(activity);
         if (validatedCategory != null) {
             replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
@@ -457,9 +448,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
                 || request.getStartTime() != null
                 || request.getEndTime() != null
                 || request.getRegistrationDeadline() != null
-                || request.getMaxParticipants() != null
-                || request.getVisibility() != null
-                || request.getFeatured() != null;
+                || request.getMaxParticipants() != null;
     }
 
     private List<String> buildCampusTypeOptions(List<String> existingCampusCodes) {

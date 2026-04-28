@@ -20,7 +20,6 @@ import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityCategoryMapper;
@@ -114,6 +113,7 @@ class V1OrganizerActivityServiceImplTest {
         Activity saved = organizerActivityService.createActivity(request, 11L, UserRole.ORGANIZER);
 
         assertThat(saved.getId()).isEqualTo(100L);
+        assertThat(saved.getFeatured()).isFalse();
         assertThat(saved.getLocation()).isEqualTo("大学生活动中心");
         verify(activityCategoryRelMapper).deleteByActivityId(100L);
         ArgumentCaptor<ActivityCategoryRel> relationCaptor = ArgumentCaptor.forClass(ActivityCategoryRel.class);
@@ -189,6 +189,7 @@ class V1OrganizerActivityServiceImplTest {
         existing.setOrganizerId(11L);
         existing.setStatus(ActivityStatus.DRAFT);
         existing.setLocation("图书馆");
+        existing.setFeatured(Boolean.TRUE);
         existing.setStartTime(LocalDateTime.now().plusDays(2));
         existing.setEndTime(LocalDateTime.now().plusDays(2).plusHours(1));
         when(activityMapper.selectById(9L)).thenReturn(existing);
@@ -206,6 +207,7 @@ class V1OrganizerActivityServiceImplTest {
         organizerActivityService.updateActivity(9L, request, 11L, UserRole.ORGANIZER);
 
         assertThat(existing.getLocation()).isEqualTo("操场");
+        assertThat(existing.getFeatured()).isTrue();
         verify(activityMapper).updateById(existing);
         verify(activityCategoryRelMapper).deleteByActivityId(9L);
         verify(locationCampusMappingMapper).upsertMapping("操场", "SOUTH");
@@ -387,8 +389,6 @@ class V1OrganizerActivityServiceImplTest {
         request.setEndTime(LocalDateTime.now().plusDays(2).plusHours(2));
         request.setRegistrationDeadline(LocalDateTime.now().plusDays(1));
         request.setMaxParticipants(80);
-        request.setVisibility(Visibility.PUBLIC);
-        request.setFeatured(Boolean.FALSE);
         return request;
     }
 

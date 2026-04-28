@@ -9,7 +9,6 @@ const {
 const { getOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
 
-const VISIBILITY_OPTIONS = ["PUBLIC", "PRIVATE"];
 const DATE_FIELD_LABEL_KEY = {
   startTime: "startTimeLabel",
   endTime: "endTimeLabel",
@@ -113,8 +112,6 @@ function buildFormFromActivity(activity) {
     endTime: toDateTimeDisplay(activity.endTime),
     registrationDeadline: toDateTimeDisplay(activity.registrationDeadline),
     maxParticipants: String(activity.maxParticipants || 0),
-    visibilityIndex: Math.max(0, VISIBILITY_OPTIONS.indexOf(activity.visibility || "PUBLIC")),
-    featured: Boolean(activity.featured),
   };
 }
 
@@ -132,8 +129,6 @@ function emptyForm() {
     endTime: "",
     registrationDeadline: "",
     maxParticipants: "100",
-    visibilityIndex: 0,
-    featured: false,
   };
 }
 
@@ -163,8 +158,6 @@ Page({
       endTimeLabel: "结束时间",
       deadlineLabel: "报名截止时间",
       maxParticipantsLabel: "人数上限",
-      visibilityLabel: "可见性",
-      featuredLabel: "推荐活动（是否推荐）",
       updateActivity: "更新活动",
       reset: "重置",
       submitNote: "提审备注（可选）",
@@ -197,10 +190,8 @@ Page({
     campusTypePickerColumns: [],
     activityTypeOptions: [],
     activityTypePickerColumns: [],
-    visibilityOptions: VISIBILITY_OPTIONS,
     showCampusTypePicker: false,
     showTypePicker: false,
-    showVisibilityPicker: false,
     showDateTimePicker: false,
     activeDateField: "",
     dateTimePickerTitle: "",
@@ -431,31 +422,6 @@ Page({
     this.setData({ showTypePicker: false });
   },
 
-  onOpenVisibilityPicker() {
-    this.setData({ showVisibilityPicker: true });
-  },
-
-  onCloseVisibilityPicker() {
-    this.setData({ showVisibilityPicker: false });
-  },
-
-  onVisibilityConfirm(event) {
-    const rawIndex = Array.isArray(event.detail.index) ? event.detail.index[0] : event.detail.index;
-    const index = Number(rawIndex);
-    this.setData({
-      "form.visibilityIndex": Number.isFinite(index) ? index : 0,
-      showVisibilityPicker: false,
-    });
-  },
-
-  onVisibilityCancel() {
-    this.setData({ showVisibilityPicker: false });
-  },
-
-  onFeaturedChange(event) {
-    this.setData({ "form.featured": Boolean(event.detail) });
-  },
-
   onReviewCommentInput(event) {
     this.setData({ reviewComment: event.detail });
   },
@@ -468,7 +434,6 @@ Page({
       coverUploading: false,
       showCampusTypePicker: false,
       showTypePicker: false,
-      showVisibilityPicker: false,
       showDateTimePicker: false,
       activeDateField: "",
     });
@@ -516,8 +481,6 @@ Page({
       startTime: normalizeDateTimeInput(form.startTime),
       endTime: normalizeDateTimeInput(form.endTime),
       maxParticipants: Number(form.maxParticipants || 0),
-      visibility: this.data.visibilityOptions[form.visibilityIndex] || "PUBLIC",
-      featured: Boolean(form.featured),
     };
 
     const deadline = normalizeDateTimeInput(form.registrationDeadline);

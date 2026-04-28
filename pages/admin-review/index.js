@@ -73,6 +73,7 @@ Page({
       reviewCommentTitle: "审核意见",
       reviewCommentTip: "通过时可留空，驳回时必须填写审核意见。",
       reviewCommentPlaceholder: "通过可留空，驳回请填写审核意见",
+      featuredLabel: "通过后推荐",
       pendingSectionTitle: "待审核活动",
       loading: "加载中...",
       activityIdLabel: "活动编号",
@@ -86,6 +87,7 @@ Page({
     operatorRoleText: "未登录",
     loading: false,
     reviewComment: "",
+    featuredMap: {},
     pendingList: [],
     pendingCount: 0,
   },
@@ -99,6 +101,7 @@ Page({
       operatorRoleText,
       pendingList: operatorRole === "ADMIN" ? this.data.pendingList : [],
       pendingCount: operatorRole === "ADMIN" ? this.data.pendingCount : 0,
+      featuredMap: operatorRole === "ADMIN" ? this.data.featuredMap : {},
     });
 
     if (operatorRole === "ADMIN") {
@@ -119,23 +122,45 @@ Page({
     try {
       const list = await listPendingReviews();
       const pendingList = (list || []).map(mapPendingItem);
+      const prevFeaturedMap = this.data.featuredMap || {};
+      const featuredMap = {};
+      pendingList.forEach((item) => {
+        const key = String(item.activityId);
+        featuredMap[key] = Boolean(prevFeaturedMap[key]);
+      });
       this.setData({
         pendingList,
         pendingCount: pendingList.length,
+        featuredMap,
       });
     } catch (e) {
       this.setData({
         pendingList: [],
         pendingCount: 0,
+        featuredMap: {},
       });
     } finally {
       this.setData({ loading: false });
     }
   },
 
+  onFeaturedChange(event) {
+    const activityId = Number(event.currentTarget.dataset.id);
+    if (!Number.isFinite(activityId) || activityId <= 0) return;
+    this.setData({
+      [`featuredMap.${activityId}`]: Boolean(event.detail),
+    });
+  },
+
   async onApproveTap(event) {
+    const activityId = Number(event.currentTarget.dataset.id);
+    if (!Number.isFinite(activityId) || activityId <= 0) return;
+    const featured = Boolean((this.data.featuredMap || {})[String(activityId)]);
     try {
-      await approveReview(Number(event.currentTarget.dataset.id), this.data.reviewComment);
+      await approveReview(activityId, {
+        comment: this.data.reviewComment,
+        featured,
+      });
       feedback.success("已通过");
       await this.loadPending();
     } catch (e) {}

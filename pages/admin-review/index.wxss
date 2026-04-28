@@ -243,6 +243,14 @@ page {
   word-break: break-all;
 }
 
+.featured-row {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
 .action-row {
   margin-top: 18rpx;
   display: flex;

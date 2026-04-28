@@ -8,7 +8,6 @@ import com.campus.activity.entity.ActivityReview;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.ReviewStatus;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
 import com.campus.activity.service.impl.v1.V1PublicActivityServiceImpl;
@@ -61,7 +60,7 @@ class V1PublicActivityServiceImplTest {
         rejected.setRegistrationDeadline(LocalDateTime.now().plusHours(2));
         rejected.setReviewStatus(ReviewStatus.REJECTED);
 
-        when(activityMapper.selectActivityList(null, Visibility.PUBLIC, null, null, null, null))
+        when(activityMapper.selectActivityList(null, null, null, null, null, null))
                 .thenReturn(List.of(approved, rejected));
 
         List<ActivityListItemView> rows = publicActivityService.listPublicActivities(null, null, null);
@@ -75,7 +74,6 @@ class V1PublicActivityServiceImplTest {
     void getPublicActivityDetail_shouldReturnResolvedStatus() {
         Activity activity = new Activity();
         activity.setId(7L);
-        activity.setVisibility(Visibility.PUBLIC);
         activity.setStatus(ActivityStatus.PUBLISHED);
         activity.setStartTime(LocalDateTime.now().minusHours(2));
         activity.setEndTime(LocalDateTime.now().plusHours(2));

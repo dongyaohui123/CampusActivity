@@ -6,7 +6,6 @@ import com.campus.activity.entity.ActivityReview;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.ReviewStatus;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
@@ -67,7 +66,7 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
     public List<ActivityListItemView> listPublicActivities(String keyword, LocalDateTime startFrom, LocalDateTime startTo) {
         List<ActivityListItemView> raw = activityMapper.selectActivityList(
                 null,
-                Visibility.PUBLIC,
+                null,
                 null,
                 keyword,
                 startFrom,
@@ -93,8 +92,8 @@ public class V1PublicActivityServiceImpl implements V1PublicActivityService {
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + activityId);
         }
-        if (!Visibility.PUBLIC.equals(activity.getVisibility()) || !PUBLIC_STATUS.contains(activity.getStatus())) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly visible");
+        if (!PUBLIC_STATUS.contains(activity.getStatus())) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly available");
         }
 
         // 详情接口与列表保持一致：必须审核通过才允许访问。

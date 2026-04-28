@@ -9,7 +9,6 @@ import com.campus.activity.entity.User;
 import com.campus.activity.enums.ActivityStatus;
 import com.campus.activity.enums.ReviewStatus;
 import com.campus.activity.enums.UserRole;
-import com.campus.activity.enums.Visibility;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityFavoriteMapper;
 import com.campus.activity.mapper.ActivityMapper;
@@ -129,8 +128,8 @@ public class V1ActivityFavoriteServiceImpl implements V1ActivityFavoriteService 
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "activity not found: " + activityId);
         }
-        if (!Visibility.PUBLIC.equals(activity.getVisibility()) || !PUBLIC_STATUS.contains(activity.getStatus())) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly visible");
+        if (!PUBLIC_STATUS.contains(activity.getStatus())) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "activity is not publicly available");
         }
 
         ActivityReview review = reviewMapper.selectById(activityId);

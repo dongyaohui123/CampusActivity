@@ -71,6 +71,7 @@ class V1AdminReviewServiceImplTest {
 
         ReviewApproveRequest request = new ReviewApproveRequest();
         request.setComment("looks good");
+        request.setFeatured(Boolean.TRUE);
 
         ActivityReview updated = reviewService.approve(1L, request, 9L, UserRole.ADMIN);
 
@@ -81,11 +82,40 @@ class V1AdminReviewServiceImplTest {
         ArgumentCaptor<Activity> activityCaptor = ArgumentCaptor.forClass(Activity.class);
         verify(activityMapper).updateById(activityCaptor.capture());
         assertThat(activityCaptor.getValue().getStatus()).isEqualTo(ActivityStatus.PUBLISHED);
+        assertThat(activityCaptor.getValue().getFeatured()).isTrue();
 
         ArgumentCaptor<ActivityAuditLog> logCaptor = ArgumentCaptor.forClass(ActivityAuditLog.class);
         verify(auditLogMapper).insert(logCaptor.capture());
         assertThat(logCaptor.getValue().getAction()).isEqualTo(AuditAction.APPROVE);
         assertThat(logCaptor.getValue().getOperatorId()).isEqualTo(9L);
+    }
+
+    @Test
+    void approve_shouldDefaultFeaturedFalseWhenRequestDoesNotSetFeatured() {
+        User admin = new User();
+        admin.setId(9L);
+        admin.setRole(UserRole.ADMIN);
+        when(permissionService.verifyOperator(9L, UserRole.ADMIN)).thenReturn(admin);
+
+        Activity activity = new Activity();
+        activity.setId(1L);
+        activity.setStatus(ActivityStatus.DRAFT);
+        activity.setFeatured(Boolean.TRUE);
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+
+        ActivityReview review = new ActivityReview();
+        review.setActivityId(1L);
+        review.setReviewStatus(ReviewStatus.PENDING);
+        when(reviewMapper.selectById(1L)).thenReturn(review);
+
+        ReviewApproveRequest request = new ReviewApproveRequest();
+        request.setComment("approved");
+
+        reviewService.approve(1L, request, 9L, UserRole.ADMIN);
+
+        ArgumentCaptor<Activity> activityCaptor = ArgumentCaptor.forClass(Activity.class);
+        verify(activityMapper).updateById(activityCaptor.capture());
+        assertThat(activityCaptor.getValue().getFeatured()).isFalse();
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.campus.activity.dto.v1.activity;
 
-import com.campus.activity.enums.Visibility;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -47,10 +46,6 @@ public class OrganizerActivityCreateRequest {
     @Min(value = 0, message = "maxParticipants must be >= 0")
     private Integer maxParticipants;
 
-    private Visibility visibility;
-
-    private Boolean featured;
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getSummary() { return summary; }
@@ -73,8 +68,4 @@ public class OrganizerActivityCreateRequest {
     public void setRegistrationDeadline(LocalDateTime registrationDeadline) { this.registrationDeadline = registrationDeadline; }
     public Integer getMaxParticipants() { return maxParticipants; }
     public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
-    public Visibility getVisibility() { return visibility; }
-    public void setVisibility(Visibility visibility) { this.visibility = visibility; }
-    public Boolean getFeatured() { return featured; }
-    public void setFeatured(Boolean featured) { this.featured = featured; }
 }
