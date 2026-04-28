@@ -34,4 +34,7 @@ app:
     avatar-dir: ${APP_UPLOAD_AVATAR_DIR:./uploads/avatars}
     avatar-url-prefix: ${APP_UPLOAD_AVATAR_URL_PREFIX:/static/avatars}
     avatar-max-size-kb: ${APP_UPLOAD_AVATAR_MAX_SIZE_KB:1024}
+    activity-cover-dir: ${APP_UPLOAD_ACTIVITY_COVER_DIR:./uploads/activity-covers}
+    activity-cover-url-prefix: ${APP_UPLOAD_ACTIVITY_COVER_URL_PREFIX:/static/activity-covers}
+    activity-cover-max-size-kb: ${APP_UPLOAD_ACTIVITY_COVER_MAX_SIZE_KB:2048}
     public-base-url: ${APP_UPLOAD_PUBLIC_BASE_URL:http://127.0.0.1:8080}

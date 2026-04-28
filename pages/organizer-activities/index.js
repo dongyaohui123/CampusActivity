@@ -3,6 +3,7 @@ const {
   getOrganizerActivityOptions,
   createOrganizerActivity,
   updateOrganizerActivity,
+  uploadOrganizerActivityCover,
   submitActivityReview,
 } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
@@ -102,6 +103,8 @@ function buildFormFromActivity(activity) {
   return {
     title: activity.title || "",
     summary: activity.summary || "",
+    coverUrl: activity.coverUrl || "",
+    coverTempPath: "",
     location: activity.location || "",
     campusCode,
     activityTypeId: Number.isFinite(activityTypeId) && activityTypeId > 0 ? activityTypeId : null,
@@ -119,6 +122,8 @@ function emptyForm() {
   return {
     title: "",
     summary: "",
+    coverUrl: "",
+    coverTempPath: "",
     location: "",
     campusCode: "",
     activityTypeId: null,
@@ -146,6 +151,11 @@ Page({
       publishOptions: "发布设置",
       titleLabel: "标题",
       summaryLabel: "摘要",
+      coverLabel: "活动图片",
+      coverHint: "支持 jpg/png/webp，可选",
+      chooseCover: "选择图片",
+      removeCover: "移除图片",
+      uploadingCover: "上传中...",
       campusTypeLabel: "校区类型",
       locationLabel: "地点",
       activityTypeLabel: "活动类型",
@@ -178,6 +188,7 @@ Page({
     },
     operatorRole: "STUDENT",
     loading: false,
+    coverUploading: false,
     activities: [],
     editingActivityId: null,
     reviewComment: "",
@@ -262,6 +273,53 @@ Page({
 
   onFormInput(event) {
     this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail });
+  },
+
+  onChooseCoverTap() {
+    if (this.data.coverUploading) return;
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["album", "camera"],
+      success: async (res) => {
+        const file = res && res.tempFiles && res.tempFiles[0];
+        const tempFilePath = String((file && file.tempFilePath) || "").trim();
+        if (!tempFilePath) return;
+
+        this.setData({
+          "form.coverTempPath": tempFilePath,
+          coverUploading: true,
+        });
+
+        try {
+          const uploadResult = await uploadOrganizerActivityCover(tempFilePath);
+          const coverUrl = String((uploadResult && uploadResult.coverUrl) || "").trim();
+          if (!coverUrl) {
+            feedback.error("活动图片上传失败");
+            return;
+          }
+          this.setData({
+            "form.coverUrl": coverUrl,
+            "form.coverTempPath": "",
+          });
+          feedback.success("活动图片上传成功");
+        } catch (e) {
+        } finally {
+          this.setData({ coverUploading: false });
+        }
+      },
+      fail: () => {
+        feedback.error("图片选择失败");
+      },
+    });
+  },
+
+  onRemoveCoverTap() {
+    if (this.data.coverUploading) return;
+    this.setData({
+      "form.coverUrl": "",
+      "form.coverTempPath": "",
+    });
   },
 
   onOpenDateTimePicker(event) {
@@ -407,6 +465,7 @@ Page({
       editingActivityId: null,
       form: emptyForm(),
       reviewComment: "",
+      coverUploading: false,
       showCampusTypePicker: false,
       showTypePicker: false,
       showVisibilityPicker: false,
@@ -437,6 +496,7 @@ Page({
     this.setData({
       editingActivityId: activityId,
       form: nextForm,
+      coverUploading: false,
       showCampusTypePicker: false,
       showTypePicker: false,
       showDateTimePicker: false,
@@ -449,6 +509,7 @@ Page({
     const payload = {
       title: String(form.title || "").trim(),
       summary: String(form.summary || "").trim(),
+      coverUrl: String(form.coverUrl || "").trim(),
       campusCode: normalizeCampusCode(form.campusCode),
       location: String(form.location || "").trim(),
       activityTypeId: Number(form.activityTypeId),
@@ -469,6 +530,7 @@ Page({
    */
   async onSubmitTap() {
     if (this.data.operatorRole !== "ORGANIZER") return feedback.error("请先切换为组织者");
+    if (this.data.coverUploading) return feedback.error("活动图片上传中，请稍后再提交");
 
     const payload = this.buildPayload();
     if (!payload.title || !payload.campusCode || !payload.startTime || !payload.endTime || !payload.activityTypeId) {

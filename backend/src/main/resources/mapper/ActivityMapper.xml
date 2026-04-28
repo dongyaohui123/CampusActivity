@@ -34,6 +34,7 @@
         <result property="publisherId" column="publisher_id"/>
         <result property="title" column="title"/>
         <result property="summary" column="summary"/>
+        <result property="coverUrl" column="cover_url"/>
         <result property="location" column="location"/>
         <result property="startTime" column="start_time"/>
         <result property="endTime" column="end_time"/>
@@ -79,6 +80,7 @@
             a.publisher_id,
             a.title,
             a.summary,
+            a.cover_url,
             a.location,
             a.start_time,
             a.end_time,
@@ -134,7 +136,7 @@
             </if>
         </where>
         GROUP BY
-            a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location,
+            a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.cover_url, a.location,
             a.start_time, a.end_time, a.registration_deadline, a.max_participants,
             a.registered_count, a.status, a.visibility, a.is_featured, a.published_at,
             ar.review_status, op.organizer_name

@@ -9,8 +9,10 @@ import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
+import com.campus.activity.service.v1.V1OrganizerActivityCoverService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.view.v1.ActivityRegistrationUserView;
+import com.campus.activity.view.v1.ActivityCoverUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,8 +28,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 组织者活动管理控制器（v1）。
@@ -37,9 +42,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/organizer/activities")
 public class V1OrganizerActivityController {
     private final V1OrganizerActivityService organizerActivityService;
+    private final V1OrganizerActivityCoverService coverService;
 
-    public V1OrganizerActivityController(V1OrganizerActivityService organizerActivityService) {
+    public V1OrganizerActivityController(
+            V1OrganizerActivityService organizerActivityService,
+            V1OrganizerActivityCoverService coverService
+    ) {
         this.organizerActivityService = organizerActivityService;
+        this.coverService = coverService;
     }
 
     /**
@@ -58,6 +68,22 @@ public class V1OrganizerActivityController {
     ) {
         return ApiResponse.success("activity created",
                 organizerActivityService.createActivity(request, operatorUserId, operatorRole));
+    }
+
+    /**
+     * 组织者上传活动封面图。
+     */
+    @RequestMapping(
+            value = "/cover",
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ApiResponse<ActivityCoverUploadView> uploadCover(
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success("activity cover uploaded", coverService.uploadCover(file, operatorUserId, operatorRole));
     }
 
     /**

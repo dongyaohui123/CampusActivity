@@ -32,6 +32,34 @@
         autosize
         placeholder="{{i18n.phSummary}}"
       />
+
+      <view class="cover-block">
+        <view class="cover-head">
+          <text class="cover-title">{{i18n.coverLabel}}</text>
+          <text class="cover-hint">{{i18n.coverHint}}</text>
+        </view>
+        <view wx:if="{{form.coverUrl || form.coverTempPath}}" class="cover-preview-wrap">
+          <image class="cover-preview" src="{{form.coverTempPath || form.coverUrl}}" mode="aspectFill" />
+        </view>
+        <view class="row gap-12 cover-action-row">
+          <van-button
+            class="cover-action-btn"
+            size="small"
+            type="primary"
+            loading="{{coverUploading}}"
+            disabled="{{coverUploading}}"
+            bind:click="onChooseCoverTap"
+          >{{coverUploading ? i18n.uploadingCover : i18n.chooseCover}}</van-button>
+          <van-button
+            class="cover-action-btn"
+            size="small"
+            plain
+            disabled="{{coverUploading || !(form.coverUrl || form.coverTempPath)}}"
+            bind:click="onRemoveCoverTap"
+          >{{i18n.removeCover}}</van-button>
+        </view>
+      </view>
+
       <van-field
         label="{{i18n.campusTypeLabel}} {{i18n.required}}"
         value="{{form.campusCode === 'SOUTH' ? '南校区' : (form.campusCode === 'NORTH' ? '北校区' : (form.campusCode === 'ONLINE' ? '线上' : ''))}}"

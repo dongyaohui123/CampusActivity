@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Maps local avatar files to public static paths.
+ * Maps local upload files (avatars/activity covers) to public static paths.
  */
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
@@ -19,17 +19,26 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String normalizedPrefix = normalizePrefix(uploadProperties.getAvatarUrlPrefix());
-        String pattern = normalizedPrefix + "/**";
-        Path avatarDir = Paths.get(uploadProperties.getAvatarDir()).toAbsolutePath().normalize();
-        registry.addResourceHandler(pattern)
-                .addResourceLocations(avatarDir.toUri().toString());
+        registerResourceHandler(registry, uploadProperties.getAvatarUrlPrefix(), uploadProperties.getAvatarDir(), "/static/avatars");
+        registerResourceHandler(
+                registry,
+                uploadProperties.getActivityCoverUrlPrefix(),
+                uploadProperties.getActivityCoverDir(),
+                "/static/activity-covers"
+        );
     }
 
-    private String normalizePrefix(String rawPrefix) {
+    private void registerResourceHandler(ResourceHandlerRegistry registry, String rawPrefix, String rawDir, String defaultPrefix) {
+        String normalizedPrefix = normalizePrefix(rawPrefix, defaultPrefix);
+        String pattern = normalizedPrefix + "/**";
+        Path dir = Paths.get(rawDir).toAbsolutePath().normalize();
+        registry.addResourceHandler(pattern).addResourceLocations(dir.toUri().toString());
+    }
+
+    private String normalizePrefix(String rawPrefix, String defaultPrefix) {
         String prefix = rawPrefix == null ? "" : rawPrefix.trim();
         if (prefix.isEmpty()) {
-            return "/static/avatars";
+            return defaultPrefix;
         }
         if (!prefix.startsWith("/")) {
             prefix = "/" + prefix;

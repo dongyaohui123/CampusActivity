@@ -15,6 +15,7 @@ public class ActivityListItemView {
     private Long publisherId;
     private String title;
     private String summary;
+    private String coverUrl;
     private String location;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -75,6 +76,14 @@ public class ActivityListItemView {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public String getLocation() {

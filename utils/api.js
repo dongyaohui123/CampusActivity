@@ -247,6 +247,72 @@ function uploadUserAvatar(userId, filePath) {
 }
 
 /**
+ * 组织者活动：上传封面图，返回 coverUrl。
+ */
+function uploadOrganizerActivityCover(filePath) {
+  const ctx = getOperatorContext();
+  const operatorUserId = Number(ctx.operatorUserId);
+  const operatorRole = String(ctx.operatorRole || "").toUpperCase();
+  if (!Number.isFinite(operatorUserId) || operatorUserId <= 0 || !operatorRole) {
+    const message = "请先登录";
+    feedback.error(message);
+    return Promise.reject({ message, code: 40100 });
+  }
+
+  const normalizedFilePath = String(filePath || "").trim();
+  if (!normalizedFilePath) {
+    const message = "请先选择活动图片";
+    feedback.error(message);
+    return Promise.reject({ message, code: 40000 });
+  }
+
+  const query = buildQueryString({ operatorUserId, operatorRole });
+  const url = `${baseURL}/api/v1/organizer/activities/cover${query}`;
+
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url,
+      filePath: normalizedFilePath,
+      name: "file",
+      success(res) {
+        const statusCode = res && res.statusCode;
+        const rawData = res && res.data ? String(res.data) : "";
+        let payload = null;
+        try {
+          payload = rawData ? JSON.parse(rawData) : null;
+        } catch (e) {
+          const message = "活动图片上传响应解析失败";
+          feedback.error(message);
+          reject({ message, err: e, statusCode });
+          return;
+        }
+
+        if (!res || statusCode < 200 || statusCode >= 300) {
+          const message = String((payload && payload.message) || "").trim() || `请求失败（${statusCode}）`;
+          feedback.error(message);
+          reject({ message, statusCode, code: payload && payload.code });
+          return;
+        }
+
+        if (!payload || payload.code !== SUCCESS_CODE) {
+          const message = String((payload && payload.message) || "").trim() || "活动图片上传失败";
+          feedback.error(message);
+          reject({ message, statusCode, code: payload && payload.code });
+          return;
+        }
+
+        resolve(payload.data || {});
+      },
+      fail(err) {
+        const message = "活动图片上传失败，请稍后重试";
+        feedback.error(message);
+        reject({ message, err });
+      },
+    });
+  });
+}
+
+/**
  * 公共活动：列表。
  */
 function listPublicActivities(params) {
@@ -510,6 +576,7 @@ module.exports = {
   wechatLogin,
   updateUserProfile,
   uploadUserAvatar,
+  uploadOrganizerActivityCover,
   changePassword,
   listPublicActivities,
   getPublicActivityDetail,

@@ -26,11 +26,13 @@ import com.campus.activity.service.UserService;
 import com.campus.activity.service.v1.V1AdminReviewService;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1AuthService;
+import com.campus.activity.service.v1.V1OrganizerActivityCoverService;
 import com.campus.activity.service.v1.V1OrganizerActivityService;
 import com.campus.activity.service.v1.V1PublicActivityService;
 import com.campus.activity.service.v1.V1RegistrationService;
 import com.campus.activity.service.v1.V1UserService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
+import com.campus.activity.view.v1.ActivityCoverUploadView;
 import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.FavoriteActivityView;
@@ -70,6 +72,9 @@ class V1ApiControllerIntegrationTest {
     private V1OrganizerActivityService v1OrganizerActivityService;
 
     @MockBean
+    private V1OrganizerActivityCoverService v1OrganizerActivityCoverService;
+
+    @MockBean
     private V1RegistrationService v1RegistrationService;
 
     @MockBean
@@ -88,6 +93,7 @@ class V1ApiControllerIntegrationTest {
         item.setTitle("Campus Hackday");
         item.setStatus(ActivityStatus.PUBLISHED);
         item.setLocationCampus("SOUTH");
+        item.setCoverUrl("http://127.0.0.1:8080/static/activity-covers/ac_1.png");
         when(v1PublicActivityService.listPublicActivities(null, null, null)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/api/v1/activities"))
@@ -95,7 +101,8 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data[0].id").value(1))
                 .andExpect(jsonPath("$.data[0].title").value("Campus Hackday"))
-                .andExpect(jsonPath("$.data[0].locationCampus").value("SOUTH"));
+                .andExpect(jsonPath("$.data[0].locationCampus").value("SOUTH"))
+                .andExpect(jsonPath("$.data[0].coverUrl").value("http://127.0.0.1:8080/static/activity-covers/ac_1.png"));
     }
 
     @Test
@@ -379,6 +386,49 @@ class V1ApiControllerIntegrationTest {
                         .param("operatorRole", "STUDENT"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
+    void uploadOrganizerActivityCover_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityCoverUploadView view = new ActivityCoverUploadView();
+        view.setCoverUrl("http://127.0.0.1:8080/static/activity-covers/ac_12_123456_654321.png");
+        when(v1OrganizerActivityCoverService.uploadCover(any(), any(), any())).thenReturn(view);
+
+        MockMultipartFile file = new MockMultipartFile("file", "cover.png", "image/png", "cover".getBytes());
+        mockMvc.perform(multipart("/api/v1/organizer/activities/cover")
+                        .file(file)
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "ORGANIZER"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity cover uploaded"))
+                .andExpect(jsonPath("$.data.coverUrl").value("http://127.0.0.1:8080/static/activity-covers/ac_12_123456_654321.png"));
+    }
+
+    @Test
+    void uploadOrganizerActivityCover_shouldReturnBadRequestWhenFileMissing() throws Exception {
+        when(v1OrganizerActivityCoverService.uploadCover(isNull(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "activity cover file is required"));
+
+        mockMvc.perform(multipart("/api/v1/organizer/activities/cover")
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "ORGANIZER"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
+    void uploadOrganizerActivityCover_shouldReturnForbiddenWhenRoleDenied() throws Exception {
+        when(v1OrganizerActivityCoverService.uploadCover(any(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.FORBIDDEN, "permission denied"));
+
+        MockMultipartFile file = new MockMultipartFile("file", "cover.png", "image/png", "cover".getBytes());
+        mockMvc.perform(multipart("/api/v1/organizer/activities/cover")
+                        .file(file)
+                        .param("operatorUserId", "12")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
     }
 
     @Test
