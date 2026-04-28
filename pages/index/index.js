@@ -41,9 +41,9 @@ Page({
       bannerSub: "一站式发现、报名与管理校园活动",
     },
     banners: [
-      "https://picsum.photos/980/420?random=31",
-      "https://picsum.photos/980/420?random=32",
-      "https://picsum.photos/980/420?random=33",
+      "/static/home-banners/banner-01.png",
+      "/static/home-banners/banner-02.png",
+      "/static/home-banners/banner-03.png",
     ],
     recommendList: [],
     loading: false,
