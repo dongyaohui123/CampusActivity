@@ -17,14 +17,19 @@
 ## 功能模块
 
 ### 学生端
-- 活动浏览：按分类、时间、地点、状态筛选活动列表
+- 活动浏览：按关键字、时间范围筛选活动列表，查看活动详情
 - 活动报名：报名/取消报名，查看报名记录
+- 活动收藏：收藏/取消收藏活动，查看收藏列表
+- 电子票：查看报名电子票及二维码
 - 个人中心：编辑资料、上传头像、修改密码、查看统计数据
 
 ### 组织者端
-- 活动管理：创建、编辑、发布活动
+- 活动管理：创建、编辑、上传封面图、发布活动
+- 活动选项：根据校区获取可用地点和活动类型
 - 审核提交：将活动提交管理员审核
-- 报名管理：查看活动报名用户列表
+- 报名管理：按状态筛选报名用户列表
+- 签到管理：扫码验证电子票码完成签到
+- 管理员委派：添加/移除活动管理员，授权他人协同管理
 
 ### 管理员端
 - 审核面板：审核待审批活动，通过或驳回（附理由）
@@ -34,6 +39,10 @@
 - 用户名 + 密码登录/注册
 - 登录后自主修改密码
 - 微信小程序 OAuth 一键登录（`wx.login` → `openid`）
+
+## 设计文档
+
+- [系统功能模块设计图](./docs/system-function-module-diagram.md)
 
 ## 项目结构
 
@@ -55,17 +64,31 @@ CampusActivity/
 │   ├── change-password/      #   修改密码
 │   ├── mine/                 #   个人中心（资料、统计、角色面板）
 │   ├── my-registrations/     #   我的报名
+│   ├── my-favorites/         #   我的收藏
+│   ├── ticket/               #   电子票详情与二维码
 │   ├── organizer-activities/ #   组织者活动管理
+│   ├── organizer-checkin/    #   组织者扫码签到
+│   ├── activity-managers/    #   活动管理员委派
+│   ├── managed-activities/   #   被授权管理的活动列表
+│   ├── managed-registrations/#   被授权活动的报名管理
 │   └── admin-review/         #   管理员审核面板
 │
 ├── utils/                    # 前端工具模块
 │   ├── api.js                #   API 调用封装
 │   ├── request.js            #   统一请求封装（自动注入操作者上下文）
 │   ├── auth.js               #   登录态管理
-│   └── operator-context.js   #   操作者上下文（userId + role）
+│   ├── operator-context.js   #   操作者上下文（userId + role）
+│   ├── avatar-url.js         #   头像 URL 处理
+│   └── feedback.js           #   用户反馈提示
+│
+├── static/                   # 静态资源
+│   └── home-banners/         #   首页轮播图
 │
 └── backend/                  # Spring Boot 后端
     ├── pom.xml
+    ├── sql/                   # 数据库增量脚本
+    │   ├── 20260427_feature_scancode.sql
+    │   └── 20260428_feature_permission.sql
     └── src/main/
         ├── java/com/campus/activity/
         │   ├── CampusActivityBackendApplication.java
@@ -73,17 +96,17 @@ CampusActivity/
         │   ├── config/               # MyBatis-Plus、静态资源配置
         │   ├── controller/v1/        # 6 个 REST 控制器
         │   ├── dto/                  # 请求 DTO
-        │   ├── entity/               # 13 个实体类
+        │   ├── entity/               # 15 个实体类
         │   ├── entity/view/          # 4 个视图投影
-        │   ├── enums/                # 12 个枚举类型
+        │   ├── enums/                # 13 个枚举类型
         │   ├── exception/            # 业务异常 + 全局异常处理
-        │   ├── mapper/               # 13 个 MyBatis-Plus Mapper
+        │   ├── mapper/               # 14 个 MyBatis-Plus Mapper
         │   ├── service/              # 服务接口
         │   ├── service/impl/v1/      # V1 服务实现
-        │   └── view/v1/              # 5 个响应视图
+        │   └── view/v1/              # 14 个响应视图
         └── resources/
             ├── application.yml       # 主配置
-            └── mapper/               # 13 个 XML 映射文件
+            └── mapper/               # 14 个 XML 映射文件
 ```
 
 ## 快速开始
@@ -103,7 +126,7 @@ CampusActivity/
 CREATE DATABASE campus_activity_v2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-> 注意：项目不包含 DDL 脚本，请联系项目管理员获取数据库初始化脚本。实体类位于 `backend/src/main/java/com/campus/activity/entity/`，可作为建表参考。
+> 数据库增量脚本位于 `backend/sql/` 目录。实体类位于 `backend/src/main/java/com/campus/activity/entity/`，可作为建表参考。
 
 ### 2. 后端
 
@@ -157,35 +180,48 @@ mvn spring-boot:run
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/` | 活动列表（支持 keyword、category、time、status 筛选） |
+| GET | `/` | 活动列表（支持 keyword、startFrom、startTo 筛选） |
 | GET | `/{id}` | 活动详情 |
+| GET | `/{id}/favorite` | 查询收藏状态 |
+| POST | `/{id}/favorite` | 收藏活动 |
+| DELETE | `/{id}/favorite` | 取消收藏 |
+| GET | `/manageable` | 当前用户可管理的活动列表 |
 
-### 报名 `POST|PUT /api/v1/registrations`
+### 报名 `POST /api/v1/registrations`
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | `/` | 报名活动 |
 | PUT | `/{id}/cancel` | 取消报名 |
+| GET | `/{id}/ticket` | 电子票详情 |
+| GET | `/{id}/ticket/qrcode` | 电子票二维码（PNG） |
 
 ### 组织者 `* /api/v1/organizer/activities`
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/` | 我的活动列表 |
+| GET | `/` | 我的活动列表（支持 keyword、startFrom、startTo 筛选） |
 | POST | `/` | 创建活动 |
+| POST | `/cover` | 上传活动封面图（multipart） |
 | PUT | `/{id}` | 更新活动 |
 | POST | `/{id}/submit-review` | 提交审核 |
-| GET | `/{id}/registrations` | 查看报名用户 |
+| GET | `/{id}/registrations` | 按状态筛选报名用户 |
+| POST | `/{id}/check-in` | 按票码签到 |
+| GET | `/{id}/managers` | 活动管理员列表 |
+| POST | `/{id}/managers` | 添加活动管理员 |
+| DELETE | `/{id}/managers/{userId}` | 移除活动管理员 |
+| GET | `/options` | 发布活动可选项（地点、类型） |
 
-### 用户 `GET|PUT /api/v1/user(s)`
+### 用户 `GET|PUT /api/v1/users`
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/users/{id}` | 获取用户资料 |
-| PUT | `/users/{id}/profile` | 更新资料 |
-| POST | `/users/{id}/avatar` | 上传头像（multipart） |
-| PUT | `/users/{id}/password` | 修改密码 |
-| GET | `/users/{id}/registrations` | 我的报名记录 |
+| GET | `/{id}` | 获取用户资料 |
+| PUT | `/{id}/profile` | 更新资料 |
+| POST/PUT | `/{id}/avatar` | 上传头像（multipart） |
+| PUT | `/{id}/password` | 修改密码 |
+| GET | `/{id}/registrations` | 我的报名记录 |
+| GET | `/{id}/favorites` | 我的收藏列表 |
 
 ### 管理员 `* /api/v1/admin/reviews`
 
@@ -216,6 +252,8 @@ API 使用**操作者参数**模式进行认证授权。所有写操作和部分
 | `organizer_follows` | 用户关注组织者 |
 | `auth_tokens` | 认证令牌 |
 | `login_logs` | 登录日志 |
+| `activity_manager_permission_grants` | 活动管理员权限授予 |
+| `location_campus_mappings` | 地点校区映射 |
 
 ## 配置说明
 
@@ -243,5 +281,3 @@ const RUN_ENV = "local";  // "local" | "lan"
 
 - `local`：后端地址 `http://127.0.0.1:8080`
 - `lan`：后端地址 `http://192.168.5.32:8080`
-
-
