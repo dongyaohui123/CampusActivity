@@ -5,7 +5,7 @@
     <view class="profile-header">
       <view class="header-top">
         <view class="avatar">
-          <image wx:if="{{loginUser && loginUser.avatarUrl}}" class="avatar-img" src="{{loginUser.avatarUrl}}" mode="aspectFill" />
+          <image wx:if="{{loginUser && loginUser.avatarUrl}}" class="avatar-img" src="{{loginUser.avatarUrl}}" mode="aspectFill" binderror="onProfileAvatarError" />
           <view wx:else class="avatar-text">{{avatarText}}</view>
         </view>
         <view class="user-meta">

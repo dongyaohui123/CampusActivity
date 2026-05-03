@@ -1,6 +1,6 @@
 ﻿const { listPublicActivities } = require("../../utils/api");
 
-const DEFAULT_COVER = "https://picsum.photos/600/360?random=12";
+const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
 const CATEGORY_ITEMS = [
   { key: "ALL", label: "全部" },
@@ -136,9 +136,11 @@ function normalizeActivity(item, now) {
   const categoryKey = classifyByText(item);
   const statusKey = deriveStatusKey(item, now);
   const locationCampus = normalizeLocationCampus(item.locationCampus);
+  const fallbackCover = getActivityFallbackCover(item);
   return {
     ...item,
-    cover: item.coverUrl || item.cover || DEFAULT_COVER,
+    cover: resolveActivityCover(item),
+    fallbackCover,
     timeDisplay: formatTime(item.startTime),
     locationDisplay: item.location || "地点待定",
     categoryKey,
@@ -376,6 +378,19 @@ Page({
   goDetail(event) {
     const activityId = Number(event.currentTarget.dataset.id);
     wx.navigateTo({ url: `/pages/activity-detail/index?activityId=${activityId}` });
+  },
+
+  onActivityImageError(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return;
+    }
+    const target = this.data.displayList[index];
+    if (target && target.cover !== target.fallbackCover) {
+      this.setData({
+        [`displayList[${index}].cover`]: target.fallbackCover,
+      });
+    }
   },
 
   onBottomTabChange(event) {

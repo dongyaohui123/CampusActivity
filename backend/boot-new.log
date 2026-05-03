@@ -1,130 +1,0 @@
-[INFO] Scanning for projects...
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/cyclonedx/maven-metadata.xml
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/springframework/boot/maven-metadata.xml
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/flywaydb/maven-metadata.xml
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/io/github/git-commit-id/maven-metadata.xml
-Progress (1): 235 BProgress (2): 235 B | 256 BProgress (3): 235 B | 256 B | 244 BProgress (4): 235 B | 256 B | 244 B | 250 B                                           Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/cyclonedx/maven-metadata.xml (244 B at 877 B/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/jooq/maven-metadata.xml
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/springframework/boot/maven-metadata.xml (250 B at 877 B/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/jetbrains/kotlin/maven-metadata.xml
-Progress (3): 235 B | 256 B | 399 BProgress (4): 235 B | 256 B | 399 B | 376 B                                           Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/flywaydb/maven-metadata.xml (235 B at 775 B/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/liquibase/maven-metadata.xml
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/jooq/maven-metadata.xml (399 B at 7.7 kB/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/graalvm/buildtools/maven-metadata.xml
-Progress (3): 256 B | 376 B | 395 BProgress (4): 256 B | 376 B | 395 B | 243 B                                           Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/graalvm/buildtools/maven-metadata.xml (243 B at 5.5 kB/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/apache/maven/plugins/maven-metadata.xml
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/liquibase/maven-metadata.xml (395 B at 5.2 kB/s)
-Downloading from aliyunmaven: https://maven.aliyun.com/repository/public/org/codehaus/mojo/maven-metadata.xml
-Progress (3): 256 B | 376 B | 7.3/21 kBProgress (3): 256 B | 376 B | 15/21 kB Progress (3): 256 B | 376 B | 21 kB                                      Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/codehaus/mojo/maven-metadata.xml (21 kB at 649 kB/s)
-Progress (3): 256 B | 376 B | 7.3/10 kBProgress (3): 256 B | 376 B | 10 kB    [WARNING] Could not validate integrity of download from https://maven.aliyun.com/repository/public/io/github/git-commit-id/maven-metadata.xml
-org.eclipse.aether.transfer.ChecksumFailureException: Checksum validation failed, no checksums available
-    at org.eclipse.aether.internal.impl.AbstractChecksumPolicy.onNoMoreChecksums (AbstractChecksumPolicy.java:63)
-    at org.eclipse.aether.connector.basic.ChecksumValidator.validate (ChecksumValidator.java:112)
-    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$GetTaskRunner.runTask (BasicRepositoryConnector.java:486)
-    at org.eclipse.aether.connector.basic.BasicRepositoryConnector$TaskRunner.run (BasicRepositoryConnector.java:416)
-    at org.eclipse.aether.connector.basic.BasicRepositoryConnector.get (BasicRepositoryConnector.java:215)
-    at org.eclipse.aether.internal.impl.DefaultMetadataResolver$ResolveTask.run (DefaultMetadataResolver.java:556)
-    at org.eclipse.aether.util.concurrency.RunnableErrorForwarder.lambda$wrap$0 (RunnableErrorForwarder.java:66)
-    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1090)
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:614)
-    at java.lang.Thread.run (Thread.java:1516)
-                                   [WARNING] Checksum validation failed, no checksums available from aliyunmaven for https://maven.aliyun.com/repository/public/io/github/git-commit-id/maven-metadata.xml
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/io/github/git-commit-id/maven-metadata.xml (256 B at 588 B/s)
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/apache/maven/plugins/maven-metadata.xml (10 kB at 149 kB/s)
-Downloaded from aliyunmaven: https://maven.aliyun.com/repository/public/org/jetbrains/kotlin/maven-metadata.xml (376 B at 2.3 kB/s)
-[INFO] 
-[INFO] --------------------< com.campus:activity-backend >---------------------
-[INFO] Building activity-backend 0.0.1-SNAPSHOT
-[INFO]   from pom.xml
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> spring-boot:3.3.5:run (default-cli) > test-compile @ activity-backend >>>
-[INFO] 
-[INFO] --- resources:3.3.1:resources (default-resources) @ activity-backend ---
-[INFO] Copying 1 resource from src\main\resources to target\classes
-[INFO] Copying 13 resources from src\main\resources to target\classes
-[INFO] 
-[INFO] --- compiler:3.13.0:compile (default-compile) @ activity-backend ---
-[INFO] Nothing to compile - all classes are up to date.
-[INFO] 
-[INFO] --- resources:3.3.1:testResources (default-testResources) @ activity-backend ---
-[INFO] skip non existing resourceDirectory E:\Projects\WeiChatProjects\CampusActivity\backend\src\test\resources
-[INFO] 
-[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ activity-backend ---
-[INFO] Nothing to compile - all classes are up to date.
-[INFO] 
-[INFO] <<< spring-boot:3.3.5:run (default-cli) < test-compile @ activity-backend <<<
-[INFO] 
-[INFO] 
-[INFO] --- spring-boot:3.3.5:run (default-cli) @ activity-backend ---
-[INFO] Attaching agents: []
-
-  .   ____          _            __ _ _
- /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
- \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-  '  |____| .__|_| |_|_| |_\__, | / / / /
- =========|_|==============|___/=/_/_/_/
-
- :: Spring Boot ::                (v3.3.5)
-
-2026-04-06T00:32:16.062+08:00  INFO 30056 --- [activity-backend] [           main] c.c.a.CampusActivityBackendApplication   : Starting CampusActivityBackendApplication using Java 26 with PID 30056 (E:\Projects\WeiChatProjects\CampusActivity\backend\target\classes started by Administrator in E:\Projects\WeiChatProjects\CampusActivity\backend)
-2026-04-06T00:32:16.065+08:00  INFO 30056 --- [activity-backend] [           main] c.c.a.CampusActivityBackendApplication   : No active profile set, falling back to 1 default profile: "default"
-WARNING: A restricted method in java.lang.System has been called
-WARNING: java.lang.System::load has been called by org.apache.tomcat.jni.Library in an unnamed module (file:/C:/Users/Administrator/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.31/tomcat-embed-core-10.1.31.jar)
-WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
-WARNING: Restricted methods will be blocked in a future release unless native access is enabled
-
-2026-04-06T00:32:16.817+08:00  INFO 30056 --- [activity-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-04-06T00:32:16.828+08:00  INFO 30056 --- [activity-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-04-06T00:32:16.828+08:00  INFO 30056 --- [activity-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
-2026-04-06T00:32:16.865+08:00  INFO 30056 --- [activity-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-04-06T00:32:16.866+08:00  INFO 30056 --- [activity-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 761 ms
- _ _   |_  _ _|_. ___ _ |    _ 
-| | |\/|_)(_| | |_\  |_)||_|_\ 
-     /               |         
-                        3.5.7 
-2026-04-06T00:32:17.574+08:00  INFO 30056 --- [activity-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-2026-04-06T00:32:17.579+08:00  INFO 30056 --- [activity-backend] [           main] c.c.a.CampusActivityBackendApplication   : Started CampusActivityBackendApplication in 1.81 seconds (process running for 2.038)
-2026-04-06T00:32:29.026+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-04-06T00:32:29.026+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-04-06T00:32:29.027+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-2026-04-06T00:32:48.752+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-9] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-04-06T00:32:48.838+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-9] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7d70ee35
-2026-04-06T00:32:48.839+08:00  INFO 30056 --- [activity-backend] [nio-8080-exec-9] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-04-06T00:32:48.843+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.UserMapper.selectByUsername      : ==>  Preparing: SELECT id, username, password_hash, openid, nickname, avatar_url, gender, phone, role, status, force_password_change, last_login_at, created_at, updated_at FROM users WHERE username = ? LIMIT 1
-2026-04-06T00:32:48.858+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.UserMapper.selectByUsername      : ==> Parameters: no_user(String)
-2026-04-06T00:32:48.872+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.UserMapper.selectByUsername      : <==      Total: 0
-2026-04-06T01:24:19.027+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-4] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:24:19.027+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-4] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:24:19.036+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-4] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:24:31.586+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-6] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:24:31.586+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-6] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:24:31.588+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-6] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:27:03.964+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:27:03.965+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:27:03.967+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:27:37.275+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:27:37.275+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:27:37.278+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:37:34.832+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-1] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:37:34.833+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-1] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:37:34.836+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-1] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:37:58.840+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:37:58.840+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:37:58.842+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-9] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:37:58.856+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-2] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:37:58.856+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-2] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:37:58.859+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-2] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:38:24.964+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-3] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:38:24.965+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-3] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:38:24.967+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-3] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:38:40.224+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:38:40.224+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:38:40.226+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-7] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:38:43.343+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-8] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:38:43.343+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-8] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:38:43.345+08:00 DEBUG 30056 --- [activity-backend] [nio-8080-exec-8] c.c.a.m.A.selectActivityList             : <==      Total: 5
-2026-04-06T01:38:47.694+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : ==>  Preparing: SELECT a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name, GROUP_CONCAT(DISTINCT ac.name ORDER BY ac.name SEPARATOR ',') AS category_names FROM activities a LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id LEFT JOIN activity_reviews ar ON ar.activity_id = a.id LEFT JOIN activity_category_rel acr ON acr.activity_id = a.id LEFT JOIN activity_categories ac ON ac.id = acr.category_id WHERE a.visibility = ? GROUP BY a.id, a.organizer_id, a.publisher_id, a.title, a.summary, a.location, a.start_time, a.end_time, a.registration_deadline, a.max_participants, a.registered_count, a.status, a.visibility, a.is_featured, a.published_at, ar.review_status, op.organizer_name ORDER BY a.start_time DESC, a.id DESC
-2026-04-06T01:38:47.695+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : ==> Parameters: PUBLIC(String)
-2026-04-06T01:38:47.696+08:00 DEBUG 30056 --- [activity-backend] [io-8080-exec-10] c.c.a.m.A.selectActivityList             : <==      Total: 5

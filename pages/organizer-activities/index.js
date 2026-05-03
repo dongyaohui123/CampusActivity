@@ -8,6 +8,7 @@ const {
 } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
+const { getActivityFallbackCover } = require("../../utils/image-fallbacks");
 
 const DATE_FIELD_LABEL_KEY = {
   startTime: "startTimeLabel",
@@ -99,10 +100,11 @@ function normalizeCampusCode(value) {
 function buildFormFromActivity(activity) {
   const activityTypeId = Number(activity.activityTypeId);
   const campusCode = normalizeCampusCode(activity.locationCampus);
+  const fallbackCover = getActivityFallbackCover(activity);
   return {
     title: activity.title || "",
     summary: activity.summary || "",
-    coverUrl: activity.coverUrl || "",
+    coverUrl: activity.coverUrl || fallbackCover,
     coverTempPath: "",
     location: activity.location || "",
     campusCode,
@@ -119,7 +121,7 @@ function emptyForm() {
   return {
     title: "",
     summary: "",
-    coverUrl: "",
+    coverUrl: getActivityFallbackCover({}),
     coverTempPath: "",
     location: "",
     campusCode: "",
@@ -264,7 +266,11 @@ Page({
   },
 
   onFormInput(event) {
-    this.setData({ [`form.${event.currentTarget.dataset.field}`]: event.detail });
+    const field = event.currentTarget.dataset.field;
+    this.setData({ [`form.${field}`]: event.detail });
+    if (field === "title" || field === "summary" || field === "location") {
+      this.refreshDerivedCover();
+    }
   },
 
   onChooseCoverTap() {
@@ -309,8 +315,15 @@ Page({
   onRemoveCoverTap() {
     if (this.data.coverUploading) return;
     this.setData({
-      "form.coverUrl": "",
+      "form.coverUrl": this.deriveFormFallbackCover(),
       "form.coverTempPath": "",
+    });
+  },
+
+  onCoverPreviewError() {
+    this.setData({
+      "form.coverTempPath": "",
+      "form.coverUrl": this.deriveFormFallbackCover(),
     });
   },
 
@@ -386,6 +399,7 @@ Page({
       "form.campusCode": selected,
       showCampusTypePicker: false,
     });
+    this.refreshDerivedCover();
   },
 
   onCampusTypeCancel() {
@@ -417,6 +431,7 @@ Page({
       "form.activityTypeName": selected.name || "",
       showTypePicker: false,
     });
+    this.refreshDerivedCover();
   },
 
   onTypeCancel() {
@@ -438,6 +453,23 @@ Page({
       showDateTimePicker: false,
       activeDateField: "",
     });
+  },
+
+  deriveFormFallbackCover() {
+    return getActivityFallbackCover(this.data.form || {});
+  },
+
+  refreshDerivedCover() {
+    if (this.data.form.coverTempPath) {
+      return;
+    }
+    const currentCoverUrl = String((this.data.form && this.data.form.coverUrl) || "").trim();
+    const nextFallback = this.deriveFormFallbackCover();
+    if (!currentCoverUrl || currentCoverUrl.startsWith("/static/activity-themes/")) {
+      this.setData({
+        "form.coverUrl": nextFallback,
+      });
+    }
   },
 
   onEditTap(event) {

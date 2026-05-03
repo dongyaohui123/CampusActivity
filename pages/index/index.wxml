@@ -69,7 +69,7 @@
       <view class="recommend-list" wx:if="{{!loading && recommendList.length > 0}}">
         <block wx:for="{{recommendList}}" wx:key="id">
           <view class="recommend-card fade-up" bindtap="goDetail" data-id="{{item.id}}">
-            <image class="recommend-thumb" src="{{item.cover}}" mode="aspectFill" />
+            <image class="recommend-thumb" src="{{item.cover}}" mode="aspectFill" data-index="{{index}}" binderror="onRecommendImageError" />
             <view class="recommend-body">
               <view class="recommend-title-row">
                 <text class="recommend-tag">{{i18n.signing}}</text>

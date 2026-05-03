@@ -39,7 +39,7 @@
           <text class="cover-hint">{{i18n.coverHint}}</text>
         </view>
         <view wx:if="{{form.coverUrl || form.coverTempPath}}" class="cover-preview-wrap">
-          <image class="cover-preview" src="{{form.coverTempPath || form.coverUrl}}" mode="aspectFill" />
+          <image class="cover-preview" src="{{form.coverTempPath || form.coverUrl}}" mode="aspectFill" binderror="onCoverPreviewError" />
         </view>
         <view class="row gap-12 cover-action-row">
           <van-button

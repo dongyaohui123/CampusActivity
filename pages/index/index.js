@@ -1,8 +1,7 @@
 ﻿const { listPublicActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
-
-const DEFAULT_COVER = "https://picsum.photos/640/360?random=9";
+const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
 function formatDisplayDate(value) {
   if (!value) {
@@ -15,9 +14,11 @@ function formatDisplayDate(value) {
  * 首页活动卡片展示字段映射。
  */
 function mapActivity(item) {
+  const fallbackCover = getActivityFallbackCover(item);
   return {
     ...item,
-    cover: item.coverUrl || DEFAULT_COVER,
+    cover: resolveActivityCover(item),
+    fallbackCover,
     startDisplay: formatDisplayDate(item.startTime),
     locationDisplay: item.location || "地点待定",
   };
@@ -139,6 +140,19 @@ Page({
     wx.navigateTo({
       url: `/pages/activity-detail/index?activityId=${activityId}`,
     });
+  },
+
+  onRecommendImageError(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return;
+    }
+    const target = this.data.recommendList[index];
+    if (target && target.cover !== target.fallbackCover) {
+      this.setData({
+        [`recommendList[${index}].cover`]: target.fallbackCover,
+      });
+    }
   },
 
   /**

@@ -104,7 +104,7 @@
       <view wx:if="{{!loading && displayList.length > 0}}" class="list-wrap">
         <block wx:for="{{displayList}}" wx:key="id">
           <view class="activity-card fade-up" bindtap="goDetail" data-id="{{item.id}}" style="animation-delay: {{index * 40}}ms;">
-            <image class="activity-cover" src="{{item.cover}}" mode="aspectFill" />
+            <image class="activity-cover" src="{{item.cover}}" mode="aspectFill" data-index="{{index}}" binderror="onActivityImageError" />
             <view class="activity-body">
               <view class="title-line">
                 <text class="status-tag {{item.isClosedStatus ? 'closed' : ''}}">{{item.statusDisplay}}</text>

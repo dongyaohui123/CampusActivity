@@ -12,8 +12,7 @@ const {
 } = require("../../utils/api");
 const { getOperatorContext, hasOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
-
-const DEFAULT_COVER = "https://picsum.photos/900/506?random=18";
+const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 const COMMENT_MAX_LENGTH = 500;
 
 const ACTIVITY_STATUS_MAP = {
@@ -92,7 +91,7 @@ function deriveRegistrationActions(activity, currentRegistration) {
 function buildSharePayload(data) {
   const activityId = Number(data.activityId || 0);
   const title = String((data.activity && data.activity.title) || data.i18n.shareTitleFallback || "校园活动").trim();
-  const imageUrl = String(data.coverDisplay || DEFAULT_COVER).trim();
+  const imageUrl = String(data.coverDisplay || getActivityFallbackCover(data.activity)).trim();
   return {
     title,
     path: `/pages/activity-detail/index?activityId=${activityId}`,
@@ -204,7 +203,7 @@ Page({
     canCancel: false,
     canViewTicket: false,
     navSafeHeightPx: 20,
-    coverDisplay: DEFAULT_COVER,
+    coverDisplay: getActivityFallbackCover({}),
     registrationStatusText: "未报名",
     ctaMode: "disabled",
     ctaText: "暂不可报名",
@@ -272,7 +271,7 @@ Page({
   refreshPresentationState() {
     const { activity, currentRegistration, canRegister, canCancel, operatorRole, i18n } = this.data;
     const registrationStatusText = normalizeRegistrationStatus(currentRegistration);
-    const coverDisplay = activity ? activity.coverDisplay || DEFAULT_COVER : DEFAULT_COVER;
+    const coverDisplay = activity ? activity.coverDisplay || getActivityFallbackCover(activity) : getActivityFallbackCover({});
     const cta = resolveCtaState({
       operatorRole,
       canRegister,
@@ -342,13 +341,15 @@ Page({
 
   async loadDetail() {
     const detail = await getPublicActivityDetail(this.data.activityId);
+    const fallbackCover = getActivityFallbackCover(detail);
     const activity = {
       ...detail,
       startDisplay: displayTime(detail.startTime),
       endDisplay: displayTime(detail.endTime),
       deadlineDisplay: displayTime(detail.registrationDeadline),
       statusText: normalizeActivityStatus(detail.status),
-      coverDisplay: detail.coverUrl || detail.cover || DEFAULT_COVER,
+      fallbackCover,
+      coverDisplay: resolveActivityCover(detail),
     };
     this.setData({ activity });
     this.refreshPresentationState();
@@ -533,6 +534,25 @@ Page({
     wx.navigateTo({
       url: `/pages/ticket/index?registrationId=${registration.registrationId}`,
     });
+  },
+
+  onCoverImageError() {
+    const fallbackCover = this.data.activity ? this.data.activity.fallbackCover : getActivityFallbackCover({});
+    if (this.data.coverDisplay !== fallbackCover) {
+      this.setData({ coverDisplay: fallbackCover });
+    }
+  },
+
+  onCommentAvatarError(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return;
+    }
+    if (this.data.comments[index] && this.data.comments[index].authorAvatarUrl) {
+      this.setData({
+        [`comments[${index}].authorAvatarUrl`]: "",
+      });
+    }
   },
 
   goToAuth() {

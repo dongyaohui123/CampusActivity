@@ -9,6 +9,7 @@ const {
 } = require("../../utils/api");
 const { getLoginUser, clearLoginUser, setLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
+const { DEFAULT_AVATAR } = require("../../utils/image-fallbacks");
 
 const ORGANIZER_PUBLISHED_STATUS = [
   "PUBLISHED",
@@ -642,6 +643,15 @@ Page({
     } finally {
       this.setData({ profileSaving: false });
     }
+  },
+
+  onProfileAvatarError() {
+    if (!this.data.loginUser || !this.data.loginUser.avatarUrl) {
+      return;
+    }
+    this.setData({
+      "loginUser.avatarUrl": DEFAULT_AVATAR,
+    });
   },
 
   handleAction(action, payload) {

@@ -19,12 +19,11 @@ import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.User;
 import com.campus.activity.entity.view.ActivityListItemView;
 import com.campus.activity.enums.ActivityStatus;
+import com.campus.activity.enums.BasicStatus;
 import com.campus.activity.enums.RegistrationStatus;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
-import com.campus.activity.service.ActivityService;
-import com.campus.activity.service.UserService;
 import com.campus.activity.service.v1.V1AdminReviewService;
 import com.campus.activity.service.v1.V1ActivityCommentService;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
@@ -47,7 +46,6 @@ import com.campus.activity.view.v1.OrganizerActivityOptionsView;
 import com.campus.activity.view.v1.OrganizerActivityTypeOptionView;
 import com.campus.activity.view.v1.TicketDetailView;
 import java.util.List;
-import com.campus.activity.enums.BasicStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +60,6 @@ import org.springframework.test.web.servlet.MockMvc;
 class V1ApiControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private UserService userService;
-
-    @MockBean
-    private ActivityService activityService;
 
     @MockBean
     private V1UserService v1UserService;

@@ -28,7 +28,7 @@
 
       <block wx:if="{{!loading && activity}}">
         <view class="hero-card fade-up">
-          <image class="hero-image" src="{{coverDisplay}}" mode="aspectFill" />
+          <image class="hero-image" src="{{coverDisplay}}" mode="aspectFill" binderror="onCoverImageError" />
           <view class="hero-mask">
             <text class="hero-status">{{activity.statusText}}</text>
             <text class="hero-deadline">{{i18n.deadlineLabel}} {{activity.deadlineDisplay}}</text>
@@ -80,7 +80,7 @@
               <view class="comment-list">
                 <view class="comment-item" wx:for="{{comments}}" wx:key="commentId">
                   <view class="comment-avatar">
-                    <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar-image" src="{{item.authorAvatarUrl}}" mode="aspectFill" />
+                    <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar-image" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-index="{{index}}" binderror="onCommentAvatarError" />
                     <text wx:else class="comment-avatar-text">{{item.avatarText}}</text>
                   </view>
                   <view class="comment-main">
