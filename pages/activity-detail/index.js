@@ -1,5 +1,8 @@
 const {
   getPublicActivityDetail,
+  listActivityComments,
+  createActivityComment,
+  deleteActivityComment,
   getMyRegistrations,
   getActivityFavoriteStatus,
   favoriteActivity,
@@ -11,6 +14,7 @@ const { getOperatorContext, hasOperatorContext } = require("../../utils/operator
 const feedback = require("../../utils/feedback");
 
 const DEFAULT_COVER = "https://picsum.photos/900/506?random=18";
+const COMMENT_MAX_LENGTH = 500;
 
 const ACTIVITY_STATUS_MAP = {
   DRAFT: "草稿",
@@ -37,6 +41,28 @@ function displayTime(value) {
 function normalizeActivityStatus(status) {
   if (!status) return "状态待定";
   return ACTIVITY_STATUS_MAP[status] || status;
+}
+
+function getCommentAvatarText(nickname) {
+  const base = String(nickname || "评论").trim();
+  return base.slice(0, 1) || "评";
+}
+
+function normalizeCommentItem(item, operatorUserId) {
+  const authorNickname = String((item && item.authorNickname) || "用户").trim() || "用户";
+  const authorUserId = Number((item && item.authorUserId) || 0);
+  return {
+    ...item,
+    commentId: Number((item && item.commentId) || 0),
+    activityId: Number((item && item.activityId) || 0),
+    authorUserId,
+    authorNickname,
+    authorAvatarUrl: String((item && item.authorAvatarUrl) || "").trim(),
+    content: String((item && item.content) || "").trim(),
+    createdAtDisplay: displayTime(item && item.createdAt),
+    avatarText: getCommentAvatarText(authorNickname),
+    canDelete: Number(operatorUserId) > 0 && Number(operatorUserId) === authorUserId,
+  };
 }
 
 function normalizeRegistrationStatus(registration) {
@@ -151,6 +177,23 @@ Page({
       service: "客服",
       serviceTip: "客服功能建设中",
       actionTodo: "功能建设中",
+      commentSection: "评论区",
+      commentInputPlaceholder: "说点什么吧，分享你的看法",
+      commentSubmit: "发布评论",
+      commentLoginHint: "登录后即可发表评论",
+      commentLoginAction: "去登录",
+      commentEmpty: "还没有评论，来发表第一条吧",
+      commentLoadFailed: "评论加载失败，请稍后重试",
+      commentSubmitSuccess: "评论已发布",
+      commentDeleteSuccess: "评论已删除",
+      commentDelete: "删除",
+      commentCountSuffix: "条",
+      commentLengthHint: "最多 500 字",
+      commentOpenComposer: "写评论",
+      commentComposerTitle: "发表评论",
+      commentComposerShortcut: "写评论...",
+      commentReadonlyHint: "登录后可参与评论",
+      commentFloatingLabel: "评论",
     },
     activityId: 0,
     loading: false,
@@ -168,6 +211,13 @@ Page({
     ctaHint: "活动信息加载失败，请稍后重试",
     favorited: false,
     favoriteLoading: false,
+    commentMaxLength: COMMENT_MAX_LENGTH,
+    comments: [],
+    commentDraft: "",
+    commentLoading: false,
+    commentSubmitting: false,
+    commentDeletingId: 0,
+    commentComposerVisible: false,
   },
 
   onLoad(options) {
@@ -244,6 +294,7 @@ Page({
   async loadAll() {
     const { operatorRole } = getOperatorContext();
     this.setData({ loading: true, operatorRole: operatorRole || "" });
+    this.loadComments();
     try {
       await this.loadDetail();
       if (operatorRole === "STUDENT") {
@@ -271,6 +322,21 @@ Page({
       feedback.error(this.data.i18n.loadFailed);
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  async loadComments() {
+    this.setData({ commentLoading: true });
+    try {
+      const rows = await listActivityComments(this.data.activityId);
+      const operatorUserId = Number(getOperatorContext().operatorUserId || 0);
+      const comments = (rows || []).map((item) => normalizeCommentItem(item, operatorUserId));
+      this.setData({ comments });
+    } catch (e) {
+      this.setData({ comments: [] });
+      feedback.error(this.data.i18n.commentLoadFailed);
+    } finally {
+      this.setData({ commentLoading: false });
     }
   },
 
@@ -354,6 +420,78 @@ Page({
     } catch (e) {
     } finally {
       this.setData({ favoriteLoading: false });
+    }
+  },
+
+  onCommentInput(event) {
+    this.setData({
+      commentDraft: String((event && event.detail && event.detail.value) || ""),
+    });
+  },
+
+  onCommentEntryTap() {
+    if (!hasOperatorContext()) {
+      feedback.info(this.data.i18n.commentLoginHint);
+      this.goToAuth();
+      return;
+    }
+    this.setData({ commentComposerVisible: true });
+  },
+
+  onCommentComposerClose() {
+    if (this.data.commentSubmitting) {
+      return;
+    }
+    this.setData({ commentComposerVisible: false });
+  },
+
+  async onCommentSubmitTap() {
+    if (this.data.commentSubmitting) {
+      return;
+    }
+    if (!hasOperatorContext()) {
+      feedback.info(this.data.i18n.commentLoginHint);
+      this.goToAuth();
+      return;
+    }
+
+    const content = String(this.data.commentDraft || "").trim();
+    if (!content) {
+      feedback.error("评论内容不能为空");
+      return;
+    }
+
+    this.setData({ commentSubmitting: true });
+    try {
+      await createActivityComment(this.data.activityId, content);
+      this.setData({ commentDraft: "", commentComposerVisible: false });
+      feedback.success(this.data.i18n.commentSubmitSuccess);
+      await this.loadComments();
+    } catch (e) {
+    } finally {
+      this.setData({ commentSubmitting: false });
+    }
+  },
+
+  async onCommentDeleteTap(event) {
+    const commentId = Number(event && event.currentTarget && event.currentTarget.dataset.commentId);
+    if (!commentId || this.data.commentDeletingId === commentId) {
+      return;
+    }
+    if (!hasOperatorContext()) {
+      feedback.info(this.data.i18n.commentLoginHint);
+      this.goToAuth();
+      return;
+    }
+
+    this.setData({ commentDeletingId: commentId });
+    try {
+      await deleteActivityComment(this.data.activityId, commentId);
+      feedback.success(this.data.i18n.commentDeleteSuccess);
+      await this.loadComments();
+    } catch (e) {
+    } finally {
+      this.setData({ commentDeletingId: 0 });
     }
   },
 

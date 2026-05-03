@@ -40,6 +40,7 @@ public class DatabaseSchemaInitializer implements ApplicationRunner {
         try (connection) {
             DatabaseMetaData metaData = connection.getMetaData();
             ensureActivityManagerPermissionTable();
+            ensureActivityCommentTable();
             ensureColumn(
                     metaData,
                     "activity_registrations",
@@ -71,6 +72,19 @@ public class DatabaseSchemaInitializer implements ApplicationRunner {
                     "CREATE UNIQUE INDEX uk_activity_manager_permissions_activity_user " +
                             "ON activity_manager_permissions (activity_id, user_id)"
             );
+            ensureIndex(
+                    metaData,
+                    "activity_comments",
+                    "idx_activity_comments_activity_created",
+                    "CREATE INDEX idx_activity_comments_activity_created " +
+                            "ON activity_comments (activity_id, created_at, id)"
+            );
+            ensureIndex(
+                    metaData,
+                    "activity_comments",
+                    "idx_activity_comments_user_id",
+                    "CREATE INDEX idx_activity_comments_user_id ON activity_comments (user_id)"
+            );
         } catch (SQLException ex) {
             throw new IllegalStateException("Failed to initialize runtime schema", ex);
         }
@@ -88,6 +102,19 @@ public class DatabaseSchemaInitializer implements ApplicationRunner {
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     CONSTRAINT uk_activity_manager_permissions_activity_user UNIQUE (activity_id, user_id)
+                )
+                """);
+    }
+
+    private void ensureActivityCommentTable() {
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS activity_comments (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    activity_id BIGINT NOT NULL,
+                    user_id BIGINT NOT NULL,
+                    content VARCHAR(500) NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 )
                 """);
     }

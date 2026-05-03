@@ -26,6 +26,7 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.service.ActivityService;
 import com.campus.activity.service.UserService;
 import com.campus.activity.service.v1.V1AdminReviewService;
+import com.campus.activity.service.v1.V1ActivityCommentService;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.service.v1.V1OrganizerActivityCoverService;
@@ -36,6 +37,7 @@ import com.campus.activity.service.v1.V1UserService;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
 import com.campus.activity.view.v1.ActivityManagerView;
 import com.campus.activity.view.v1.ActivityCoverUploadView;
+import com.campus.activity.view.v1.ActivityCommentView;
 import com.campus.activity.view.v1.AvatarUploadView;
 import com.campus.activity.view.v1.CheckinResultView;
 import com.campus.activity.view.v1.FavoriteActivityView;
@@ -90,6 +92,9 @@ class V1ApiControllerIntegrationTest {
 
     @MockBean
     private V1ActivityFavoriteService v1ActivityFavoriteService;
+
+    @MockBean
+    private V1ActivityCommentService v1ActivityCommentService;
 
     @Test
     void listPublicActivities_shouldReturnUnifiedSuccessBody() throws Exception {
@@ -631,6 +636,62 @@ class V1ApiControllerIntegrationTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.message").value("favorite state"))
                 .andExpect(jsonPath("$.data.favorited").value(true));
+    }
+
+    @Test
+    void listActivityComments_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityCommentView view = new ActivityCommentView();
+        view.setCommentId(18L);
+        view.setActivityId(8L);
+        view.setAuthorUserId(2L);
+        view.setAuthorNickname("评论用户");
+        view.setContent("现场很好");
+        when(v1ActivityCommentService.listActivityComments(8L)).thenReturn(List.of(view));
+
+        mockMvc.perform(get("/api/v1/activities/8/comments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("activity comments"))
+                .andExpect(jsonPath("$.data[0].commentId").value(18))
+                .andExpect(jsonPath("$.data[0].authorNickname").value("评论用户"));
+    }
+
+    @Test
+    void createComment_shouldReturnUnifiedSuccessBody() throws Exception {
+        ActivityCommentView view = new ActivityCommentView();
+        view.setCommentId(18L);
+        view.setActivityId(8L);
+        view.setAuthorUserId(2L);
+        view.setAuthorNickname("评论用户");
+        view.setContent("现场很好");
+        when(v1ActivityCommentService.createComment(any(), any(), any(), any())).thenReturn(view);
+
+        String body = """
+                {
+                  "content":"现场很好"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/activities/8/comments")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("comment created"))
+                .andExpect(jsonPath("$.data.commentId").value(18))
+                .andExpect(jsonPath("$.data.content").value("现场很好"));
+    }
+
+    @Test
+    void deleteComment_shouldReturnUnifiedSuccessBody() throws Exception {
+        mockMvc.perform(delete("/api/v1/activities/8/comments/18")
+                        .param("operatorUserId", "2")
+                        .param("operatorRole", "STUDENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("comment deleted"));
     }
 
     @Test

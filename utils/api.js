@@ -336,6 +336,40 @@ function getPublicActivityDetail(activityId) {
 }
 
 /**
+ * 公共活动：评论列表。
+ */
+function listActivityComments(activityId) {
+  return request({
+    path: `/api/v1/activities/${activityId}/comments`,
+    method: "GET",
+    withOperator: false,
+  });
+}
+
+/**
+ * 活动评论：发表评论。
+ */
+function createActivityComment(activityId, content) {
+  return request({
+    path: `/api/v1/activities/${activityId}/comments`,
+    method: "POST",
+    data: {
+      content: String(content || ""),
+    },
+  });
+}
+
+/**
+ * 活动评论：删除本人评论。
+ */
+function deleteActivityComment(activityId, commentId) {
+  return request({
+    path: `/api/v1/activities/${activityId}/comments/${commentId}`,
+    method: "DELETE",
+  });
+}
+
+/**
  * 当前用户报名记录。
  * 若未传 userId，默认取当前操作上下文中的 operatorUserId。
  */
@@ -629,6 +663,9 @@ module.exports = {
   listPublicActivities,
   listManageableActivities,
   getPublicActivityDetail,
+  listActivityComments,
+  createActivityComment,
+  deleteActivityComment,
   getMyRegistrations,
   getMyFavorites,
   getActivityFavoriteStatus,

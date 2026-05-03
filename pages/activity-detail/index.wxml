@@ -64,6 +64,48 @@
           <view class="section-title content-title">{{i18n.contentLabel}}</view>
           <view class="detail-content">{{activity.content || i18n.contentEmpty}}</view>
         </view>
+
+        <view class="card comment-card fade-up delay-2">
+          <view class="comment-header">
+            <view class="section-title comment-title">{{i18n.commentSection}}</view>
+            <view class="comment-count">{{comments.length}}{{i18n.commentCountSuffix}}</view>
+          </view>
+
+          <block wx:if="{{commentLoading}}">
+            <view class="comment-loading">{{i18n.loading}}</view>
+          </block>
+
+          <block wx:else>
+            <block wx:if="{{comments.length}}">
+              <view class="comment-list">
+                <view class="comment-item" wx:for="{{comments}}" wx:key="commentId">
+                  <view class="comment-avatar">
+                    <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar-image" src="{{item.authorAvatarUrl}}" mode="aspectFill" />
+                    <text wx:else class="comment-avatar-text">{{item.avatarText}}</text>
+                  </view>
+                  <view class="comment-main">
+                    <view class="comment-meta">
+                      <text class="comment-author">{{item.authorNickname}}</text>
+                      <text class="comment-time">{{item.createdAtDisplay}}</text>
+                    </view>
+                    <view class="comment-content">{{item.content}}</view>
+                    <button
+                      wx:if="{{item.canDelete}}"
+                      class="comment-delete-btn"
+                      data-comment-id="{{item.commentId}}"
+                      bindtap="onCommentDeleteTap"
+                      loading="{{commentDeletingId === item.commentId}}"
+                      disabled="{{commentDeletingId === item.commentId}}"
+                    >
+                      {{i18n.commentDelete}}
+                    </button>
+                  </view>
+                </view>
+              </view>
+            </block>
+            <view wx:else class="comment-empty">{{i18n.commentEmpty}}</view>
+          </block>
+        </view>
       </block>
 
       <van-empty wx:if="{{!loading && !activity}}" image="search" description="{{i18n.loadFailed}}" />
@@ -98,7 +140,50 @@
       <text class="cta-sub">{{ctaHint}}</text>
     </button>
   </view>
+
+  <view wx:if="{{activity}}" class="comment-fab" bindtap="onCommentEntryTap">
+    <view class="comment-fab-icon">
+      <van-icon name="chat-o" class="comment-fab-vant-icon" />
+    </view>
+    <text class="comment-fab-label">{{i18n.commentFloatingLabel}}</text>
+  </view>
 </view>
 
 <van-toast id="van-toast" />
 <van-notify id="van-notify" />
+<van-popup
+  show="{{commentComposerVisible}}"
+  position="bottom"
+  round
+  close-on-click-overlay="{{true}}"
+  bind:close="onCommentComposerClose"
+>
+  <view class="comment-popup">
+    <view class="comment-popup-header">
+      <text class="comment-popup-title">{{i18n.commentComposerTitle}}</text>
+      <view class="comment-popup-close" bindtap="onCommentComposerClose">
+        <van-icon name="cross" class="comment-popup-close-icon" />
+      </view>
+    </view>
+    <textarea
+      class="comment-popup-textarea"
+      value="{{commentDraft}}"
+      maxlength="{{commentMaxLength}}"
+      placeholder="{{i18n.commentInputPlaceholder}}"
+      bindinput="onCommentInput"
+      focus="{{commentComposerVisible}}"
+      auto-height
+    ></textarea>
+    <view class="comment-popup-footer">
+      <text class="comment-hint">{{commentDraft.length}} / {{commentMaxLength}} · {{i18n.commentLengthHint}}</text>
+      <button
+        class="comment-submit-btn"
+        bindtap="onCommentSubmitTap"
+        loading="{{commentSubmitting}}"
+        disabled="{{commentSubmitting}}"
+      >
+        {{i18n.commentSubmit}}
+      </button>
+    </view>
+  </view>
+</van-popup>
