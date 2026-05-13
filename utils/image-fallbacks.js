@@ -1,13 +1,14 @@
+const { normalizeBackendAssetUrl } = require("./backend-asset-url");
 const DEFAULT_AVATAR = "/static/placeholders/avatar-default.png";
 
 const COVER_BY_THEME = {
-  tech: "/static/activity-themes/data-tech-talk.png",
-  online: "/static/activity-themes/online-sharing.png",
-  mental: "/static/activity-themes/mental-health.png",
-  music: "/static/activity-themes/campus-singer.png",
-  sports: "/static/activity-themes/basketball.png",
-  club: "/static/activity-themes/club-activity.png",
-  generic: "/static/activity-themes/club-activity.png",
+  tech: "/static/activity-themes/data-tech-talk.jpg",
+  online: "/static/activity-themes/online-sharing.jpg",
+  mental: "/static/activity-themes/mental-health.jpg",
+  music: "/static/activity-themes/campus-singer.jpg",
+  sports: "/static/activity-themes/basketball.jpg",
+  club: "/static/activity-themes/club-activity.jpg",
+  generic: "/static/activity-themes/club-activity.jpg",
 };
 
 function buildActivityText(activity) {
@@ -70,7 +71,8 @@ function resolveActivityCover(activity) {
   const remoteCover = String(
     (activity && (activity.cover || activity.coverUrl || activity.coverDisplay)) || ""
   ).trim();
-  return remoteCover || getActivityFallbackCover(activity);
+  const normalizedCover = normalizeBackendAssetUrl(remoteCover);
+  return normalizedCover || getActivityFallbackCover(activity);
 }
 
 module.exports = {

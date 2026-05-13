@@ -126,14 +126,13 @@ CampusActivity/
 ├── static/                         # 小程序静态资源（编译时复制到小程序包）
 │   ├── css/                        # 公共样式文件
 │   │   └── icon.wxss               # 图标字体样式
-│   ├── home-banners/               # 首页轮播图
-│   │   ├── banner-01.png
-│   │   ├── banner-02.png
-│   │   └── banner-03.png
+│   ├── activity-themes/            # 活动主题图（首页轮播与活动封面共用）
+│   │   ├── club-activity.jpg
+│   │   ├── data-tech-talk.jpg
+│   │   └── online-sharing.jpg
 │   ├── placeholders/               # 占位图
-│   │   └── avatar-default.png      # 默认头像
-│   ├── activity-placeholders/      # 活动占位图
-│   └── generated-activity-covers/  # 生成的活动封面（运行时）
+│   │   └── avatar-default.png      # 默认头像（轻量本地资源）
+│   ├── generated-activity-covers/  # 生成的活动封面（运行时）
 │
 ├── pages/                          # 小程序页面目录（每个页面包含 .js/.json/.wxml/.wxss）
 │   ├── index/                      # 首页（推荐活动、轮播图、快捷入口）

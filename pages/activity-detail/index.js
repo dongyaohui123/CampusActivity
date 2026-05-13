@@ -13,6 +13,7 @@ const {
 const { getOperatorContext, hasOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
 const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
+const { normalizeAvatarUrl } = require("../../utils/avatar-url");
 const COMMENT_MAX_LENGTH = 500;
 
 const ACTIVITY_STATUS_MAP = {
@@ -56,7 +57,7 @@ function normalizeCommentItem(item, operatorUserId) {
     activityId: Number((item && item.activityId) || 0),
     authorUserId,
     authorNickname,
-    authorAvatarUrl: String((item && item.authorAvatarUrl) || "").trim(),
+    authorAvatarUrl: normalizeAvatarUrl(item && item.authorAvatarUrl),
     content: String((item && item.content) || "").trim(),
     createdAtDisplay: displayTime(item && item.createdAt),
     avatarText: getCommentAvatarText(authorNickname),

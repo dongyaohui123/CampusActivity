@@ -8,7 +8,7 @@ const {
 } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
-const { getActivityFallbackCover } = require("../../utils/image-fallbacks");
+const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
 const DATE_FIELD_LABEL_KEY = {
   startTime: "startTimeLabel",
@@ -104,7 +104,7 @@ function buildFormFromActivity(activity) {
   return {
     title: activity.title || "",
     summary: activity.summary || "",
-    coverUrl: activity.coverUrl || fallbackCover,
+    coverUrl: resolveActivityCover(activity) || fallbackCover,
     coverTempPath: "",
     location: activity.location || "",
     campusCode,
@@ -291,7 +291,14 @@ Page({
 
         try {
           const uploadResult = await uploadOrganizerActivityCover(tempFilePath);
-          const coverUrl = String((uploadResult && uploadResult.coverUrl) || "").trim();
+          const coverUrl = resolveActivityCover({
+            coverUrl: uploadResult && uploadResult.coverUrl,
+            title: this.data.form.title,
+            summary: this.data.form.summary,
+            activityTypeName: this.data.form.activityTypeName,
+            location: this.data.form.location,
+            locationCampus: this.data.form.campusCode,
+          });
           if (!coverUrl) {
             feedback.error("活动图片上传失败");
             return;

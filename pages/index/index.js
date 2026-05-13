@@ -42,9 +42,9 @@ Page({
       bannerSub: "一站式发现、报名与管理校园活动",
     },
     banners: [
-      "/static/home-banners/banner-01.png",
-      "/static/home-banners/banner-02.png",
-      "/static/home-banners/banner-03.png",
+      "/static/activity-themes/club-activity.jpg",
+      "/static/activity-themes/data-tech-talk.jpg",
+      "/static/activity-themes/online-sharing.jpg",
     ],
     recommendList: [],
     loading: false,
