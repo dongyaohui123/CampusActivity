@@ -490,6 +490,41 @@ class V1ApiControllerIntegrationTest {
     }
 
     @Test
+    void qqLogin_shouldValidateCodeRequired() throws Exception {
+        String body = "{}";
+        mockMvc.perform(post("/api/v1/auth/qq-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    @Test
+    void qqLogin_shouldReturnUnifiedSuccessBody() throws Exception {
+        LoginUserView view = new LoginUserView();
+        view.setId(22L);
+        view.setUsername("qq_u_abc");
+        view.setNickname("QQ用户");
+        view.setRole(UserRole.STUDENT);
+        when(v1AuthService.qqLogin(any())).thenReturn(view);
+
+        String body = """
+                {
+                  "code":"qq-login-code"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/qq-login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.message").value("qq login success"))
+                .andExpect(jsonPath("$.data.id").value(22))
+                .andExpect(jsonPath("$.data.username").value("qq_u_abc"));
+    }
+
+    @Test
     void uploadAvatar_shouldReturnUnifiedSuccessBody() throws Exception {
         AvatarUploadView view = new AvatarUploadView();
         view.setAvatarUrl("http://127.0.0.1:8080/static/avatars/u_12_123456_654321.png");

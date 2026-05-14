@@ -1,6 +1,7 @@
-﻿const { baseURL } = require("../config");
+const { baseURL } = require("../config");
 const { getOperatorQuery, hasOperatorContext } = require("./operator-context");
 const feedback = require("./feedback");
+const { getRuntimeApi } = require("./runtime-api");
 
 const SUCCESS_CODE = 0;
 const REQUEST_TIMEOUT = 12000;
@@ -58,8 +59,17 @@ function mapNetworkErrorMessage(errMsg) {
  */
 function request(options) {
   const opts = options || {};
+  const runtimeApi = getRuntimeApi();
   const method = toMethod(opts.method);
   const withOperator = opts.withOperator === true || (opts.withOperator !== false && isWriteMethod(method));
+
+  if (!runtimeApi || typeof runtimeApi.request !== "function") {
+    const message = "当前小程序环境不支持网络请求";
+    if (!opts.silent) {
+      showErrorToast(message);
+    }
+    return Promise.reject({ message });
+  }
 
   if (withOperator && !hasOperatorContext()) {
     const message = "请先登录";
@@ -82,7 +92,7 @@ function request(options) {
   const silent = Boolean(opts.silent);
 
   return new Promise((resolve, reject) => {
-    wx.request({
+    runtimeApi.request({
       url,
       method,
       data,

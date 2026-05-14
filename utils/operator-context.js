@@ -1,4 +1,6 @@
-﻿const STORAGE_KEY = "operator_context";
+const { getStorageApi } = require("./runtime-api");
+
+const STORAGE_KEY = "operator_context";
 
 const EMPTY_CONTEXT = {
   operatorUserId: null,
@@ -26,13 +28,10 @@ function normalizeContext(input) {
     : { ...EMPTY_CONTEXT };
 }
 
-function canUseWxStorage() {
-  return typeof wx !== "undefined" && typeof wx.getStorageSync === "function" && typeof wx.setStorageSync === "function";
-}
-
 function getOperatorContext() {
-  if (canUseWxStorage()) {
-    const stored = wx.getStorageSync(STORAGE_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    const stored = storageApi.getStorageSync(STORAGE_KEY);
     if (stored && typeof stored === "object") {
       memoryContext = normalizeContext(stored);
       return { ...memoryContext };
@@ -43,16 +42,18 @@ function getOperatorContext() {
 
 function setOperatorContext(nextContext) {
   memoryContext = normalizeContext(nextContext);
-  if (canUseWxStorage()) {
-    wx.setStorageSync(STORAGE_KEY, memoryContext);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.setStorageSync(STORAGE_KEY, memoryContext);
   }
   return { ...memoryContext };
 }
 
 function clearOperatorContext() {
   memoryContext = { ...EMPTY_CONTEXT };
-  if (canUseWxStorage()) {
-    wx.removeStorageSync(STORAGE_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.removeStorageSync(STORAGE_KEY);
   }
 }
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-校园活动管理平台，前端为微信小程序原生框架 + Vant Weapp，后端为 Spring Boot 3 + MyBatis-Plus + MySQL 8。仓库根目录即小程序工程根目录，后端代码在 `backend/`。
+校园活动管理平台，前端为微信/QQ 小程序原生框架 + Vant Weapp，后端为 Spring Boot 3 + MyBatis-Plus + MySQL 8。仓库根目录即小程序工程根目录，后端代码在 `backend/`。
 
 ## 常用命令
 
@@ -39,9 +39,17 @@ mvn test -Dtest=ClassName#method # 运行单个测试方法
 
 新增接口优先加到 `utils/api-modules/` 对应模块，再由 `utils/api.js` 导出。
 
+关键工具函数：
+- `utils/operator-context.js`：管理操作人身份（operatorUserId + operatorRole），写操作自动拼接到 query 参数
+- `utils/runtime-api.js`：多平台运行时 API 抽象层（微信/QQ小程序适配）
+- `utils/feedback.js`：统一用户反馈（Toast/Modal）
+- `utils/auth.js`：Token 管理与登录状态
+
 ### 后端分层
 
 Controller → Service 接口（`service/v1/`）→ Service 实现（`service/impl/v1/`）→ Mapper（MyBatis-Plus）。响应统一用 `ApiResponse` 封装，业务异常用 `BusinessException` + `ErrorCode`。
+
+ErrorCode 定义：`SUCCESS(0)`、`BAD_REQUEST(40000)`、`VALIDATION_ERROR(40001)`、`FORBIDDEN(40300)`、`NOT_FOUND(40400)`、`CONFLICT(40900)`、`DATA_INTEGRITY_ERROR(40901)`、`INTERNAL_ERROR(50000)`。
 
 ### 数据库
 
@@ -51,6 +59,12 @@ Controller → Service 接口（`service/v1/`）→ Service 实现（`service/im
 
 三种角色：STUDENT（学生）、ORGANIZER（组织者）、ADMIN（管理员）。活动级权限通过 `activity_manager` 表控制。操作人上下文通过前端 `operator-context.js` 在请求 query 中传递。
 
+### 测试
+
+后端测试在 `backend/src/test/java/com/campus/activity/`：
+- `service/`：Service 层单元测试（Mock Mapper）
+- `controller/`：Controller 集成测试（`V1ApiControllerIntegrationTest`）
+
 ## 开发规范
 
 - 后端新增接口只放 `controller/v1/`，遵循 RESTful + `ApiResponse` 统一响应
@@ -58,6 +72,7 @@ Controller → Service 接口（`service/v1/`）→ Service 实现（`service/im
 - 小程序工程根目录（`app.*`、`pages/`、`static/`）不要挪到子目录
 - `backend/uploads/` 只保留 `.gitkeep`，不提交实际上传文件
 - 辅助脚本放 `tools/`，文档放 `docs/`
+- 微信和 QQ 小程序共享同一代码库，通过 `runtime-api.js` 做平台适配
 
 ## 测试账号
 

@@ -2,6 +2,7 @@ package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
 import com.campus.activity.dto.v1.auth.LoginRequest;
+import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.dto.v1.auth.WechatLoginRequest;
 import com.campus.activity.service.v1.V1AuthService;
@@ -63,5 +64,16 @@ public class V1AuthController {
     @PostMapping("/wechat-login")
     public ApiResponse<LoginUserView> wechatLogin(@Valid @RequestBody WechatLoginRequest request) {
         return ApiResponse.success("wechat login success", authService.wechatLogin(request));
+    }
+
+    /**
+     * QQ mini-program login.
+     *
+     * @param request qq login request
+     * @return login user info
+     */
+    @PostMapping("/qq-login")
+    public ApiResponse<LoginUserView> qqLogin(@Valid @RequestBody QqLoginRequest request) {
+        return ApiResponse.success("qq login success", authService.qqLogin(request));
     }
 }

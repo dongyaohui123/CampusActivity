@@ -2,6 +2,7 @@ package com.campus.activity.service.impl.v1;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.auth.LoginRequest;
+import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.dto.v1.auth.WechatLoginRequest;
 import com.campus.activity.entity.User;
@@ -10,6 +11,7 @@ import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.AvatarUrlService;
+import com.campus.activity.service.v1.QqAuthGateway;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.service.v1.WechatAuthGateway;
 import com.campus.activity.view.v1.LoginUserView;
@@ -26,18 +28,23 @@ import org.springframework.util.StringUtils;
 public class V1AuthServiceImpl implements V1AuthService {
     private static final String PHONE_REGEX = "^1\\d{10}$";
     private static final String WECHAT_USERNAME_PREFIX = "wx_u_";
-    private static final int WECHAT_CREATE_RETRY_LIMIT = 6;
+    private static final String QQ_USERNAME_PREFIX = "qq_u_";
+    private static final String QQ_OPENID_PREFIX = "qq:";
+    private static final int THIRD_PARTY_CREATE_RETRY_LIMIT = 6;
     private final UserMapper userMapper;
     private final WechatAuthGateway wechatAuthGateway;
+    private final QqAuthGateway qqAuthGateway;
     private final AvatarUrlService avatarUrlService;
 
     public V1AuthServiceImpl(
             UserMapper userMapper,
             WechatAuthGateway wechatAuthGateway,
+            QqAuthGateway qqAuthGateway,
             AvatarUrlService avatarUrlService
     ) {
         this.userMapper = userMapper;
         this.wechatAuthGateway = wechatAuthGateway;
+        this.qqAuthGateway = qqAuthGateway;
         this.avatarUrlService = avatarUrlService;
     }
 
@@ -108,6 +115,47 @@ public class V1AuthServiceImpl implements V1AuthService {
         String avatarUrl = trimToNull(avatarUrlService.normalizeForStorage(request.getAvatarUrl()));
         Integer gender = normalizeGender(request.getGender());
 
+        return loginWithThirdPartyOpenid(
+                openid,
+                nickname,
+                avatarUrl,
+                gender,
+                WECHAT_USERNAME_PREFIX,
+                "微信用户",
+                "wechat login create user failed"
+        );
+    }
+
+    @Override
+    @Transactional
+    public LoginUserView qqLogin(QqLoginRequest request) {
+        String code = StringUtils.trimWhitespace(request.getCode());
+        String rawOpenid = qqAuthGateway.exchangeCodeForOpenid(code);
+        String openid = QQ_OPENID_PREFIX + StringUtils.trimWhitespace(rawOpenid);
+        String nickname = trimToNull(request.getNickname());
+        String avatarUrl = trimToNull(avatarUrlService.normalizeForStorage(request.getAvatarUrl()));
+        Integer gender = normalizeGender(request.getGender());
+
+        return loginWithThirdPartyOpenid(
+                openid,
+                nickname,
+                avatarUrl,
+                gender,
+                QQ_USERNAME_PREFIX,
+                "QQ用户",
+                "qq login create user failed"
+        );
+    }
+
+    private LoginUserView loginWithThirdPartyOpenid(
+            String openid,
+            String nickname,
+            String avatarUrl,
+            Integer gender,
+            String usernamePrefix,
+            String defaultNickname,
+            String createFailedMessage
+    ) {
         User existed = userMapper.selectByOpenid(openid);
         if (existed != null) {
             assertActive(existed);
@@ -115,12 +163,28 @@ public class V1AuthServiceImpl implements V1AuthService {
             return toLoginView(existed);
         }
 
-        return createWechatUserWithRetry(openid, nickname, avatarUrl, gender);
+        return createThirdPartyUserWithRetry(
+                openid,
+                nickname,
+                avatarUrl,
+                gender,
+                usernamePrefix,
+                defaultNickname,
+                createFailedMessage
+        );
     }
 
-    private LoginUserView createWechatUserWithRetry(String openid, String nickname, String avatarUrl, Integer gender) {
-        for (int i = 0; i < WECHAT_CREATE_RETRY_LIMIT; i++) {
-            User user = buildWechatUser(openid, nickname, avatarUrl, gender);
+    private LoginUserView createThirdPartyUserWithRetry(
+            String openid,
+            String nickname,
+            String avatarUrl,
+            Integer gender,
+            String usernamePrefix,
+            String defaultNickname,
+            String createFailedMessage
+    ) {
+        for (int i = 0; i < THIRD_PARTY_CREATE_RETRY_LIMIT; i++) {
+            User user = buildThirdPartyUser(openid, nickname, avatarUrl, gender, usernamePrefix, defaultNickname);
             try {
                 userMapper.insert(user);
                 return toLoginView(user);
@@ -137,18 +201,25 @@ public class V1AuthServiceImpl implements V1AuthService {
                         return toLoginView(racedUser);
                     }
                 }
-                throw new BusinessException(ErrorCode.CONFLICT, "wechat login create user failed");
+                throw new BusinessException(ErrorCode.CONFLICT, createFailedMessage);
             }
         }
-        throw new BusinessException(ErrorCode.CONFLICT, "wechat login create user failed");
+        throw new BusinessException(ErrorCode.CONFLICT, createFailedMessage);
     }
 
-    private User buildWechatUser(String openid, String nickname, String avatarUrl, Integer gender) {
+    private User buildThirdPartyUser(
+            String openid,
+            String nickname,
+            String avatarUrl,
+            Integer gender,
+            String usernamePrefix,
+            String defaultNickname
+    ) {
         User user = new User();
-        user.setUsername(generateWechatUsername());
+        user.setUsername(generateThirdPartyUsername(usernamePrefix));
         user.setPasswordHash(null);
         user.setOpenid(openid);
-        user.setNickname(StringUtils.hasText(nickname) ? nickname : "微信用户");
+        user.setNickname(StringUtils.hasText(nickname) ? nickname : defaultNickname);
         user.setAvatarUrl(avatarUrl);
         user.setGender(gender != null ? gender : 0);
         user.setRole(UserRole.STUDENT);
@@ -188,10 +259,10 @@ public class V1AuthServiceImpl implements V1AuthService {
         return StringUtils.hasText(trimmed) ? trimmed : null;
     }
 
-    private String generateWechatUsername() {
+    private String generateThirdPartyUsername(String prefix) {
         long now = System.currentTimeMillis();
         int random = ThreadLocalRandom.current().nextInt(100000, 999999);
-        return WECHAT_USERNAME_PREFIX + Long.toString(now, 36) + Integer.toString(random, 36);
+        return prefix + Long.toString(now, 36) + Integer.toString(random, 36);
     }
 
     private boolean isPhone(String value) {

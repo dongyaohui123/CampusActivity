@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.auth.LoginRequest;
+import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.dto.v1.auth.WechatLoginRequest;
 import com.campus.activity.entity.User;
@@ -20,6 +21,7 @@ import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.AvatarUrlService;
+import com.campus.activity.service.v1.QqAuthGateway;
 import com.campus.activity.service.impl.v1.V1AuthServiceImpl;
 import com.campus.activity.service.v1.WechatAuthGateway;
 import com.campus.activity.view.v1.LoginUserView;
@@ -27,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,6 +42,9 @@ class V1AuthServiceImplTest {
 
     @Mock
     private WechatAuthGateway wechatAuthGateway;
+
+    @Mock
+    private QqAuthGateway qqAuthGateway;
 
     @Mock
     private AvatarUrlService avatarUrlService;
@@ -280,5 +286,109 @@ class V1AuthServiceImplTest {
         assertThat(existed.getNickname()).isEqualTo("LocalNick");
         assertThat(existed.getAvatarUrl()).isEqualTo("https://example.com/new.png");
         assertThat(existed.getGender()).isEqualTo(2);
+    }
+
+    @Test
+    void qqLogin_shouldReturnExistingUserWhenPrefixedOpenidExists() {
+        User existed = new User();
+        existed.setId(20L);
+        existed.setUsername("qq_u_existing");
+        existed.setNickname("QQ Existing");
+        existed.setRole(UserRole.STUDENT);
+        existed.setStatus(UserStatus.ACTIVE);
+        existed.setOpenid("qq:qq_open_1");
+        when(qqAuthGateway.exchangeCodeForOpenid("qq-code")).thenReturn("qq_open_1");
+        when(userMapper.selectByOpenid("qq:qq_open_1")).thenReturn(existed);
+
+        QqLoginRequest request = new QqLoginRequest();
+        request.setCode("qq-code");
+
+        LoginUserView result = authService.qqLogin(request);
+
+        assertThat(result.getId()).isEqualTo(20L);
+        assertThat(result.getUsername()).isEqualTo("qq_u_existing");
+        verify(userMapper, never()).insert(any(User.class));
+    }
+
+    @Test
+    void qqLogin_shouldAutoCreateWithPrefixedOpenidAndDefaultNickname() {
+        when(qqAuthGateway.exchangeCodeForOpenid("qq-code")).thenReturn("qq_open_2");
+        when(userMapper.selectByOpenid("qq:qq_open_2")).thenReturn(null);
+        doAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(188L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
+
+        QqLoginRequest request = new QqLoginRequest();
+        request.setCode("qq-code");
+
+        LoginUserView result = authService.qqLogin(request);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userMapper, times(1)).insert(userCaptor.capture());
+        assertThat(result.getId()).isEqualTo(188L);
+        assertThat(result.getNickname()).isEqualTo("QQ用户");
+        assertThat(userCaptor.getValue().getOpenid()).isEqualTo("qq:qq_open_2");
+        assertThat(userCaptor.getValue().getUsername()).startsWith("qq_u_");
+        assertThat(userCaptor.getValue().getRole()).isEqualTo(UserRole.STUDENT);
+        assertThat(userCaptor.getValue().getStatus()).isEqualTo(UserStatus.ACTIVE);
+    }
+
+    @Test
+    void qqLogin_shouldRetryWhenUsernameConflictBeforeInsert() {
+        when(qqAuthGateway.exchangeCodeForOpenid("qq-code")).thenReturn("qq_open_3");
+        when(userMapper.selectByOpenid("qq:qq_open_3")).thenReturn(null);
+        AtomicInteger count = new AtomicInteger(0);
+        doAnswer(invocation -> {
+            int current = count.incrementAndGet();
+            if (current == 1) {
+                throw new DataIntegrityViolationException("Duplicate entry for key 'uk_users_username'");
+            }
+            User user = invocation.getArgument(0);
+            user.setId(199L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
+
+        QqLoginRequest request = new QqLoginRequest();
+        request.setCode("qq-code");
+
+        LoginUserView result = authService.qqLogin(request);
+
+        assertThat(result.getId()).isEqualTo(199L);
+        verify(userMapper, times(2)).insert(any(User.class));
+    }
+
+    @Test
+    void qqLogin_shouldPropagateBadRequestWhenGatewayFails() {
+        when(qqAuthGateway.exchangeCodeForOpenid("bad-code"))
+                .thenThrow(new BusinessException(ErrorCode.BAD_REQUEST, "qq api error"));
+
+        QqLoginRequest request = new QqLoginRequest();
+        request.setCode("bad-code");
+
+        assertThatThrownBy(() -> authService.qqLogin(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(ex -> ((BusinessException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.BAD_REQUEST);
+    }
+
+    @Test
+    void qqLogin_shouldNotQueryRawWechatOpenid() {
+        when(qqAuthGateway.exchangeCodeForOpenid("qq-code")).thenReturn("shared_openid");
+        when(userMapper.selectByOpenid("qq:shared_openid")).thenReturn(null);
+        doAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(200L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
+
+        QqLoginRequest request = new QqLoginRequest();
+        request.setCode("qq-code");
+
+        authService.qqLogin(request);
+
+        verify(userMapper).selectByOpenid("qq:shared_openid");
+        verify(userMapper, never()).selectByOpenid("shared_openid");
     }
 }

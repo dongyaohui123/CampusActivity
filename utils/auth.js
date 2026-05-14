@@ -1,13 +1,10 @@
 const { setOperatorContext, clearOperatorContext } = require("./operator-context");
 const { normalizeAvatarUrl } = require("./avatar-url");
+const { getStorageApi } = require("./runtime-api");
 
 const LOGIN_USER_KEY = "login_user";
 
 let memoryLoginUser = null;
-
-function canUseWxStorage() {
-  return typeof wx !== "undefined" && typeof wx.getStorageSync === "function" && typeof wx.setStorageSync === "function";
-}
 
 /**
  * 统一登录用户结构，保证 id/role 可用。
@@ -33,8 +30,9 @@ function normalizeLoginUser(user) {
 }
 
 function getLoginUser() {
-  if (canUseWxStorage()) {
-    const stored = wx.getStorageSync(LOGIN_USER_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    const stored = storageApi.getStorageSync(LOGIN_USER_KEY);
     const normalized = normalizeLoginUser(stored);
     if (normalized) {
       memoryLoginUser = normalized;
@@ -55,8 +53,9 @@ function setLoginUser(user) {
     return null;
   }
   memoryLoginUser = normalized;
-  if (canUseWxStorage()) {
-    wx.setStorageSync(LOGIN_USER_KEY, normalized);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.setStorageSync(LOGIN_USER_KEY, normalized);
   }
   setOperatorContext({
     operatorUserId: normalized.id,
@@ -67,8 +66,9 @@ function setLoginUser(user) {
 
 function clearLoginUser() {
   memoryLoginUser = null;
-  if (canUseWxStorage()) {
-    wx.removeStorageSync(LOGIN_USER_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.removeStorageSync(LOGIN_USER_KEY);
   }
   clearOperatorContext();
 }

@@ -35,8 +35,18 @@ function wechatLogin(payload) {
   });
 }
 
+function qqLogin(payload) {
+  return request({
+    path: "/api/v1/auth/qq-login",
+    method: "POST",
+    data: payload || {},
+    withOperator: false,
+  });
+}
+
 module.exports = {
   login,
   registerUser,
   wechatLogin,
+  qqLogin,
 };

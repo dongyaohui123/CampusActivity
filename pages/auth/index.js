@@ -1,6 +1,7 @@
-const { login, registerUser, wechatLogin } = require("../../utils/api");
+const { login, registerUser, wechatLogin, qqLogin } = require("../../utils/api");
 const { setLoginUser } = require("../../utils/auth");
 const feedback = require("../../utils/feedback");
+const { getRuntimeApi } = require("../../utils/runtime-api");
 
 const PHONE_REGEX = /^1\d{10}$/;
 
@@ -71,14 +72,18 @@ Page({
 
   async onSocialTap(event) {
     const provider = String(event.currentTarget.dataset.provider || "").toLowerCase();
-    if (provider !== "wechat") {
-      feedback.info("功能开发中");
-      return;
-    }
     if (this.data.loading) {
       return;
     }
-    await this.submitWechatLogin();
+    if (provider === "wechat") {
+      await this.submitWechatLogin();
+      return;
+    }
+    if (provider === "qq") {
+      await this.submitQqLogin();
+      return;
+    }
+    feedback.info("功能开发中");
   },
 
   async onSubmitTap() {
@@ -195,6 +200,33 @@ Page({
     return wechatLogin(payload);
   },
 
+  async submitQqLogin() {
+    this.setData({ loading: true });
+    try {
+      let code = await this.getQqLoginCode();
+      try {
+        const user = await qqLogin({ code });
+        setLoginUser(user);
+        feedback.success("QQ 登录成功");
+        this.backAfterAuth();
+      } catch (e) {
+        if (this.shouldRetryQqCode(e)) {
+          code = await this.getQqLoginCode();
+          const user = await qqLogin({ code });
+          setLoginUser(user);
+          feedback.success("QQ 登录成功");
+          this.backAfterAuth();
+          return;
+        }
+        throw e;
+      }
+    } catch (e) {
+      // request 层已统一提示错误
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
   shouldRetryWechatCode(error) {
     const message = String((error && error.message) || "").toLowerCase();
     if (!message) {
@@ -207,8 +239,14 @@ Page({
   },
 
   getWechatLoginCode() {
+    const runtimeApi = getRuntimeApi("wx");
     return new Promise((resolve, reject) => {
-      wx.login({
+      if (!runtimeApi || typeof runtimeApi.login !== "function") {
+        feedback.error("微信登录环境不可用");
+        reject(new Error("wechat runtime unavailable"));
+        return;
+      }
+      runtimeApi.login({
         success: (res) => {
           const code = String((res && res.code) || "").trim();
           if (!code) {
@@ -226,12 +264,49 @@ Page({
     });
   },
 
+  shouldRetryQqCode(error) {
+    const message = String((error && error.message) || "").toLowerCase();
+    if (!message) {
+      return false;
+    }
+    return message.includes("invalid code")
+      || message.includes("code been used")
+      || message.includes("errcode=40029")
+      || message.includes("errcode=40163");
+  },
+
+  getQqLoginCode() {
+    const runtimeApi = getRuntimeApi("qq");
+    if (!runtimeApi || typeof runtimeApi.login !== "function") {
+      feedback.error("请在 QQ 小程序环境使用 QQ 登录");
+      return Promise.reject(new Error("qq runtime unavailable"));
+    }
+    return new Promise((resolve, reject) => {
+      runtimeApi.login({
+        success: (res) => {
+          const code = String((res && res.code) || "").trim();
+          if (!code) {
+            feedback.error("QQ 登录失败：未获取到登录凭证");
+            reject(new Error("qq login code missing"));
+            return;
+          }
+          resolve(code);
+        },
+        fail: () => {
+          feedback.error("QQ 登录失败，请稍后重试");
+          reject(new Error("qq login failed"));
+        },
+      });
+    });
+  },
+
   tryGetWechatProfile() {
-    if (typeof wx.getUserProfile !== "function") {
+    const runtimeApi = getRuntimeApi("wx");
+    if (!runtimeApi || typeof runtimeApi.getUserProfile !== "function") {
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
-      wx.getUserProfile({
+      runtimeApi.getUserProfile({
         desc: "用于完善您的个人资料",
         success: (res) => resolve((res && res.userInfo) || null),
         fail: () => resolve(null),
@@ -240,12 +315,15 @@ Page({
   },
 
   backAfterAuth() {
+    const runtimeApi = getRuntimeApi();
     const pages = getCurrentPages();
-    if (pages.length > 1) {
-      wx.navigateBack();
+    if (pages.length > 1 && runtimeApi && typeof runtimeApi.navigateBack === "function") {
+      runtimeApi.navigateBack();
       return;
     }
-    wx.reLaunch({ url: "/pages/mine/index" });
+    if (runtimeApi && typeof runtimeApi.reLaunch === "function") {
+      runtimeApi.reLaunch({ url: "/pages/mine/index" });
+    }
   },
 
   onBackTap() {
