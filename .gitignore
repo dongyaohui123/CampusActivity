@@ -11,6 +11,10 @@ project.private.config.json
 .tmp_orc_skills_sparse/
 tmp/
 
+# Local config with secrets
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.properties
+
 # Runtime artifacts
 backend/*.log
 backend/uploads/**
