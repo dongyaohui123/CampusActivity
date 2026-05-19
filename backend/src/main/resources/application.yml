@@ -29,8 +29,8 @@ logging:
 
 wechat:
   miniapp:
-    appid: wx89bee6c990f52064
-    secret: 59a101a98efc3f34564bd75724fcaf7c
+    appid: ${WECHAT_MINIAPP_APPID:wx89bee6c990f52064}
+    secret: ${WECHAT_MINIAPP_SECRET:59a101a98efc3f34564bd75724fcaf7c}
 
 qq:
   miniapp:
