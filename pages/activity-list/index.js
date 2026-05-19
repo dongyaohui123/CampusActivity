@@ -2,15 +2,6 @@
 
 const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
-const CATEGORY_ITEMS = [
-  { key: "ALL", label: "全部" },
-  { key: "SPORTS", label: "运动" },
-  { key: "LIFE", label: "生活" },
-  { key: "EDU", label: "教育" },
-  { key: "PARTY", label: "聚会" },
-  { key: "OTHER", label: "其他" },
-];
-
 const TIME_ITEMS = [
   { key: "ALL", label: "不限" },
   { key: "TODAY", label: "今天" },
@@ -89,20 +80,14 @@ function inThisWeek(date, now) {
 }
 
 /**
- * 基于标题与摘要关键字进行轻量分类。
+ * 从活动数据中提取唯一分类名，动态构建分类选项。
  */
-function classifyByText(activity) {
-  const text = `${activity.title || ""} ${activity.summary || ""}`.toLowerCase();
-  if (/sport|basketball|football|run|fitness|运动|篮球|足球|跑步|健身/.test(text)) return "SPORTS";
-  if (/life|mental|health|community|charity|生活|心理|健康|社区|公益/.test(text)) return "LIFE";
-  if (/lecture|education|study|academic|training|教育|讲座|学习|学术|培训/.test(text)) return "EDU";
-  if (/party|music|salon|gathering|聚会|音乐|沙龙|联谊|晚会/.test(text)) return "PARTY";
-  return "OTHER";
-}
-
-function getCategoryLabel(key) {
-  const category = CATEGORY_ITEMS.find((item) => item.key === key);
-  return category ? category.label : "其他";
+function buildCategoriesFromData(list) {
+  const names = [...new Set(list.map((item) => item.activityTypeName).filter(Boolean))];
+  return [
+    { key: "ALL", label: "全部" },
+    ...names.map((name) => ({ key: name, label: name })),
+  ];
 }
 
 function deriveStatusKey(activity, now) {
@@ -133,7 +118,7 @@ function normalizeLocationCampus(locationCampus) {
  * 列表项视图模型统一：封面/时间/地点/分类/状态。
  */
 function normalizeActivity(item, now) {
-  const categoryKey = classifyByText(item);
+  const categoryKey = item.activityTypeName || "其他";
   const statusKey = deriveStatusKey(item, now);
   const locationCampus = normalizeLocationCampus(item.locationCampus);
   const fallbackCover = getActivityFallbackCover(item);
@@ -144,7 +129,7 @@ function normalizeActivity(item, now) {
     timeDisplay: formatTime(item.startTime),
     locationDisplay: item.location || "地点待定",
     categoryKey,
-    categoryLabel: getCategoryLabel(categoryKey),
+    categoryLabel: categoryKey,
     locationCampus,
     statusKey,
     statusDisplay: getStatusDisplay(statusKey),
@@ -166,7 +151,7 @@ Page({
     loading: false,
     keyword: "",
     selectedCategory: "ALL",
-    categories: CATEGORY_ITEMS,
+    categories: [],
     selectedTime: "ALL",
     timeOptions: TIME_ITEMS,
     selectedLocation: "ALL",
@@ -361,7 +346,9 @@ Page({
     try {
       const now = new Date();
       const list = await listPublicActivities({});
-      this.setData({ fullList: (list || []).map((item) => normalizeActivity(item, now)) });
+      const normalized = (list || []).map((item) => normalizeActivity(item, now));
+      const categories = buildCategoriesFromData(normalized);
+      this.setData({ fullList: normalized, categories });
       this.applyFilter();
     } catch (error) {
       this.setData({

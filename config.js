@@ -1,7 +1,7 @@
 // Change only this flag:
 // "local" -> WeChat DevTools on the same computer
 // "lan"   -> real phone in the same LAN
-const RUN_ENV = "lan";
+const RUN_ENV = "local";
 
 const BASE_URL_MAP = {
   local: "http://127.0.0.1:8080",
