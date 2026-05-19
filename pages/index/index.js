@@ -1,49 +1,127 @@
-const { listPublicActivities } = require("../../utils/api");
+﻿const { listPublicActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
-
-const DEFAULT_COVER = "https://picsum.photos/640/360?random=9";
+const feedback = require("../../utils/feedback");
+const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
 function formatDisplayDate(value) {
   if (!value) {
-    return "\u65f6\u95f4\u5f85\u5b9a";
+    return "时间待定";
   }
   return String(value).replace("T", " ").slice(5, 16);
 }
 
+/**
+ * 首页活动卡片展示字段映射。
+ */
 function mapActivity(item) {
+  const fallbackCover = getActivityFallbackCover(item);
   return {
     ...item,
-    cover: item.coverUrl || DEFAULT_COVER,
+    cover: resolveActivityCover(item),
+    fallbackCover,
     startDisplay: formatDisplayDate(item.startTime),
-    locationDisplay: item.location || "\u5730\u70b9\u5f85\u5b9a",
+    locationDisplay: item.location || "地点待定",
   };
 }
 
 Page({
   data: {
     i18n: {
-      navTitle: "\u9996\u9875",
-      myActivity: "\u6211\u7684\u6d3b\u52a8",
-      myOrg: "\u6211\u7684\u7ec4\u7ec7",
-      publish: "\u53d1\u5e03\u6d3b\u52a8",
-      recommend: "\u63a8\u8350\u6d3b\u52a8",
-      loading: "\u52a0\u8f7d\u4e2d...",
-      emptyRecommend: "\u6682\u65e0\u63a8\u8350\u6d3b\u52a8",
-      bannerSub: "\u6821\u56ed\u6d3b\u52a8\u4e00\u7ad9\u5f0f\u670d\u52a1",
+      city: "合肥",
+      navTitle: "首页",
+      myActivity: "我的活动",
+      myOrg: "我的组织",
+      publish: "发布活动",
+      recommend: "为你推荐",
+      more: "更多",
+      signing: "报名中",
+      loading: "加载中...",
+      emptyRecommend: "暂无推荐活动",
+      searchPlaceholder: "请搜索活动名",
+      bannerTitle: "校园活动管理平台",
+      bannerSub: "一站式发现、报名与管理校园活动",
     },
     banners: [
-      "https://picsum.photos/980/420?random=31",
-      "https://picsum.photos/980/420?random=32",
-      "https://picsum.photos/980/420?random=33",
+      "/static/activity-themes/club-activity.jpg",
+      "/static/activity-themes/data-tech-talk.jpg",
+      "/static/activity-themes/online-sharing.jpg",
     ],
     recommendList: [],
     loading: false,
+    bottomActive: "home",
+    topPanelPaddingTopPx: 20,
+    cityRowMinHeightPx: 32,
+    searchBoxMarginTopPx: 8,
+  },
+
+  onLoad() {
+    this.initTopPanelSafePadding();
   },
 
   onShow() {
     this.loadRecommendList();
   },
 
+  /**
+   * 基于状态栏/胶囊信息动态计算顶部安全区，适配不同机型。
+   */
+  initTopPanelSafePadding() {
+    let statusBarHeight = 20;
+    let topPanelPaddingTopPx = statusBarHeight + 4;
+    let cityRowMinHeightPx = 32;
+    let searchBoxMarginTopPx = 8;
+
+    try {
+      const systemInfo = wx.getWindowInfo
+        ? wx.getWindowInfo()
+        : wx.getSystemInfoSync
+          ? wx.getSystemInfoSync()
+          : null;
+
+      if (systemInfo && typeof systemInfo.statusBarHeight === "number") {
+        statusBarHeight = systemInfo.statusBarHeight || statusBarHeight;
+      }
+
+      topPanelPaddingTopPx = statusBarHeight + 4;
+      cityRowMinHeightPx = 32;
+      searchBoxMarginTopPx = 8;
+
+      if (wx.getMenuButtonBoundingClientRect) {
+        const menuRect = wx.getMenuButtonBoundingClientRect();
+        if (
+          menuRect &&
+          typeof menuRect.top === "number" &&
+          typeof menuRect.height === "number" &&
+          typeof menuRect.bottom === "number"
+        ) {
+          topPanelPaddingTopPx = Math.ceil(menuRect.top);
+          cityRowMinHeightPx = Math.ceil(menuRect.height);
+          searchBoxMarginTopPx = Math.max(
+            0,
+            Math.ceil((menuRect.bottom + 8) - (topPanelPaddingTopPx + cityRowMinHeightPx))
+          );
+        }
+      }
+    } catch (error) {
+      topPanelPaddingTopPx = statusBarHeight + 4;
+      cityRowMinHeightPx = 32;
+      searchBoxMarginTopPx = 8;
+    }
+
+    this.setData({
+      topPanelPaddingTopPx,
+      cityRowMinHeightPx,
+      searchBoxMarginTopPx,
+    });
+  },
+
+  goFind() {
+    wx.reLaunch({ url: "/pages/activity-list/index" });
+  },
+
+  /**
+   * 拉取推荐活动并裁剪为首页展示数量。
+   */
   async loadRecommendList() {
     this.setData({ loading: true });
     try {
@@ -64,11 +142,27 @@ Page({
     });
   },
 
+  onRecommendImageError(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return;
+    }
+    const target = this.data.recommendList[index];
+    if (target && target.cover !== target.fallbackCover) {
+      this.setData({
+        [`recommendList[${index}].cover`]: target.fallbackCover,
+      });
+    }
+  },
+
+  /**
+   * 快捷入口统一分流：未登录拦截、组织者角色校验、页面跳转。
+   */
   onQuickTap(event) {
     const action = event.currentTarget.dataset.action;
     const loginUser = getLoginUser();
     if (!loginUser) {
-      wx.showToast({ title: "\u8bf7\u5148\u5728\u6211\u7684\u9875\u767b\u5f55", icon: "none" });
+      feedback.error("请先在“我的”页登录");
       return;
     }
 
@@ -79,7 +173,7 @@ Page({
 
     if (action === "myOrg" || action === "publish") {
       if (loginUser.role !== "ORGANIZER") {
-        wx.showToast({ title: "\u4ec5\u7ec4\u7ec7\u8005\u53ef\u4f7f\u7528", icon: "none" });
+        feedback.error("仅组织者可使用");
         return;
       }
       wx.navigateTo({ url: "/pages/organizer-activities/index" });
@@ -87,7 +181,7 @@ Page({
   },
 
   onBottomTabChange(event) {
-    const tab = event.detail.tab;
+    const tab = event.detail;
     if (tab === "home") {
       return;
     }

@@ -3,6 +3,9 @@ package com.campus.activity.view.v1;
 import com.campus.activity.enums.RegistrationStatus;
 import java.time.LocalDateTime;
 
+/**
+ * ActivityRegistrationUserView页面视图对象。
+ */
 public class ActivityRegistrationUserView {
     private Long registrationId;
     private Long userId;
@@ -12,6 +15,7 @@ public class ActivityRegistrationUserView {
     private String remark;
     private LocalDateTime registeredAt;
     private LocalDateTime cancelledAt;
+    private LocalDateTime checkinAt;
 
     public Long getRegistrationId() { return registrationId; }
     public void setRegistrationId(Long registrationId) { this.registrationId = registrationId; }
@@ -29,4 +33,6 @@ public class ActivityRegistrationUserView {
     public void setRegisteredAt(LocalDateTime registeredAt) { this.registeredAt = registeredAt; }
     public LocalDateTime getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
+    public LocalDateTime getCheckinAt() { return checkinAt; }
+    public void setCheckinAt(LocalDateTime checkinAt) { this.checkinAt = checkinAt; }
 }

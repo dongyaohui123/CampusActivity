@@ -12,7 +12,10 @@
         <result property="remark" column="remark"/>
         <result property="registeredAt" column="registered_at"/>
         <result property="cancelledAt" column="cancelled_at"/>
+        <result property="ticketCode" column="ticket_code"/>
+        <result property="ticketIssuedAt" column="ticket_issued_at"/>
         <result property="checkinAt" column="checkin_at"/>
+        <result property="checkinOperatorId" column="checkin_operator_id"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
@@ -23,7 +26,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, activity_id, user_id, status, remark, registered_at, cancelled_at, checkin_at, created_at, updated_at
+        id, activity_id, user_id, status, remark, registered_at, cancelled_at, ticket_code, ticket_issued_at,
+        checkin_at, checkin_operator_id, created_at, updated_at
     </sql>
 
     <!--

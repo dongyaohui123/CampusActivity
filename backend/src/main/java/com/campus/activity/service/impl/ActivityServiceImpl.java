@@ -17,6 +17,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 活动管理服务实现（旧版接口）。
+ */
 @Service
 public class ActivityServiceImpl implements ActivityService {
     private final ActivityMapper activityMapper;
@@ -25,6 +28,12 @@ public class ActivityServiceImpl implements ActivityService {
         this.activityMapper = activityMapper;
     }
 
+    /**
+     * 创建活动并设置默认业务字段。
+     *
+     * @param request 创建请求参数
+     * @return 创建后的活动
+     */
     @Override
     @Transactional
     public Activity createActivity(CreateActivityRequest request) {
@@ -55,6 +64,13 @@ public class ActivityServiceImpl implements ActivityService {
         return activity;
     }
 
+    /**
+     * 更新活动的可修改字段。
+     *
+     * @param id 活动 ID
+     * @param request 更新请求参数
+     * @return 更新后的活动
+     */
     @Override
     @Transactional
     public Activity updateActivity(Long id, UpdateActivityRequest request) {
@@ -120,6 +136,12 @@ public class ActivityServiceImpl implements ActivityService {
         return existing;
     }
 
+    /**
+     * 逻辑取消活动。
+     *
+     * @param id 活动 ID
+     * @param request 取消请求参数
+     */
     @Override
     @Transactional
     public void cancelActivity(Long id, CancelActivityRequest request) {
@@ -136,6 +158,12 @@ public class ActivityServiceImpl implements ActivityService {
         activityMapper.updateById(existing);
     }
 
+    /**
+     * 按 ID 查询活动。
+     *
+     * @param id 活动 ID
+     * @return 活动详情
+     */
     @Override
     public Activity getActivityById(Long id) {
         Activity activity = activityMapper.selectById(id);
@@ -145,6 +173,17 @@ public class ActivityServiceImpl implements ActivityService {
         return activity;
     }
 
+    /**
+     * 按筛选条件查询活动列表。
+     *
+     * @param status 活动状态筛选
+     * @param visibility 可见性筛选
+     * @param organizerId 主办方用户 ID 筛选
+     * @param keyword 关键字筛选
+     * @param startFrom 活动开始时间下界
+     * @param startTo 活动开始时间上界
+     * @return 活动列表
+     */
     @Override
     public List<ActivityListItemView> listActivities(
             ActivityStatus status,
@@ -157,6 +196,9 @@ public class ActivityServiceImpl implements ActivityService {
         return activityMapper.selectActivityList(status, visibility, organizerId, keyword, startFrom, startTo);
     }
 
+    /**
+     * 判断请求中是否至少包含一个可更新字段。
+     */
     private boolean hasAnyUpdatableField(UpdateActivityRequest request) {
         return request.getOrganizerId() != null
                 || request.getPublisherId() != null
@@ -173,6 +215,9 @@ public class ActivityServiceImpl implements ActivityService {
                 || request.getFeatured() != null;
     }
 
+    /**
+     * 校验活动时间窗口合法性。
+     */
     private void validateActivityTime(LocalDateTime start, LocalDateTime end, LocalDateTime registrationDeadline) {
         if (start == null || end == null) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "startTime and endTime are required");

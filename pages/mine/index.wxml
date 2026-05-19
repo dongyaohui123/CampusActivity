@@ -1,45 +1,183 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{false}}" color="#111111" background="#f7f8fa"></navigation-bar>
+<van-nav-bar title="{{i18n.navTitle}}" />
 
 <scroll-view class="mine-scroll" scroll-y type="list">
-  <view class="with-bottom-nav">
+  <view class="mine-page">
     <view class="profile-header">
-      <view wx:if="{{!loginUser}}" class="auth-card">
-        <view class="auth-switch">
-          <view class="auth-tab {{authMode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="onAuthModeChange">{{i18n.login}}</view>
-          <view class="auth-tab {{authMode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="onAuthModeChange">{{i18n.register}}</view>
+      <view class="header-top">
+        <view class="avatar">
+          <image wx:if="{{loginUser && loginUser.avatarUrl}}" class="avatar-img" src="{{loginUser.avatarUrl}}" mode="aspectFill" binderror="onProfileAvatarError" />
+          <view wx:else class="avatar-text">{{avatarText}}</view>
         </view>
-
-        <input class="auth-input" data-field="username" value="{{username}}" bindinput="onInput" placeholder="{{i18n.username}}" />
-        <input class="auth-input" password data-field="password" value="{{password}}" bindinput="onInput" placeholder="{{i18n.password}}" />
-        <input wx:if="{{authMode === 'register'}}" class="auth-input" data-field="registerNickname" value="{{registerNickname}}" bindinput="onInput" placeholder="{{i18n.nickname}}" />
-
-        <button wx:if="{{authMode === 'login'}}" class="auth-btn" loading="{{loading}}" bindtap="onLoginTap">{{i18n.login}}</button>
-        <button wx:if="{{authMode === 'register'}}" class="auth-btn" loading="{{loading}}" bindtap="onRegisterTap">{{i18n.registerAndLogin}}</button>
-        <view class="auth-tip">{{i18n.wechatLater}}</view>
+        <view class="user-meta">
+          <view class="user-name">{{loginUser ? (loginUser.nickname || loginUser.username) : i18n.guestName}}</view>
+          <view wx:if="{{loginUser}}" class="user-id">{{i18n.userIdPrefix}}{{loginUser.id}}</view>
+          <view class="user-desc">{{loginUser ? i18n.welcomeBack : i18n.guestDesc}}</view>
+        </view>
+        <view wx:if="{{loginUser}}" class="profile-edit-btn" bindtap="onEditProfileTap">{{i18n.editProfile}}</view>
       </view>
 
-      <view wx:if="{{loginUser}}" class="user-panel">
-        <view class="row-between mb-16">
-          <view class="user-name">{{loginUser.nickname || loginUser.username}}</view>
-          <view class="role-tag">{{loginUser.role}}</view>
+      <view class="count-row">
+        <view class="count-item">
+          <view class="count-num">{{stats.participatedCount}}</view>
+          <view class="count-label">{{i18n.participatedCount}}</view>
         </view>
-        <view class="count-row">
-          <view class="count-item"><view class="count-num">{{stats.participatedCount}}</view><view class="count-label">{{i18n.participatedCount}}</view></view>
-          <view class="count-item"><view class="count-num">{{stats.initiatedCount}}</view><view class="count-label">{{i18n.initiatedCount}}</view></view>
-          <view class="count-item"><view class="count-num">{{stats.managedOrgCount}}</view><view class="count-label">{{i18n.managedOrgCount}}</view></view>
+        <view class="count-item">
+          <view class="count-num">{{stats.initiatedCount}}</view>
+          <view class="count-label">{{i18n.initiatedCount}}</view>
+        </view>
+        <view class="count-item">
+          <view class="count-num">{{stats.managedOrgCount}}</view>
+          <view class="count-label">{{i18n.managedOrgCount}}</view>
         </view>
       </view>
     </view>
 
-    <view class="menu-card">
-      <view class="menu-item" data-action="myActivity" bindtap="onMenuTap">{{i18n.myActivity}}</view>
-      <view class="menu-item" data-action="myOrg" bindtap="onMenuTap">{{i18n.myOrg}}</view>
-      <view wx:if="{{loginUser && loginUser.role === 'ADMIN'}}" class="menu-item" data-action="review" bindtap="onMenuTap">{{i18n.reviewManage}}</view>
-      <view class="menu-item" data-action="help" bindtap="onMenuTap">{{i18n.helpCenter}}</view>
-      <view class="menu-item" data-action="contact" bindtap="onMenuTap">{{i18n.contact}}</view>
-      <view wx:if="{{loginUser}}" class="menu-item danger" bindtap="onLogoutTap">{{i18n.logout}}</view>
+    <view class="quick-card">
+      <view wx:for="{{quickActions}}" wx:key="action" class="quick-item" data-action="{{item.action}}" bindtap="onQuickActionTap">
+        <view class="quick-icon">
+          <van-icon name="{{item.iconName}}" custom-class="quick-icon-glyph" />
+        </view>
+        <view class="quick-title">{{item.title}}</view>
+        <view class="quick-desc">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <view class="activity-panel">
+      <view class="panel-head">
+        <view class="panel-title">{{i18n.myActivity}}</view>
+        <view class="panel-more" data-action="{{sectionEntry.action}}" bindtap="onSectionMoreTap">{{sectionEntry.text}}</view>
+      </view>
+
+      <view wx:if="{{!loginUser}}" class="panel-empty-login">
+        <view class="empty-text">{{i18n.guestActivityHint}}</view>
+        <van-button size="small" type="primary" data-action="login" bind:click="onMenuTap">{{i18n.goLogin}}</van-button>
+      </view>
+
+      <block wx:if="{{loginUser}}">
+        <view wx:if="{{activityTabs.length}}" class="activity-tabs">
+          <view
+            wx:for="{{activityTabs}}"
+            wx:key="key"
+            class="activity-tab {{activeActivityTab === item.key ? 'activity-tab-active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onActivityTabTap"
+          >
+            <text>{{item.label}}</text>
+            <text wx:if="{{item.count > 0}}" class="tab-badge">{{item.count}}</text>
+          </view>
+        </view>
+
+        <van-empty wx:if="{{loadingActivities}}" image="search" description="{{i18n.loading}}" />
+
+        <block wx:for="{{filteredActivityCards}}" wx:key="itemKey">
+          <view class="activity-card">
+            <view class="activity-top">
+              <view class="activity-title">{{item.title}}</view>
+              <view class="status-pill status-{{item.statusTone}}">{{item.statusText}}</view>
+            </view>
+            <view class="activity-meta">{{i18n.locationLabel}}：{{item.locationText}}</view>
+            <view class="activity-meta">{{i18n.timeLabel}}：{{item.timeText}}</view>
+            <view
+              wx:if="{{item.sourceType === 'studentRegistration' && item.canShowInlineTicketQr}}"
+              class="ticket-qr-inline"
+              data-action="viewTicket"
+              data-item-id="{{item.registrationId}}"
+              bindtap="onCardActionTap"
+            >
+              <view class="ticket-qr-inline-title">{{i18n.ticketQrTitle}}</view>
+              <image class="ticket-qr-inline-image" src="{{item.ticketQrCodeUrl}}" mode="aspectFit" />
+              <view class="ticket-qr-inline-hint">{{i18n.ticketQrHint}}</view>
+            </view>
+            <view wx:if="{{item.actions && item.actions.length}}" class="activity-actions">
+              <block wx:for="{{item.actions}}" wx:key="action" wx:for-item="actionItem">
+                <van-button
+                  wx:if="{{actionItem.tone === 'primary'}}"
+                  size="small"
+                  type="primary"
+                  custom-class="activity-action-btn"
+                  data-action="{{actionItem.action}}"
+                  data-item-id="{{actionItem.itemId}}"
+                  bind:click="onCardActionTap"
+                >
+                  {{actionItem.label}}
+                </van-button>
+                <van-button
+                  wx:else
+                  size="small"
+                  plain
+                  custom-class="activity-action-btn"
+                  data-action="{{actionItem.action}}"
+                  data-item-id="{{actionItem.itemId}}"
+                  bind:click="onCardActionTap"
+                >
+                  {{actionItem.label}}
+                </van-button>
+              </block>
+            </view>
+          </view>
+        </block>
+
+        <van-empty wx:if="{{!loadingActivities && filteredActivityCards.length === 0}}" image="search" description="{{activityEmptyText}}" />
+      </block>
+    </view>
+
+    <view wx:if="{{loginUser}}" class="settings-panel">
+      <view class="panel-head">
+        <view class="panel-title">{{i18n.settingsTitle}}</view>
+        <view class="panel-subtitle">{{i18n.settingsDesc}}</view>
+      </view>
+
+      <view class="setting-item" data-action="changePassword" bindtap="onMenuTap">
+        <view class="setting-icon-wrap">
+          <van-icon name="lock" custom-class="setting-icon" />
+        </view>
+        <view class="setting-main">
+          <view class="setting-title">{{i18n.changePassword}}</view>
+          <view class="setting-desc">{{i18n.changePasswordDesc}}</view>
+        </view>
+        <van-icon name="arrow" custom-class="setting-arrow" />
+      </view>
+    </view>
+
+    <view wx:if="{{loginUser}}" class="logout-wrap">
+      <van-button type="default" custom-class="logout-btn" bind:click="onLogoutTap">{{i18n.logout}}</van-button>
     </view>
   </view>
 </scroll-view>
 
-<bottom-nav active="mine" bind:change="onBottomTabChange"></bottom-nav>
+<van-popup show="{{editProfileVisible}}" round position="bottom" bind:close="onEditProfileClose">
+  <view class="edit-popup">
+    <view class="edit-title">{{i18n.editProfileTitle}}</view>
+    <view class="edit-row">
+      <view class="edit-label">{{i18n.nicknameLabel}}</view>
+      <van-field
+        value="{{editNickname}}"
+        placeholder="{{i18n.nicknamePlaceholder}}"
+        maxlength="100"
+        border="{{false}}"
+        bind:input="onEditNicknameInput"
+      />
+    </view>
+    <view class="edit-row avatar-row">
+      <view class="edit-label">{{i18n.avatarLabel}}</view>
+      <view class="avatar-actions">
+        <image wx:if="{{editAvatarPreview}}" class="popup-avatar-preview" src="{{editAvatarPreview}}" mode="aspectFill" />
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">{{i18n.chooseAvatar}}</button>
+        <van-button size="small" plain bind:click="onChooseAvatarFallback">{{i18n.chooseFromAlbum}}</van-button>
+      </view>
+    </view>
+    <view class="edit-footer">
+      <van-button size="small" plain bind:click="onEditProfileClose">{{i18n.cancel}}</van-button>
+      <van-button size="small" type="primary" loading="{{profileSaving}}" bind:click="onSaveProfileTap">{{i18n.saveProfile}}</van-button>
+    </view>
+  </view>
+</van-popup>
+
+<van-tabbar active="{{bottomActive}}" bind:change="onBottomTabChange" safe-area-inset-bottom placeholder>
+  <van-tabbar-item name="home" icon="home-o">首页</van-tabbar-item>
+  <van-tabbar-item name="find" icon="search">找活动</van-tabbar-item>
+  <van-tabbar-item name="mine" icon="contact">我的</van-tabbar-item>
+</van-tabbar>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

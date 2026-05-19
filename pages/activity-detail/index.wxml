@@ -1,26 +1,189 @@
-<navigation-bar title="{{i18n.navTitle}}" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
-<scroll-view class="detail-scroll" scroll-y type="list">
-  <view class="page-body">
-    <view wx:if="{{loading}}" class="empty">{{i18n.loading}}</view>
-
-    <view wx:if="{{activity}}" class="card">
-      <view class="title mb-12">{{activity.title}}</view>
-      <view class="muted mb-12">{{i18n.statusLabel}}: {{activity.status || '-'}}</view>
-      <view class="muted mb-12">{{i18n.locationLabel}}: {{activity.location || '-'}}</view>
-      <view class="muted mb-12">{{i18n.timeLabel}}: {{activity.startDisplay}} ~ {{activity.endDisplay}}</view>
-      <view class="muted mb-12">{{i18n.deadlineLabel}}: {{activity.deadlineDisplay}}</view>
-      <view class="muted mb-12">{{i18n.summaryLabel}}: {{activity.summary || '-'}}</view>
-      <view>{{i18n.contentLabel}}: {{activity.content || '-'}}</view>
-    </view>
-
-    <view class="card">
-      <view class="title mb-12">{{i18n.registerOps}}</view>
-      <view wx:if="{{operatorRole !== 'STUDENT'}}" class="muted mb-12">{{i18n.studentOnly}}</view>
-      <view wx:if="{{currentRegistration}}" class="muted mb-12">{{i18n.currentStatus}}: {{currentRegistration.registrationStatus}}</view>
-      <view class="row gap-12">
-        <button wx:if="{{canRegister}}" type="primary" bindtap="onRegisterTap">{{i18n.registerNow}}</button>
-        <button wx:if="{{canCancel}}" bindtap="onCancelTap">{{i18n.cancelRegister}}</button>
+﻿<view class="detail-page">
+  <!-- 顶部导航区 -->
+  <view class="top-panel">
+    <view class="status-safe" style="height: {{navSafeHeightPx}}px;"></view>
+    <view class="nav-row">
+      <view class="nav-left">
+        <view class="nav-btn" bindtap="onClickNavLeft">
+          <van-icon name="arrow-left" class="nav-vant-icon" />
+        </view>
+        <view class="nav-btn" data-action="home" bindtap="onQuickActionTap">
+          <van-icon name="home-o" class="nav-vant-icon" />
+        </view>
       </view>
+      <text class="nav-title">{{i18n.navTitle}}</text>
+      <view class="nav-right"></view>
     </view>
   </view>
-</scroll-view>
+
+  <!-- 主体滚动区：活动信息与详情 -->
+  <scroll-view class="detail-scroll" scroll-y type="list">
+    <view class="page-body detail-body">
+      <view wx:if="{{loading}}" class="card loading-card">
+        <view class="loading-title">{{i18n.loading}}</view>
+        <view class="loading-line"></view>
+        <view class="loading-line"></view>
+        <view class="loading-line short"></view>
+      </view>
+
+      <block wx:if="{{!loading && activity}}">
+        <view class="hero-card fade-up">
+          <image class="hero-image" src="{{coverDisplay}}" mode="aspectFill" binderror="onCoverImageError" />
+          <view class="hero-mask">
+            <text class="hero-status">{{activity.statusText}}</text>
+            <text class="hero-deadline">{{i18n.deadlineLabel}} {{activity.deadlineDisplay}}</text>
+          </view>
+        </view>
+
+        <view class="card info-card fade-up delay-1">
+          <view class="title mb-12">{{activity.title || i18n.untitled}}</view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.locationLabel}}</text>
+            <text class="meta-value">{{activity.location || i18n.emptyText}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.timeLabel}}</text>
+            <text class="meta-value">{{activity.startDisplay}} ~ {{activity.endDisplay}}</text>
+          </view>
+          <view class="meta-row">
+            <text class="meta-label">{{i18n.currentStatus}}</text>
+            <text class="meta-value">{{registrationStatusText}}</text>
+          </view>
+          <view wx:if="{{canViewTicket}}" class="ticket-entry">
+            <view class="ticket-entry-copy">
+              <view class="ticket-entry-title">{{i18n.viewTicket}}</view>
+              <view class="ticket-entry-sub">{{i18n.ticketHint}}</view>
+            </view>
+            <van-button size="small" plain bind:click="onViewTicketTap">{{i18n.viewTicket}}</van-button>
+          </view>
+        </view>
+
+        <view class="card detail-card fade-up delay-2">
+          <view class="section-title">{{i18n.summaryLabel}}</view>
+          <view class="summary-text">{{activity.summary || i18n.summaryEmpty}}</view>
+          <view class="section-title content-title">{{i18n.contentLabel}}</view>
+          <view class="detail-content">{{activity.content || i18n.contentEmpty}}</view>
+        </view>
+
+        <view class="card comment-card fade-up delay-2">
+          <view class="comment-header">
+            <view class="section-title comment-title">{{i18n.commentSection}}</view>
+            <view class="comment-count">{{comments.length}}{{i18n.commentCountSuffix}}</view>
+          </view>
+
+          <block wx:if="{{commentLoading}}">
+            <view class="comment-loading">{{i18n.loading}}</view>
+          </block>
+
+          <block wx:else>
+            <block wx:if="{{comments.length}}">
+              <view class="comment-list">
+                <view class="comment-item" wx:for="{{comments}}" wx:key="commentId">
+                  <view class="comment-avatar">
+                    <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar-image" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-index="{{index}}" binderror="onCommentAvatarError" />
+                    <text wx:else class="comment-avatar-text">{{item.avatarText}}</text>
+                  </view>
+                  <view class="comment-main">
+                    <view class="comment-meta">
+                      <text class="comment-author">{{item.authorNickname}}</text>
+                      <text class="comment-time">{{item.createdAtDisplay}}</text>
+                    </view>
+                    <view class="comment-content">{{item.content}}</view>
+                    <button
+                      wx:if="{{item.canDelete}}"
+                      class="comment-delete-btn"
+                      data-comment-id="{{item.commentId}}"
+                      bindtap="onCommentDeleteTap"
+                      loading="{{commentDeletingId === item.commentId}}"
+                      disabled="{{commentDeletingId === item.commentId}}"
+                    >
+                      {{i18n.commentDelete}}
+                    </button>
+                  </view>
+                </view>
+              </view>
+            </block>
+            <view wx:else class="comment-empty">{{i18n.commentEmpty}}</view>
+          </block>
+        </view>
+      </block>
+
+      <van-empty wx:if="{{!loading && !activity}}" image="search" description="{{i18n.loadFailed}}" />
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作区：快捷按钮 + 主 CTA -->
+  <view wx:if="{{activity}}" class="action-bar">
+    <view class="quick-group">
+      <view class="quick-btn {{favorited ? 'quick-btn-active' : ''}}" data-action="favorite" bindtap="onQuickActionTap">
+        <view class="quick-icon {{favorited ? 'quick-icon-active' : ''}}">
+          <van-icon name="{{favorited ? 'star' : 'star-o'}}" class="quick-vant-icon {{favorited ? 'quick-vant-icon-active' : ''}}" />
+        </view>
+        <text class="quick-label">{{favorited ? i18n.favorited : i18n.favorite}}</text>
+      </view>
+      <button class="quick-btn quick-share-btn" open-type="share">
+        <view class="quick-icon">
+          <van-icon name="share-o" class="quick-vant-icon" />
+        </view>
+        <text class="quick-label">{{i18n.share}}</text>
+      </button>
+      <view class="quick-btn" data-action="service" bindtap="onQuickActionTap">
+        <view class="quick-icon">
+          <van-icon name="service-o" class="quick-vant-icon" />
+        </view>
+        <text class="quick-label">{{i18n.service}}</text>
+      </view>
+    </view>
+
+    <button class="cta-btn {{ctaMode}}" bindtap="onCtaTap" disabled="{{ctaMode === 'disabled'}}">
+      <text class="cta-main">{{ctaText}}</text>
+      <text class="cta-sub">{{ctaHint}}</text>
+    </button>
+  </view>
+
+  <view wx:if="{{activity}}" class="comment-fab" bindtap="onCommentEntryTap">
+    <view class="comment-fab-icon">
+      <van-icon name="chat-o" class="comment-fab-vant-icon" />
+    </view>
+    <text class="comment-fab-label">{{i18n.commentFloatingLabel}}</text>
+  </view>
+</view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />
+<van-popup
+  show="{{commentComposerVisible}}"
+  position="bottom"
+  round
+  close-on-click-overlay="{{true}}"
+  bind:close="onCommentComposerClose"
+>
+  <view class="comment-popup">
+    <view class="comment-popup-header">
+      <text class="comment-popup-title">{{i18n.commentComposerTitle}}</text>
+      <view class="comment-popup-close" bindtap="onCommentComposerClose">
+        <van-icon name="cross" class="comment-popup-close-icon" />
+      </view>
+    </view>
+    <textarea
+      class="comment-popup-textarea"
+      value="{{commentDraft}}"
+      maxlength="{{commentMaxLength}}"
+      placeholder="{{i18n.commentInputPlaceholder}}"
+      bindinput="onCommentInput"
+      focus="{{commentComposerVisible}}"
+      auto-height
+    ></textarea>
+    <view class="comment-popup-footer">
+      <text class="comment-hint">{{commentDraft.length}} / {{commentMaxLength}} · {{i18n.commentLengthHint}}</text>
+      <button
+        class="comment-submit-btn"
+        bindtap="onCommentSubmitTap"
+        loading="{{commentSubmitting}}"
+        disabled="{{commentSubmitting}}"
+      >
+        {{i18n.commentSubmit}}
+      </button>
+    </view>
+  </view>
+</van-popup>

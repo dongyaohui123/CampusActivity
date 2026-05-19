@@ -1,0 +1,45 @@
+<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onClickNavLeft" />
+<scroll-view class="managed-scroll" scroll-y type="list">
+  <view class="page-body">
+    <van-empty wx:if="{{loading}}" image="search" description="{{i18n.loading}}" />
+
+    <block wx:for="{{activities}}" wx:key="id">
+      <view class="activity-card">
+        <view class="activity-top">
+          <view class="activity-title">{{item.title || ('活动#' + item.id)}}</view>
+          <view class="status-pill">{{item.statusText}}</view>
+        </view>
+        <view class="activity-meta">角色：{{item.roleText}}</view>
+        <view class="activity-meta">{{i18n.timeLabel}}：{{item.startDisplay}} ~ {{item.endDisplay}}</view>
+        <view class="activity-meta">{{i18n.locationLabel}}：{{item.location || '-'}}</view>
+        <view class="actions">
+          <van-button
+            wx:if="{{item.canCheckIn}}"
+            size="small"
+            plain
+            data-activity-id="{{item.id}}"
+            bind:click="onCheckinTap"
+          >{{i18n.checkinAction}}</van-button>
+          <van-button
+            wx:if="{{item.canViewRegistrations}}"
+            size="small"
+            plain
+            data-activity-id="{{item.id}}"
+            bind:click="onRegistrationTap"
+          >{{i18n.registrationAction}}</van-button>
+          <van-button
+            wx:if="{{item.isOrganizer}}"
+            size="small"
+            type="primary"
+            bind:click="onOrganizerManageTap"
+          >{{i18n.organizerManageAction}}</van-button>
+        </view>
+      </view>
+    </block>
+
+    <van-empty wx:if="{{!loading && activities.length === 0}}" image="search" description="{{i18n.empty}}" />
+  </view>
+</scroll-view>
+
+<van-toast id="van-toast" />
+<van-notify id="van-notify" />

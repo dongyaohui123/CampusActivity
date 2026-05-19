@@ -3,6 +3,9 @@ package com.campus.activity.view.v1;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
 
+/**
+ * LoginUserView页面视图对象。
+ */
 public class LoginUserView {
     private Long id;
     private String username;

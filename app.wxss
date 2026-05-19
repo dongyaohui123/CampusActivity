@@ -1,4 +1,6 @@
 /** app.wxss **/
+@import "/static/css/icon.wxss";
+
 page {
   --bg-main: #f4f7fb;
   --bg-card: #ffffff;
@@ -16,10 +18,6 @@ page {
 .page-body {
   padding: 24rpx;
   box-sizing: border-box;
-}
-
-.with-bottom-nav {
-  padding-bottom: 148rpx;
 }
 
 .card {
@@ -68,21 +66,5 @@ page {
   padding: 48rpx 0;
   text-align: center;
   color: #98a2b3;
-}
-
-button[type="primary"] {
-  background: var(--brand);
-  color: #ffffff;
-  border-radius: 14rpx;
-}
-
-button {
-  border-radius: 14rpx;
-}
-
-input,
-textarea,
-picker view {
-  color: var(--text-primary);
 }
 

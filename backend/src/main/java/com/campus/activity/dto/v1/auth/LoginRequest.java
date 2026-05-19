@@ -3,6 +3,9 @@ package com.campus.activity.dto.v1.auth;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * LoginRequest请求参数对象。
+ */
 public class LoginRequest {
     @NotBlank(message = "username is required")
     @Size(max = 64, message = "username length must be <= 64")

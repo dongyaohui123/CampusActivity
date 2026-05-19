@@ -12,6 +12,8 @@ public interface ActivityCategoryRelMapper {
 
     int insertRelation(ActivityCategoryRel relation);
 
+    int deleteByActivityId(@Param("activityId") Long activityId);
+
     int deleteByActivityIdAndCategoryId(@Param("activityId") Long activityId,
                                         @Param("categoryId") Long categoryId);
 

@@ -1,0 +1,21 @@
+backend/target/
+node_modules/
+miniprogram_npm/
+project.private.config.json
+
+# Local workspace settings
+.idea/
+.vscode/
+.claude/
+.playwright-cli/
+.tmp_orc_skills_sparse/
+tmp/
+
+# Runtime artifacts
+backend/*.log
+backend/uploads/**
+!backend/uploads/
+!backend/uploads/activity-covers/
+!backend/uploads/activity-covers/.gitkeep
+!backend/uploads/avatars/
+!backend/uploads/avatars/.gitkeep

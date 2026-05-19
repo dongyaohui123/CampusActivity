@@ -1,0 +1,103 @@
+page {
+  height: 100%;
+}
+
+.crop-page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  color: #ffffff;
+}
+
+.crop-nav {
+  padding: calc(env(safe-area-inset-top) + 18rpx) 24rpx 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.nav-action {
+  min-width: 88rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.nav-confirm {
+  text-align: right;
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.nav-action-disabled {
+  opacity: 0.56;
+}
+
+.crop-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 24rpx calc(48rpx + env(safe-area-inset-bottom));
+}
+
+.crop-stage {
+  position: relative;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow: 0 0 0 2000px rgba(15, 23, 42, 0.5);
+}
+
+.crop-area {
+  overflow: hidden;
+  background: #0b1120;
+}
+
+.crop-movable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-image {
+  width: 100%;
+  height: 100%;
+}
+
+.crop-frame {
+  position: absolute;
+  inset: 0;
+  border: 3rpx solid rgba(255, 255, 255, 0.92);
+  border-radius: 28rpx;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.crop-tip {
+  margin-top: 42rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.78);
+  text-align: center;
+}
+
+.crop-loading {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.crop-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 512px;
+  height: 512px;
+  opacity: 0;
+  pointer-events: none;
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.ActivityCommentMapper">
+
+    <resultMap id="ActivityCommentResultMap" type="com.campus.activity.entity.ActivityComment">
+        <id property="id" column="id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="ActivityCommentViewResultMap" type="com.campus.activity.view.v1.ActivityCommentView">
+        <id property="commentId" column="comment_id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="authorUserId" column="author_user_id"/>
+        <result property="authorNickname" column="author_nickname"/>
+        <result property="authorAvatarUrl" column="author_avatar_url"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectActivityComments" resultMap="ActivityCommentViewResultMap">
+        SELECT
+            ac.id AS comment_id,
+            ac.activity_id,
+            ac.user_id AS author_user_id,
+            COALESCE(NULLIF(TRIM(u.nickname), ''), NULLIF(TRIM(u.username), ''), CONCAT('用户', ac.user_id)) AS author_nickname,
+            u.avatar_url AS author_avatar_url,
+            ac.content,
+            ac.created_at
+        FROM activity_comments ac
+        LEFT JOIN users u ON u.id = ac.user_id
+        WHERE ac.activity_id = #{activityId}
+        ORDER BY ac.created_at DESC, ac.id DESC
+    </select>
+</mapper>

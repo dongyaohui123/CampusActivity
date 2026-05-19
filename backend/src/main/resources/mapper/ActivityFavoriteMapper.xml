@@ -15,6 +15,19 @@
         id, activity_id, user_id, created_at
     </sql>
 
+    <resultMap id="FavoriteActivityViewResultMap" type="com.campus.activity.view.v1.FavoriteActivityView">
+        <id property="activityId" column="activity_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="location" column="location"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="status" column="status"/>
+        <result property="registrationDeadline" column="registration_deadline"/>
+        <result property="favoritedAt" column="favorited_at"/>
+    </resultMap>
+
     <!--
       Fast existence check for "favorite" button state.
       Unique index uk_activity_favorites_activity_user avoids duplicate rows.
@@ -24,5 +37,27 @@
         FROM activity_favorites
         WHERE activity_id = #{activityId}
           AND user_id = #{userId}
+    </select>
+
+    <select id="selectUserFavoriteActivities" resultMap="FavoriteActivityViewResultMap">
+        SELECT
+            a.id AS activity_id,
+            a.title,
+            a.summary,
+            a.cover_url,
+            a.location,
+            a.start_time,
+            a.end_time,
+            a.status,
+            a.registration_deadline,
+            af.created_at AS favorited_at
+        FROM activity_favorites af
+        INNER JOIN activities a ON a.id = af.activity_id
+        INNER JOIN activity_reviews ar ON ar.activity_id = a.id
+        WHERE af.user_id = #{userId}
+          AND a.visibility = 'PUBLIC'
+          AND ar.review_status = 'APPROVED'
+          AND a.status IN ('PUBLISHED', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'ONGOING', 'FINISHED')
+        ORDER BY af.created_at DESC, af.id DESC
     </select>
 </mapper>

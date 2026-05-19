@@ -1,3 +1,5 @@
+const { getStorageApi } = require("./runtime-api");
+
 const STORAGE_KEY = "operator_context";
 
 const EMPTY_CONTEXT = {
@@ -9,6 +11,9 @@ const ROLE_SET = new Set(["STUDENT", "ORGANIZER", "ADMIN"]);
 
 let memoryContext = { ...EMPTY_CONTEXT };
 
+/**
+ * 统一 operator 上下文格式。
+ */
 function normalizeContext(input) {
   const raw = input || {};
   const operatorUserId = Number(raw.operatorUserId);
@@ -23,13 +28,10 @@ function normalizeContext(input) {
     : { ...EMPTY_CONTEXT };
 }
 
-function canUseWxStorage() {
-  return typeof wx !== "undefined" && typeof wx.getStorageSync === "function" && typeof wx.setStorageSync === "function";
-}
-
 function getOperatorContext() {
-  if (canUseWxStorage()) {
-    const stored = wx.getStorageSync(STORAGE_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    const stored = storageApi.getStorageSync(STORAGE_KEY);
     if (stored && typeof stored === "object") {
       memoryContext = normalizeContext(stored);
       return { ...memoryContext };
@@ -40,16 +42,18 @@ function getOperatorContext() {
 
 function setOperatorContext(nextContext) {
   memoryContext = normalizeContext(nextContext);
-  if (canUseWxStorage()) {
-    wx.setStorageSync(STORAGE_KEY, memoryContext);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.setStorageSync(STORAGE_KEY, memoryContext);
   }
   return { ...memoryContext };
 }
 
 function clearOperatorContext() {
   memoryContext = { ...EMPTY_CONTEXT };
-  if (canUseWxStorage()) {
-    wx.removeStorageSync(STORAGE_KEY);
+  const storageApi = getStorageApi();
+  if (storageApi) {
+    storageApi.removeStorageSync(STORAGE_KEY);
   }
 }
 
@@ -58,6 +62,9 @@ function hasOperatorContext() {
   return Number.isFinite(Number(ctx.operatorUserId)) && Number(ctx.operatorUserId) > 0 && ROLE_SET.has(ctx.operatorRole);
 }
 
+/**
+ * 供 request 封装自动拼接 query。
+ */
 function getOperatorQuery() {
   const ctx = getOperatorContext();
   if (!hasOperatorContext()) {

@@ -20,8 +20,11 @@ import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityReviewMapper;
+import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.impl.v1.V1AdminReviewServiceImpl;
 import com.campus.activity.service.v1.OperatorPermissionService;
+import com.campus.activity.view.v1.PendingReviewActivityView;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +42,9 @@ class V1AdminReviewServiceImplTest {
 
     @Mock
     private ActivityAuditLogMapper auditLogMapper;
+
+    @Mock
+    private UserMapper userMapper;
 
     @Mock
     private OperatorPermissionService permissionService;
@@ -65,6 +71,7 @@ class V1AdminReviewServiceImplTest {
 
         ReviewApproveRequest request = new ReviewApproveRequest();
         request.setComment("looks good");
+        request.setFeatured(Boolean.TRUE);
 
         ActivityReview updated = reviewService.approve(1L, request, 9L, UserRole.ADMIN);
 
@@ -75,11 +82,40 @@ class V1AdminReviewServiceImplTest {
         ArgumentCaptor<Activity> activityCaptor = ArgumentCaptor.forClass(Activity.class);
         verify(activityMapper).updateById(activityCaptor.capture());
         assertThat(activityCaptor.getValue().getStatus()).isEqualTo(ActivityStatus.PUBLISHED);
+        assertThat(activityCaptor.getValue().getFeatured()).isTrue();
 
         ArgumentCaptor<ActivityAuditLog> logCaptor = ArgumentCaptor.forClass(ActivityAuditLog.class);
         verify(auditLogMapper).insert(logCaptor.capture());
         assertThat(logCaptor.getValue().getAction()).isEqualTo(AuditAction.APPROVE);
         assertThat(logCaptor.getValue().getOperatorId()).isEqualTo(9L);
+    }
+
+    @Test
+    void approve_shouldDefaultFeaturedFalseWhenRequestDoesNotSetFeatured() {
+        User admin = new User();
+        admin.setId(9L);
+        admin.setRole(UserRole.ADMIN);
+        when(permissionService.verifyOperator(9L, UserRole.ADMIN)).thenReturn(admin);
+
+        Activity activity = new Activity();
+        activity.setId(1L);
+        activity.setStatus(ActivityStatus.DRAFT);
+        activity.setFeatured(Boolean.TRUE);
+        when(activityMapper.selectById(1L)).thenReturn(activity);
+
+        ActivityReview review = new ActivityReview();
+        review.setActivityId(1L);
+        review.setReviewStatus(ReviewStatus.PENDING);
+        when(reviewMapper.selectById(1L)).thenReturn(review);
+
+        ReviewApproveRequest request = new ReviewApproveRequest();
+        request.setComment("approved");
+
+        reviewService.approve(1L, request, 9L, UserRole.ADMIN);
+
+        ArgumentCaptor<Activity> activityCaptor = ArgumentCaptor.forClass(Activity.class);
+        verify(activityMapper).updateById(activityCaptor.capture());
+        assertThat(activityCaptor.getValue().getFeatured()).isFalse();
     }
 
     @Test
@@ -103,5 +139,63 @@ class V1AdminReviewServiceImplTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(ex -> ((BusinessException) ex).getErrorCode())
                 .isEqualTo(ErrorCode.CONFLICT);
+    }
+
+    @Test
+    void listPendingReviews_shouldUseNicknameThenUsernameThenFallback() {
+        User admin = new User();
+        admin.setId(9L);
+        admin.setRole(UserRole.ADMIN);
+        when(permissionService.verifyOperator(9L, UserRole.ADMIN)).thenReturn(admin);
+
+        ActivityReview review1 = new ActivityReview();
+        review1.setActivityId(1L);
+        review1.setReviewStatus(ReviewStatus.PENDING);
+
+        ActivityReview review2 = new ActivityReview();
+        review2.setActivityId(2L);
+        review2.setReviewStatus(ReviewStatus.PENDING);
+
+        ActivityReview review3 = new ActivityReview();
+        review3.setActivityId(3L);
+        review3.setReviewStatus(ReviewStatus.PENDING);
+
+        when(reviewMapper.selectList(any())).thenReturn(List.of(review1, review2, review3));
+
+        Activity activity1 = new Activity();
+        activity1.setId(1L);
+        activity1.setTitle("活动一");
+        activity1.setOrganizerId(101L);
+
+        Activity activity2 = new Activity();
+        activity2.setId(2L);
+        activity2.setTitle("活动二");
+        activity2.setOrganizerId(102L);
+
+        Activity activity3 = new Activity();
+        activity3.setId(3L);
+        activity3.setTitle("活动三");
+        activity3.setOrganizerId(103L);
+
+        when(activityMapper.selectBatchIds(any())).thenReturn(List.of(activity1, activity2, activity3));
+
+        User organizer1 = new User();
+        organizer1.setId(101L);
+        organizer1.setNickname("组织者甲");
+        organizer1.setUsername("org_a");
+
+        User organizer2 = new User();
+        organizer2.setId(102L);
+        organizer2.setNickname("   ");
+        organizer2.setUsername("org_b");
+
+        when(userMapper.selectBatchIds(any())).thenReturn(List.of(organizer1, organizer2));
+
+        List<PendingReviewActivityView> result = reviewService.listPendingReviews(9L, UserRole.ADMIN);
+
+        assertThat(result).hasSize(3);
+        assertThat(result.get(0).getOrganizerName()).isEqualTo("组织者甲");
+        assertThat(result.get(1).getOrganizerName()).isEqualTo("org_b");
+        assertThat(result.get(2).getOrganizerName()).isEqualTo("-");
     }
 }

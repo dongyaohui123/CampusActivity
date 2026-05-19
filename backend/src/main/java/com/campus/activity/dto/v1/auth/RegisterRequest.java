@@ -1,8 +1,12 @@
 package com.campus.activity.dto.v1.auth;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * RegisterRequest请求参数对象。
+ */
 public class RegisterRequest {
     @NotBlank(message = "username is required")
     @Size(max = 64, message = "username length must be <= 64")
@@ -15,6 +19,11 @@ public class RegisterRequest {
     @NotBlank(message = "nickname is required")
     @Size(max = 100, message = "nickname length must be <= 100")
     private String nickname;
+
+    @NotBlank(message = "phone is required")
+    @Size(max = 20, message = "phone length must be <= 20")
+    @Pattern(regexp = "^1\\d{10}$", message = "phone format is invalid")
+    private String phone;
 
     public String getUsername() {
         return username;
@@ -38,6 +47,14 @@ public class RegisterRequest {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }
 

@@ -48,4 +48,12 @@
         WHERE openid = #{openid}
         LIMIT 1
     </select>
+
+    <select id="selectByPhone" resultMap="UserResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE phone = #{phone}
+        LIMIT 1
+    </select>
 </mapper>

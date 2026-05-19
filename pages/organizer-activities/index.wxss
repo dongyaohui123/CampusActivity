@@ -2,28 +2,257 @@ page {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #eef4ff 0%, #f5f7fb 220rpx, #f5f7fb 100%);
+  background: #f3f5f9;
 }
 
 .page-scroll {
   flex: 1;
+  min-height: 0;
 }
 
-.label {
-  color: #55627a;
-  font-weight: 600;
-  margin-bottom: 8rpx;
+.page-body {
+  padding: 0 20rpx 20rpx;
 }
 
-.input,
-.picker {
-  background: #f7faff;
-  border: 1rpx solid #d9e4f4;
-  border-radius: 14rpx;
+.with-bottom-space {
+  padding-bottom: 44rpx;
+}
+
+.top-lite {
+  background: #ffffff;
+  border: 1rpx solid #e3e8f0;
+  border-radius: 20rpx;
+  box-shadow: 0 8rpx 16rpx rgba(33, 49, 79, 0.06);
   padding: 16rpx 18rpx;
+  margin: 10rpx 0 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.top-lite-left {
+  min-width: 0;
+}
+
+.top-lite-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2f3746;
+  line-height: 1.2;
+}
+
+.top-lite-sub {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #667085;
+}
+
+.top-lite-badge {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #2f6cf3;
+  background: #edf3ff;
+  border: 1rpx solid #d8e6ff;
+  border-radius: 999rpx;
+  padding: 6rpx 14rpx;
 }
 
 .card {
+  background: #ffffff;
   border-radius: 20rpx;
-  border-color: #e4ebf5;
+  border: 1rpx solid #e3e8f0;
+  box-shadow: 0 8rpx 16rpx rgba(33, 49, 79, 0.06);
+  padding: 20rpx;
+  margin-bottom: 14rpx;
+}
+
+.form-card {
+  margin-top: 2rpx;
+}
+
+.role-card {
+  margin-top: 10rpx;
+}
+
+.section-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #d8e6ff;
+  background: #edf3ff;
+  color: #2f6cf3;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
+  padding: 8rpx 14rpx;
+  margin: 0 0 10rpx;
+}
+
+.section-chip-second {
+  margin-top: 14rpx;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid #e2e7ef;
+  background: #f8f9fc;
+  color: #344054;
+  font-size: 26rpx;
+}
+
+.cover-block {
+  margin: 10rpx 0 8rpx;
+  padding: 14rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #e2e7ef;
+  background: #f8f9fc;
+}
+
+.cover-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+.cover-title {
+  color: #344054;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.cover-hint {
+  color: #667085;
+  font-size: 22rpx;
+}
+
+.cover-preview-wrap {
+  width: 100%;
+  border-radius: 14rpx;
+  overflow: hidden;
+  border: 1rpx solid #d8e6ff;
+  background: #ffffff;
+  margin-bottom: 10rpx;
+}
+
+.cover-preview {
+  width: 100%;
+  height: 240rpx;
+  display: block;
+}
+
+.cover-action-row {
+  justify-content: flex-start;
+}
+
+.cover-action-btn {
+  --button-border-radius: 12rpx;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6rpx 2rpx 12rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #262e3d;
+}
+
+.section-count {
+  min-width: 54rpx;
+  height: 38rpx;
+  line-height: 36rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  border: 1rpx solid #d8e6ff;
+  background: #edf3ff;
+  color: #2f6cf3;
+  font-size: 22rpx;
+  font-weight: 700;
+  padding: 0 12rpx;
+}
+
+.activity-card {
+  background: #f7f8fb;
+  border-color: #e2e7ef;
+  box-shadow: 0 10rpx 24rpx rgba(22, 34, 54, 0.09);
+}
+
+.activity-card:active {
+  transform: scale(0.995);
+}
+
+.muted {
+  color: #667085;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.action-btn {
+  width: 100%;
+  --button-border-radius: 18rpx;
+  --button-default-height: 80rpx;
+  --button-default-line-height: 80rpx;
+  --button-default-font-size: 30rpx;
+  --button-primary-border-color: #2f6cf3;
+  --button-primary-background-color: #2f6cf3;
+  --button-primary-color: #ffffff;
+}
+
+.action-btn-ghost {
+  background: #ffffff;
+}
+
+.list-op-btn {
+  --button-border-radius: 12rpx;
+}
+
+.gap-12 {
+  gap: 12rpx;
+}
+
+.mb-12 {
+  margin-bottom: 12rpx;
+}
+
+.mt-16 {
+  margin-top: 16rpx;
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(12rpx);
+  animation: fadeUp 420ms ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
