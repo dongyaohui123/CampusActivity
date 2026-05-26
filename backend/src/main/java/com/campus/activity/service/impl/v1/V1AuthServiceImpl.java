@@ -1,22 +1,28 @@
 package com.campus.activity.service.impl.v1;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.campus.activity.common.ErrorCode;
 import com.campus.activity.dto.v1.auth.ForgotPasswordRequest;
 import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
 import com.campus.activity.dto.v1.auth.WechatLoginRequest;
+import com.campus.activity.entity.SmsCode;
 import com.campus.activity.entity.User;
 import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
+import com.campus.activity.mapper.SmsCodeMapper;
 import com.campus.activity.mapper.UserMapper;
 import com.campus.activity.service.v1.AvatarUrlService;
 import com.campus.activity.service.v1.QqAuthGateway;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.service.v1.WechatAuthGateway;
 import com.campus.activity.view.v1.LoginUserView;
+import java.time.LocalDateTime;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,23 +33,31 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class V1AuthServiceImpl implements V1AuthService {
+    private static final Logger log = LoggerFactory.getLogger(V1AuthServiceImpl.class);
     private static final String PHONE_REGEX = "^1\\d{10}$";
     private static final String WECHAT_USERNAME_PREFIX = "wx_u_";
     private static final String QQ_USERNAME_PREFIX = "qq_u_";
     private static final String QQ_OPENID_PREFIX = "qq:";
     private static final int THIRD_PARTY_CREATE_RETRY_LIMIT = 6;
+    private static final int SMS_CODE_LENGTH = 6;
+    private static final int SMS_CODE_EXPIRE_MINUTES = 5;
+    private static final int SMS_CODE_RESEND_INTERVAL_SECONDS = 60;
+
     private final UserMapper userMapper;
+    private final SmsCodeMapper smsCodeMapper;
     private final WechatAuthGateway wechatAuthGateway;
     private final QqAuthGateway qqAuthGateway;
     private final AvatarUrlService avatarUrlService;
 
     public V1AuthServiceImpl(
             UserMapper userMapper,
+            SmsCodeMapper smsCodeMapper,
             WechatAuthGateway wechatAuthGateway,
             QqAuthGateway qqAuthGateway,
             AvatarUrlService avatarUrlService
     ) {
         this.userMapper = userMapper;
+        this.smsCodeMapper = smsCodeMapper;
         this.wechatAuthGateway = wechatAuthGateway;
         this.qqAuthGateway = qqAuthGateway;
         this.avatarUrlService = avatarUrlService;
@@ -271,6 +285,7 @@ public class V1AuthServiceImpl implements V1AuthService {
         String username = StringUtils.trimWhitespace(request.getUsername());
         String phone = StringUtils.trimWhitespace(request.getPhone());
         String newPassword = request.getNewPassword();
+        String code = StringUtils.trimWhitespace(request.getCode());
 
         User user = userMapper.selectByUsername(username);
         if (user == null) {
@@ -280,11 +295,75 @@ public class V1AuthServiceImpl implements V1AuthService {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "手机号与注册信息不一致");
         }
         assertActive(user);
+
+        // 校验验证码
+        if (!StringUtils.hasText(code)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "请输入验证码");
+        }
+        verifySmsCode(phone, code);
+
         if (newPassword.equals(user.getPasswordHash())) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "新密码不能与旧密码相同");
         }
         user.setPasswordHash(newPassword);
         userMapper.updateById(user);
+    }
+
+    @Override
+    @Transactional
+    public void sendSmsCode(String phone) {
+        String normalizedPhone = StringUtils.trimWhitespace(phone);
+        if (!isPhone(normalizedPhone)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "手机号格式不正确");
+        }
+
+        // 检查60秒内是否已发送
+        LocalDateTime cutoff = LocalDateTime.now().minusSeconds(SMS_CODE_RESEND_INTERVAL_SECONDS);
+        SmsCode recentCode = smsCodeMapper.selectOne(
+                new QueryWrapper<SmsCode>()
+                        .eq("phone", normalizedPhone)
+                        .eq("purpose", "RESET_PASSWORD")
+                        .ge("created_at", cutoff)
+                        .last("LIMIT 1")
+        );
+        if (recentCode != null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "验证码发送过于频繁，请稍后再试");
+        }
+
+        // 生成6位随机验证码
+        String code = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
+
+        // 保存验证码
+        SmsCode smsCode = new SmsCode();
+        smsCode.setPhone(normalizedPhone);
+        smsCode.setCode(code);
+        smsCode.setPurpose("RESET_PASSWORD");
+        smsCode.setExpiredAt(LocalDateTime.now().plusMinutes(SMS_CODE_EXPIRE_MINUTES));
+        smsCode.setUsed(0);
+        smsCodeMapper.insert(smsCode);
+
+        // 模拟模式：输出验证码到日志
+        log.info("============================================");
+        log.info("[模拟短信] 手机号: {} 验证码: {}", normalizedPhone, code);
+        log.info("============================================");
+    }
+
+    private void verifySmsCode(String phone, String code) {
+        SmsCode smsCode = smsCodeMapper.selectOne(
+                new QueryWrapper<SmsCode>()
+                        .eq("phone", phone)
+                        .eq("purpose", "RESET_PASSWORD")
+                        .eq("used", 0)
+                        .ge("expired_at", LocalDateTime.now())
+                        .orderByDesc("created_at")
+                        .last("LIMIT 1")
+        );
+        if (smsCode == null || !code.equals(smsCode.getCode())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "验证码错误或已过期");
+        }
+        // 标记验证码已使用
+        smsCode.setUsed(1);
+        smsCodeMapper.updateById(smsCode);
     }
 
     private boolean isPhone(String value) {

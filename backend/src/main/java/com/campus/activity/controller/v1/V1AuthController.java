@@ -9,10 +9,12 @@ import com.campus.activity.dto.v1.auth.WechatLoginRequest;
 import com.campus.activity.service.v1.V1AuthService;
 import com.campus.activity.view.v1.LoginUserView;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -79,7 +81,21 @@ public class V1AuthController {
     }
 
     /**
-     * 忘记密码 — 通过用户名和手机号验证身份后重置密码。
+     * 发送短信验证码（模拟模式）。
+     *
+     * @param phone 手机号
+     * @return 统一成功响应
+     */
+    @PostMapping("/send-sms-code")
+    public ApiResponse<Void> sendSmsCode(
+            @RequestParam("phone") @Pattern(regexp = "^1\\d{10}$", message = "phone format is invalid") String phone
+    ) {
+        authService.sendSmsCode(phone);
+        return ApiResponse.success("sms code sent", null);
+    }
+
+    /**
+     * 忘记密码 — 通过用户名、手机号和验证码验证身份后重置密码。
      *
      * @param request 重置密码参数
      * @return 统一成功响应

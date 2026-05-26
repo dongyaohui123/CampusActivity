@@ -49,4 +49,11 @@ public interface V1AuthService {
      * @param request 重置密码请求
      */
     void resetPassword(ForgotPasswordRequest request);
+
+    /**
+     * 发送短信验证码（模拟模式：验证码输出到日志）。
+     *
+     * @param phone 手机号
+     */
+    void sendSmsCode(String phone);
 }

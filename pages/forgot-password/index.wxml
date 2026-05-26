@@ -36,6 +36,26 @@
       </view>
 
       <view class="field-row">
+        <van-icon class-prefix="van-icon" name="comment-o" custom-class="field-icon" />
+        <input
+          class="field-input field-input-code"
+          data-field="code"
+          value="{{code}}"
+          bindinput="onInput"
+          type="number"
+          maxlength="6"
+          placeholder="请输入验证码"
+          placeholder-class="password-placeholder"
+        />
+        <button
+          class="sms-btn {{countdown > 0 || sendingCode ? 'sms-btn-disabled' : ''}}"
+          disabled="{{countdown > 0 || sendingCode}}"
+          loading="{{sendingCode}}"
+          bindtap="onSendCodeTap"
+        >{{countdown > 0 ? countdown + 's' : '发送验证码'}}</button>
+      </view>
+
+      <view class="field-row">
         <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
         <input
           class="field-input"

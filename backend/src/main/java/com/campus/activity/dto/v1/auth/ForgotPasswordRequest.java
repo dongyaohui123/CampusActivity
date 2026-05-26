@@ -18,6 +18,10 @@ public class ForgotPasswordRequest {
     @Size(max = 255, message = "newPassword length must be <= 255")
     private String newPassword;
 
+    @NotBlank(message = "code is required")
+    @Size(max = 10, message = "code length must be <= 10")
+    private String code;
+
     public String getUsername() {
         return username;
     }
@@ -40,5 +44,13 @@ public class ForgotPasswordRequest {
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

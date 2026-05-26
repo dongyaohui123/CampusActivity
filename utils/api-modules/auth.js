@@ -44,7 +44,18 @@ function qqLogin(payload) {
   });
 }
 
-function resetPassword(username, phone, newPassword) {
+function sendSmsCode(phone) {
+  return request({
+    path: "/api/v1/auth/send-sms-code",
+    method: "POST",
+    query: {
+      phone: String(phone || "").trim(),
+    },
+    withOperator: false,
+  });
+}
+
+function resetPassword(username, phone, newPassword, code) {
   return request({
     path: "/api/v1/auth/reset-password",
     method: "POST",
@@ -52,6 +63,7 @@ function resetPassword(username, phone, newPassword) {
       username: String(username || "").trim(),
       phone: String(phone || "").trim(),
       newPassword: String(newPassword || ""),
+      code: String(code || "").trim(),
     },
     withOperator: false,
   });
@@ -62,5 +74,6 @@ module.exports = {
   registerUser,
   wechatLogin,
   qqLogin,
+  sendSmsCode,
   resetPassword,
 };

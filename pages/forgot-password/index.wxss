@@ -104,6 +104,32 @@ page {
   color: #25324a;
 }
 
+.field-input-code {
+  flex: 1;
+}
+
+.sms-btn {
+  min-width: 180rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 16rpx;
+  border: none;
+  border-radius: 12rpx;
+  background: linear-gradient(95deg, #e67e22 0%, #f39c12 100%);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.sms-btn::after {
+  border: none;
+}
+
+.sms-btn-disabled {
+  background: #c0c4cc;
+  color: #ffffff;
+}
+
 .password-placeholder {
   color: #a8b2c4;
 }
