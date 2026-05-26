@@ -76,6 +76,14 @@ function listOrganizerActivities(params) {
   });
 }
 
+function getOrganizerActivityDetail(activityId) {
+  return request({
+    path: `/api/v1/organizer/activities/${activityId}`,
+    method: "GET",
+    withOperator: true,
+  });
+}
+
 function getOrganizerActivityOptions() {
   return request({
     path: "/api/v1/organizer/activities/options",
@@ -157,6 +165,7 @@ function removeActivityManager(activityId, managerUserId) {
 module.exports = {
   uploadOrganizerActivityCover,
   listOrganizerActivities,
+  getOrganizerActivityDetail,
   getOrganizerActivityOptions,
   createOrganizerActivity,
   updateOrganizerActivity,

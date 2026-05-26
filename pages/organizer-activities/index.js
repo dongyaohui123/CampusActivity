@@ -1,10 +1,9 @@
 const {
-  listOrganizerActivities,
   getOrganizerActivityOptions,
   createOrganizerActivity,
   updateOrganizerActivity,
   uploadOrganizerActivityCover,
-  submitActivityReview,
+  getOrganizerActivityDetail,
 } = require("../../utils/api");
 const { getOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
@@ -23,12 +22,6 @@ const CAMPUS_CODE_LABEL = {
 
 function pad2(value) {
   return String(value).padStart(2, "0");
-}
-
-function displayTime(value) {
-  const normalized = normalizeDateTimeInput(value);
-  if (!normalized) return "";
-  return normalized.replace("T", " ");
 }
 
 /**
@@ -137,13 +130,10 @@ function emptyForm() {
 Page({
   data: {
     i18n: {
-      navTitle: "组织者活动管理",
+      navTitleCreate: "发布活动",
+      navTitleEdit: "编辑活动",
       roleHintPrefix: "当前角色为",
       roleHintSuffix: "，请在首页切换为组织者后再操作。",
-      editActivity: "编辑活动",
-      createActivity: "发布活动",
-      formHint: "完善活动信息后即可提交审核",
-      tipBadge: "组织者",
       basicInfo: "基础信息",
       publishOptions: "发布设置",
       titleLabel: "标题",
@@ -160,32 +150,23 @@ Page({
       endTimeLabel: "结束时间",
       deadlineLabel: "报名截止时间",
       maxParticipantsLabel: "人数上限",
+      createActivity: "发布活动",
       updateActivity: "更新活动",
       reset: "重置",
       submitNote: "提审备注（可选）",
       submitCommentPlaceholder: "例如：可填写提审说明（可选）",
       loading: "加载中...",
-      statusLabel: "状态",
-      reviewLabel: "审核",
-      timeLabel: "时间",
-      edit: "编辑",
-      checkinManage: "签到管理",
-      managerManage: "管理员",
-      submitReview: "提审",
-      empty: "暂无活动",
       phTitle: "例如：校园歌手大赛",
       phSummary: "一句话摘要",
       campusTypePlaceholder: "请选择校区类型",
       phLocation: "请输入具体地点（线上可留空）",
       typePickerPlaceholder: "请选择活动类型",
-      myActivityList: "已发布活动",
       timePickerPlaceholder: "请选择日期和时间",
       required: "*",
     },
     operatorRole: "STUDENT",
     loading: false,
     coverUploading: false,
-    activities: [],
     editingActivityId: null,
     reviewComment: "",
     form: emptyForm(),
@@ -203,6 +184,11 @@ Page({
     dateTimeMax: new Date(2035, 11, 31, 23, 59, 59).getTime(),
   },
 
+  async onLoad(options) {
+    const activityId = options && options.activityId ? Number(options.activityId) : null;
+    this.setData({ editingActivityId: activityId });
+  },
+
   async onShow() {
     const { operatorRole } = getOperatorContext();
     this.setData({ operatorRole });
@@ -217,7 +203,9 @@ Page({
 
   async initOrganizerPage() {
     await this.loadActivityOptions();
-    await this.loadActivities();
+    if (this.data.editingActivityId) {
+      await this.loadActivityForEdit(this.data.editingActivityId);
+    }
   },
 
   async loadActivityOptions() {
@@ -247,19 +235,30 @@ Page({
     }
   },
 
-  async loadActivities() {
+  async loadActivityForEdit(activityId) {
     this.setData({ loading: true });
     try {
-      const list = await listOrganizerActivities({});
-      this.setData({
-        activities: (list || []).map((item) => ({
-          ...item,
-          startDisplay: displayTime(item.startTime),
-          endDisplay: displayTime(item.endTime),
-        })),
-      });
+      const activity = await getOrganizerActivityDetail(activityId);
+      if (!activity) {
+        feedback.error("活动不存在");
+        return;
+      }
+      const nextForm = buildFormFromActivity(activity);
+      if (!nextForm.campusCode) {
+        const locationText = String(nextForm.location || "");
+        nextForm.campusCode = locationText.includes("线上") ? "ONLINE" : "NORTH";
+      }
+      if (!nextForm.activityTypeName && Number.isFinite(Number(nextForm.activityTypeId))) {
+        const typeMatch = (this.data.activityTypeOptions || []).find(
+          (item) => Number(item.id) === Number(nextForm.activityTypeId)
+        );
+        if (typeMatch) {
+          nextForm.activityTypeName = typeMatch.name || "";
+        }
+      }
+      this.setData({ form: nextForm });
     } catch (e) {
-      this.setData({ activities: [] });
+      feedback.error("活动信息加载失败");
     } finally {
       this.setData({ loading: false });
     }
@@ -479,36 +478,6 @@ Page({
     }
   },
 
-  onEditTap(event) {
-    const activityId = Number(event.currentTarget.dataset.id);
-    const target = this.data.activities.find((item) => Number(item.id) === activityId);
-    if (!target) return;
-
-    const nextForm = buildFormFromActivity(target);
-    if (!nextForm.campusCode) {
-      const locationText = String(nextForm.location || "");
-      nextForm.campusCode = locationText.includes("线上") ? "ONLINE" : "NORTH";
-    }
-    if (!nextForm.activityTypeName && Number.isFinite(Number(nextForm.activityTypeId))) {
-      const typeMatch = (this.data.activityTypeOptions || []).find(
-        (item) => Number(item.id) === Number(nextForm.activityTypeId)
-      );
-      if (typeMatch) {
-        nextForm.activityTypeName = typeMatch.name || "";
-      }
-    }
-
-    this.setData({
-      editingActivityId: activityId,
-      form: nextForm,
-      coverUploading: false,
-      showCampusTypePicker: false,
-      showTypePicker: false,
-      showDateTimePicker: false,
-      activeDateField: "",
-    });
-  },
-
   buildPayload() {
     const form = this.data.form;
     const payload = {
@@ -586,40 +555,9 @@ Page({
         await createOrganizerActivity(payload);
         feedback.success("活动已创建");
       }
-      this.resetForm();
-      await this.loadActivities();
+      setTimeout(() => {
+        wx.navigateBack({ delta: 1 });
+      }, 1500);
     } catch (e) {}
-  },
-
-  async onSubmitReviewTap(event) {
-    try {
-      await submitActivityReview(Number(event.currentTarget.dataset.id), this.data.reviewComment);
-      feedback.success("提审成功");
-      this.setData({ reviewComment: "" });
-      await this.loadActivities();
-    } catch (e) {}
-  },
-
-  onCheckinTap(event) {
-    const activityId = Number(event.currentTarget.dataset.id);
-    if (!activityId) {
-      feedback.error("活动信息缺失");
-      return;
-    }
-    wx.navigateTo({
-      url: `/pages/organizer-checkin/index?activityId=${activityId}`,
-    });
-  },
-
-  onManagerTap(event) {
-    const activityId = Number(event.currentTarget.dataset.id);
-    const title = encodeURIComponent(String(event.currentTarget.dataset.title || ""));
-    if (!activityId) {
-      feedback.error("活动信息缺失");
-      return;
-    }
-    wx.navigateTo({
-      url: `/pages/activity-managers/index?activityId=${activityId}&title=${title}`,
-    });
   },
 });

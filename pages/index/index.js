@@ -186,7 +186,15 @@ Page({
       return;
     }
 
-    if (action === "myOrg" || action === "publish") {
+    if (action === "myOrg") {
+      if (loginUser.role !== "ORGANIZER") {
+        feedback.error("仅组织者可使用");
+        return;
+      }
+      wx.navigateTo({ url: "/pages/managed-activities/index" });
+    }
+
+    if (action === "publish") {
       if (loginUser.role !== "ORGANIZER") {
         feedback.error("仅组织者可使用");
         return;

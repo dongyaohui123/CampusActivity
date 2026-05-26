@@ -730,7 +730,7 @@ Page({
         feedback.error("仅组织者可查看");
         return;
       }
-      wx.navigateTo({ url: "/pages/organizer-activities/index" });
+      wx.navigateTo({ url: "/pages/managed-activities/index" });
       return;
     }
     if (action === "review") {

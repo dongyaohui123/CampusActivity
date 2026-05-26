@@ -30,9 +30,25 @@
           <van-button
             wx:if="{{item.isOrganizer}}"
             size="small"
+            plain
+            data-activity-id="{{item.id}}"
+            bind:click="onEditTap"
+          >{{i18n.editAction}}</van-button>
+          <van-button
+            wx:if="{{item.isOrganizer}}"
+            size="small"
+            plain
+            data-activity-id="{{item.id}}"
+            data-title="{{item.title}}"
+            bind:click="onManagerTap"
+          >{{i18n.managerAction}}</van-button>
+          <van-button
+            wx:if="{{item.isOrganizer}}"
+            size="small"
             type="primary"
-            bind:click="onOrganizerManageTap"
-          >{{i18n.organizerManageAction}}</van-button>
+            data-activity-id="{{item.id}}"
+            bind:click="onSubmitReviewTap"
+          >{{i18n.submitReviewAction}}</van-button>
         </view>
       </view>
     </block>

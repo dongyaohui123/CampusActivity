@@ -1,4 +1,4 @@
-const { listManageableActivities } = require("../../utils/api");
+const { listManageableActivities, submitActivityReview } = require("../../utils/api");
 const feedback = require("../../utils/feedback");
 
 function displayTime(value) {
@@ -29,7 +29,9 @@ Page({
       locationLabel: "地点",
       checkinAction: "扫码签到",
       registrationAction: "报名名单",
-      organizerManageAction: "组织管理",
+      editAction: "编辑",
+      managerAction: "管理员",
+      submitReviewAction: "提审",
     },
     loading: false,
     activities: [],
@@ -84,7 +86,39 @@ Page({
     wx.navigateTo({ url: `/pages/managed-registrations/index?activityId=${activityId}` });
   },
 
-  onOrganizerManageTap() {
-    wx.navigateTo({ url: "/pages/organizer-activities/index" });
+  onEditTap(event) {
+    const activityId = Number(event.currentTarget.dataset.activityId);
+    if (!activityId) {
+      feedback.error("活动信息缺失");
+      return;
+    }
+    wx.navigateTo({ url: `/pages/organizer-activities/index?activityId=${activityId}` });
+  },
+
+  onManagerTap(event) {
+    const activityId = Number(event.currentTarget.dataset.activityId);
+    const title = encodeURIComponent(String(event.currentTarget.dataset.title || ""));
+    if (!activityId) {
+      feedback.error("活动信息缺失");
+      return;
+    }
+    wx.navigateTo({ url: `/pages/activity-managers/index?activityId=${activityId}&title=${title}` });
+  },
+
+  async onSubmitReviewTap(event) {
+    const activityId = Number(event.currentTarget.dataset.activityId);
+    if (!activityId) {
+      feedback.error("活动信息缺失");
+      return;
+    }
+    try {
+      await submitActivityReview(activityId, "");
+      wx.showToast({
+        title: "提审成功",
+        icon: "success",
+        duration: 2000,
+      });
+      await this.loadManageableActivities();
+    } catch (e) {}
   },
 });
