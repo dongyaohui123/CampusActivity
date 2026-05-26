@@ -83,6 +83,9 @@
                 <view class="meta-icon pin"></view>
                 <text class="meta-text">{{item.locationDisplay}}</text>
               </view>
+              <view class="recommend-reason" wx:if="{{item.reasonDisplay}}">
+                <text class="reason-text">{{item.reasonDisplay}}</text>
+              </view>
             </view>
           </view>
         </block>
@@ -101,4 +104,4 @@
 </van-tabbar>
 
 <van-toast id="van-toast" />
-<van-notify id="van-notify" />
+<custom-modal id="custom-modal" />

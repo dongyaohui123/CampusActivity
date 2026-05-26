@@ -1,6 +1,7 @@
 package com.campus.activity.service.impl.v1;
 
 import com.campus.activity.common.ErrorCode;
+import com.campus.activity.dto.v1.auth.ForgotPasswordRequest;
 import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
@@ -58,10 +59,10 @@ public class V1AuthServiceImpl implements V1AuthService {
             user = userMapper.selectByPhone(account);
         }
         if (user == null) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "account or password is incorrect");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "用户名或密码错误");
         }
         if (!StringUtils.hasText(user.getPasswordHash()) || !user.getPasswordHash().equals(password)) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "account or password is incorrect");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "用户名或密码错误");
         }
         assertActive(user);
         return toLoginView(user);
@@ -76,13 +77,13 @@ public class V1AuthServiceImpl implements V1AuthService {
         String phone = StringUtils.trimWhitespace(request.getPhone());
 
         if (userMapper.selectByUsername(username) != null) {
-            throw new BusinessException(ErrorCode.CONFLICT, "username already exists");
+            throw new BusinessException(ErrorCode.CONFLICT, "用户名已存在");
         }
         if (!isPhone(phone)) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "phone format is invalid");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "手机号格式不正确");
         }
         if (userMapper.selectByPhone(phone) != null) {
-            throw new BusinessException(ErrorCode.CONFLICT, "phone already exists");
+            throw new BusinessException(ErrorCode.CONFLICT, "手机号已被注册");
         }
 
         User user = new User();
@@ -99,9 +100,9 @@ public class V1AuthServiceImpl implements V1AuthService {
         } catch (DataIntegrityViolationException ex) {
             String message = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
             if (message.contains("uk_users_phone")) {
-                throw new BusinessException(ErrorCode.CONFLICT, "phone already exists");
+                throw new BusinessException(ErrorCode.CONFLICT, "手机号已被注册");
             }
-            throw new BusinessException(ErrorCode.CONFLICT, "username already exists");
+            throw new BusinessException(ErrorCode.CONFLICT, "用户名已存在");
         }
         return toLoginView(user);
     }
@@ -265,13 +266,34 @@ public class V1AuthServiceImpl implements V1AuthService {
         return prefix + Long.toString(now, 36) + Integer.toString(random, 36);
     }
 
+    @Override
+    public void resetPassword(ForgotPasswordRequest request) {
+        String username = StringUtils.trimWhitespace(request.getUsername());
+        String phone = StringUtils.trimWhitespace(request.getPhone());
+        String newPassword = request.getNewPassword();
+
+        User user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户名不存在");
+        }
+        if (!phone.equals(user.getPhone())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "手机号与注册信息不一致");
+        }
+        assertActive(user);
+        if (newPassword.equals(user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "新密码不能与旧密码相同");
+        }
+        user.setPasswordHash(newPassword);
+        userMapper.updateById(user);
+    }
+
     private boolean isPhone(String value) {
         return StringUtils.hasText(value) && value.matches(PHONE_REGEX);
     }
 
     private void assertActive(User user) {
         if (!UserStatus.ACTIVE.equals(user.getStatus())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "account is not active");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "账号已被禁用");
         }
     }
 

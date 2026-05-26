@@ -1,39 +1,49 @@
-<van-nav-bar title="{{i18n.navTitle}}" left-arrow bind:click-left="onBackTap" />
+<van-nav-bar title="重置密码" left-arrow bind:click-left="onBackTap" />
 
 <scroll-view class="password-scroll" scroll-y type="list">
   <view class="password-page">
     <view class="hero-card">
-      <view class="hero-badge">SECURE</view>
-      <view class="hero-title">{{i18n.pageTitle}}</view>
-      <view class="hero-desc">{{i18n.pageDesc}}</view>
+      <view class="hero-badge">RESET</view>
+      <view class="hero-title">重置密码</view>
+      <view class="hero-desc">通过用户名和手机号验证身份后设置新密码。</view>
     </view>
 
     <view class="form-card">
       <view class="field-row">
-        <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
+        <van-icon class-prefix="van-icon" name="contact-o" custom-class="field-icon" />
         <input
           class="field-input"
-          data-field="oldPassword"
-          value="{{oldPassword}}"
+          data-field="username"
+          value="{{username}}"
           bindinput="onInput"
-          password="{{!showOldPassword}}"
-          placeholder="{{i18n.oldPasswordPlaceholder}}"
+          placeholder="请输入用户名"
           placeholder-class="password-placeholder"
         />
-        <button class="eye-btn" data-target="showOldPassword" bindtap="onTogglePassword">
-          <van-icon class-prefix="van-icon" name="{{showOldPassword ? 'closed-eye' : 'eye-o'}}" custom-class="eye-icon" />
-        </button>
       </view>
 
       <view class="field-row">
-        <van-icon class-prefix="van-icon" name="shield-o" custom-class="field-icon" />
+        <van-icon class-prefix="van-icon" name="phone-o" custom-class="field-icon" />
+        <input
+          class="field-input"
+          data-field="phone"
+          value="{{phone}}"
+          bindinput="onInput"
+          type="number"
+          maxlength="11"
+          placeholder="请输入注册手机号"
+          placeholder-class="password-placeholder"
+        />
+      </view>
+
+      <view class="field-row">
+        <van-icon class-prefix="van-icon" name="lock" custom-class="field-icon" />
         <input
           class="field-input"
           data-field="newPassword"
           value="{{newPassword}}"
           bindinput="onInput"
           password="{{!showNewPassword}}"
-          placeholder="{{i18n.newPasswordPlaceholder}}"
+          placeholder="请输入新密码"
           placeholder-class="password-placeholder"
         />
         <button class="eye-btn" data-target="showNewPassword" bindtap="onTogglePassword">
@@ -49,7 +59,7 @@
           value="{{confirmPassword}}"
           bindinput="onInput"
           password="{{!showConfirmPassword}}"
-          placeholder="{{i18n.confirmPasswordPlaceholder}}"
+          placeholder="请再次输入新密码"
           placeholder-class="password-placeholder"
         />
         <button class="eye-btn" data-target="showConfirmPassword" bindtap="onTogglePassword">
@@ -58,7 +68,7 @@
       </view>
 
       <button class="primary-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="onSubmitTap">
-        <text>{{i18n.submitBtn}}</text>
+        <text>确认重置</text>
         <text class="btn-arrow">→</text>
       </button>
     </view>
@@ -66,9 +76,9 @@
     <view class="tips-card">
       <view class="tips-head">
         <van-icon name="info-o" custom-class="tips-icon" />
-        <text class="tips-title">{{i18n.securityTitle}}</text>
+        <text class="tips-title">安全提示</text>
       </view>
-      <view class="tips-text">{{i18n.securityTips}}</view>
+      <view class="tips-text">请确保您是账号的合法持有者。重置密码后请妥善保管，不要将密码告知他人。</view>
     </view>
   </view>
 </scroll-view>

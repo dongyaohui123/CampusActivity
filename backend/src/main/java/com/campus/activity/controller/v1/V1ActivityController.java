@@ -8,9 +8,11 @@ import com.campus.activity.enums.UserRole;
 import com.campus.activity.service.v1.V1ActivityCommentService;
 import com.campus.activity.service.v1.V1ActivityFavoriteService;
 import com.campus.activity.service.v1.V1PublicActivityService;
+import com.campus.activity.service.v1.V1RecommendationService;
 import com.campus.activity.view.v1.ActivityCommentView;
 import com.campus.activity.view.v1.ActivityFavoriteStateView;
 import com.campus.activity.view.v1.ManageableActivityView;
+import com.campus.activity.view.v1.RecommendActivityView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
@@ -37,20 +39,26 @@ public class V1ActivityController {
     private final V1PublicActivityService publicActivityService;
     private final V1ActivityFavoriteService activityFavoriteService;
     private final V1ActivityCommentService activityCommentService;
+    private final V1RecommendationService recommendationService;
 
     /**
      * 构造函数。
      *
      * @param publicActivityService 公开活动服务
+     * @param activityFavoriteService 活动收藏服务
+     * @param activityCommentService 活动评论服务
+     * @param recommendationService 推荐服务
      */
     public V1ActivityController(
             V1PublicActivityService publicActivityService,
             V1ActivityFavoriteService activityFavoriteService,
-            V1ActivityCommentService activityCommentService
+            V1ActivityCommentService activityCommentService,
+            V1RecommendationService recommendationService
     ) {
         this.publicActivityService = publicActivityService;
         this.activityFavoriteService = activityFavoriteService;
         this.activityCommentService = activityCommentService;
+        this.recommendationService = recommendationService;
     }
 
     /**
@@ -70,6 +78,23 @@ public class V1ActivityController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTo
     ) {
         return ApiResponse.success(publicActivityService.listPublicActivities(keyword, startFrom, startTo));
+    }
+
+    /**
+     * 查询个性化推荐活动列表。
+     *
+     * @param limit 返回数量限制（默认 20）
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @return 推荐活动列表
+     */
+    @GetMapping("/recommended")
+    public ApiResponse<List<RecommendActivityView>> getRecommendedActivities(
+            @RequestParam(value = "limit", defaultValue = "20") int limit,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(recommendationService.getRecommendedActivities(operatorUserId, operatorRole, limit));
     }
 
     /**

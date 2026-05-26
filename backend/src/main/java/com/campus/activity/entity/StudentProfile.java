@@ -32,4 +32,76 @@ public class StudentProfile {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getStudentNo() {
+        return studentNo;
+    }
+
+    public void setStudentNo(String studentNo) {
+        this.studentNo = studentNo;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public String getCollege() {
+        return college;
+    }
+
+    public void setCollege(String college) {
+        this.college = college;
+    }
+
+    public String getMajor() {
+        return major;
+    }
+
+    public void setMajor(String major) {
+        this.major = major;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

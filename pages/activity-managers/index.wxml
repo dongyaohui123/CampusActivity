@@ -12,11 +12,11 @@
 
     <view wx:if="{{operatorRole === 'ORGANIZER'}}" class="card">
       <van-field
-        type="number"
-        label="{{i18n.userIdLabel}}"
-        value="{{managerUserIdInput}}"
-        bind:change="onUserIdInput"
-        placeholder="{{i18n.userIdPlaceholder}}"
+        type="text"
+        label="{{i18n.usernameLabel}}"
+        value="{{managerUsernameInput}}"
+        bind:change="onUsernameInput"
+        placeholder="{{i18n.usernamePlaceholder}}"
       />
       <view class="action-row">
         <van-button type="primary" size="small" bind:click="onAddTap">{{i18n.addButton}}</van-button>
@@ -50,4 +50,4 @@
 </scroll-view>
 
 <van-toast id="van-toast" />
-<van-notify id="van-notify" />
+<custom-modal id="custom-modal" />

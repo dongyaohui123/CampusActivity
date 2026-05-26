@@ -9,6 +9,15 @@ function listPublicActivities(params) {
   });
 }
 
+function getRecommendedActivities(params) {
+  return request({
+    path: "/api/v1/activities/recommended",
+    method: "GET",
+    query: params || {},
+    withOperator: true,
+  });
+}
+
 function listManageableActivities(params) {
   return request({
     path: "/api/v1/activities/manageable",
@@ -76,6 +85,7 @@ function unfavoriteActivity(activityId) {
 
 module.exports = {
   listPublicActivities,
+  getRecommendedActivities,
   listManageableActivities,
   getPublicActivityDetail,
   listActivityComments,

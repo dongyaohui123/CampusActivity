@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.activity.mapper.RecommendationMapper">
+
+    <resultMap id="RecommendCandidateViewResultMap" type="com.campus.activity.view.v1.RecommendCandidateView">
+        <id property="id" column="id"/>
+        <result property="organizerId" column="organizer_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="location" column="location"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="registrationDeadline" column="registration_deadline"/>
+        <result property="registeredCount" column="registered_count"/>
+        <result property="featured" column="is_featured"/>
+        <result property="status" column="status" javaType="com.campus.activity.enums.ActivityStatus"/>
+        <result property="organizerName" column="organizer_name"/>
+        <result property="categoryNames" column="category_names"/>
+        <result property="categoryIdList" column="category_id_list"/>
+        <result property="locationCampus" column="location_campus"/>
+    </resultMap>
+
+    <resultMap id="CategoryAffinityRowResultMap" type="com.campus.activity.view.v1.CategoryAffinityRow">
+        <result property="categoryId" column="category_id"/>
+        <result property="score" column="score"/>
+    </resultMap>
+
+    <resultMap id="OrganizerAffinityRowResultMap" type="com.campus.activity.view.v1.OrganizerAffinityRow">
+        <result property="organizerId" column="organizer_id"/>
+        <result property="score" column="score"/>
+    </resultMap>
+
+    <!-- 查询可推荐的活动候选集 -->
+    <select id="selectRecommendationCandidates" resultMap="RecommendCandidateViewResultMap">
+        SELECT
+            a.id,
+            a.organizer_id,
+            a.title,
+            a.summary,
+            a.cover_url,
+            a.location,
+            a.start_time,
+            a.end_time,
+            a.registration_deadline,
+            a.registered_count,
+            a.is_featured,
+            a.status,
+            op.organizer_name,
+            ac.name AS category_names,
+            CAST(ac.id AS CHAR) AS category_id_list,
+            COALESCE(
+                MAX(lcm.campus_code),
+                CASE
+                    WHEN a.location LIKE '%线上%' THEN 'ONLINE'
+                    WHEN TRIM(COALESCE(a.location, '')) != '' THEN 'NORTH'
+                    ELSE ''
+                END
+            ) AS location_campus
+        FROM activities a
+        LEFT JOIN organizer_profiles op ON op.user_id = a.organizer_id
+        LEFT JOIN activity_reviews ar ON ar.activity_id = a.id
+        LEFT JOIN activity_categories ac ON ac.id = a.category_id
+        LEFT JOIN location_campus_mapping lcm ON lcm.location_name = a.location AND lcm.enabled = 1
+        WHERE a.visibility = 'PUBLIC'
+          AND ar.review_status = 'APPROVED'
+          AND a.status IN ('PUBLISHED', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'ONGOING')
+          AND a.start_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND a.start_time <![CDATA[<=]]> DATE_ADD(NOW(), INTERVAL 60 DAY)
+        GROUP BY
+            a.id, a.organizer_id, a.title, a.summary, a.cover_url, a.location,
+            a.start_time, a.end_time, a.registration_deadline, a.registered_count,
+            a.is_featured, a.status, op.organizer_name
+        ORDER BY a.start_time ASC
+    </select>
+
+    <!-- 查询用户的分类亲和度 -->
+    <select id="selectUserCategoryAffinity" resultMap="CategoryAffinityRowResultMap">
+        SELECT a.category_id AS category_id, COUNT(*) AS score
+        FROM (
+            SELECT activity_id FROM activity_registrations WHERE user_id = #{userId} AND status IN ('REGISTERED', 'CHECKED_IN')
+            UNION ALL
+            SELECT activity_id FROM activity_favorites WHERE user_id = #{userId}
+            UNION ALL
+            SELECT activity_id FROM activity_comments WHERE user_id = #{userId}
+        ) user_acts
+        INNER JOIN activities a ON a.id = user_acts.activity_id
+        WHERE a.category_id IS NOT NULL
+        GROUP BY a.category_id
+    </select>
+
+    <!-- 查询用户的组织者亲和度 -->
+    <select id="selectUserOrganizerAffinity" resultMap="OrganizerAffinityRowResultMap">
+        SELECT organizer_id, COUNT(*) AS score
+        FROM (
+            SELECT a.organizer_id FROM activity_registrations ar
+            INNER JOIN activities a ON a.id = ar.activity_id
+            WHERE ar.user_id = #{userId} AND ar.status IN ('REGISTERED', 'CHECKED_IN')
+            UNION ALL
+            SELECT a.organizer_id FROM activity_favorites af
+            INNER JOIN activities a ON a.id = af.activity_id
+            WHERE af.user_id = #{userId}
+            UNION ALL
+            SELECT organizer_id FROM organizer_follows WHERE user_id = #{userId}
+        ) user_orgs
+        GROUP BY organizer_id
+    </select>
+
+    <!-- 查询同专业用户的分类偏好（冷启动用） -->
+    <select id="selectPeerCategoryAffinity" resultMap="CategoryAffinityRowResultMap">
+        SELECT a.category_id AS category_id, COUNT(*) AS score
+        FROM student_profiles sp
+        INNER JOIN activity_registrations ar ON ar.user_id = sp.user_id
+        INNER JOIN activities a ON a.id = ar.activity_id
+        WHERE sp.college = #{college}
+          AND sp.user_id != #{excludeUserId}
+          AND ar.status IN ('REGISTERED', 'CHECKED_IN')
+          AND a.category_id IS NOT NULL
+        GROUP BY a.category_id
+        ORDER BY score DESC
+        LIMIT 10
+    </select>
+
+</mapper>

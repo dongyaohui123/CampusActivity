@@ -44,9 +44,23 @@ function qqLogin(payload) {
   });
 }
 
+function resetPassword(username, phone, newPassword) {
+  return request({
+    path: "/api/v1/auth/reset-password",
+    method: "POST",
+    data: {
+      username: String(username || "").trim(),
+      phone: String(phone || "").trim(),
+      newPassword: String(newPassword || ""),
+    },
+    withOperator: false,
+  });
+}
+
 module.exports = {
   login,
   registerUser,
   wechatLogin,
   qqLogin,
+  resetPassword,
 };

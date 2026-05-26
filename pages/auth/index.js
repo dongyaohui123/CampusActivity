@@ -67,7 +67,7 @@ Page({
   },
 
   onForgotTap() {
-    feedback.info("忘记密码功能开发中");
+    wx.navigateTo({ url: "/pages/forgot-password/index" });
   },
 
   async onSocialTap(event) {

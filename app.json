@@ -6,6 +6,7 @@
                   "pages/avatar-crop/index",
                   "pages/auth/index",
                   "pages/change-password/index",
+                  "pages/forgot-password/index",
                   "pages/activity-detail/index",
                   "pages/my-registrations/index",
                   "pages/ticket/index",
@@ -36,7 +37,8 @@
         "van-search": "@vant/weapp/search/index",
         "van-empty": "@vant/weapp/empty/index",
         "van-toast": "@vant/weapp/toast/index",
-        "van-notify": "@vant/weapp/notify/index"
+        "van-notify": "@vant/weapp/notify/index",
+        "custom-modal": "/components/custom-modal/index"
     },
     "window":  {
                    "navigationBarTextStyle":  "black",

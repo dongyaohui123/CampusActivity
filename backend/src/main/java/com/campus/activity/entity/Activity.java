@@ -20,6 +20,9 @@ public class Activity {
     /** FK users.id: organizer account. */
     private Long organizerId;//组织者,eg:社团官方
 
+    /** FK activity_categories.id: activity category. */
+    private Long categoryId;
+
     /** Nullable FK users.id: real publisher account. */
     private Long publisherId;//发布者，可能是宣传负责人所发布
 
@@ -77,6 +80,14 @@ public class Activity {
 
     public void setOrganizerId(Long organizerId) {
         this.organizerId = organizerId;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public Long getPublisherId() {

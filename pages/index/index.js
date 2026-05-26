@@ -1,5 +1,6 @@
-﻿const { listPublicActivities } = require("../../utils/api");
+﻿const { listPublicActivities, getRecommendedActivities } = require("../../utils/api");
 const { getLoginUser } = require("../../utils/auth");
+const { hasOperatorContext } = require("../../utils/operator-context");
 const feedback = require("../../utils/feedback");
 const { getActivityFallbackCover, resolveActivityCover } = require("../../utils/image-fallbacks");
 
@@ -21,6 +22,7 @@ function mapActivity(item) {
     fallbackCover,
     startDisplay: formatDisplayDate(item.startTime),
     locationDisplay: item.location || "地点待定",
+    reasonDisplay: item.recommendReason || "",
   };
 }
 
@@ -121,15 +123,28 @@ Page({
 
   /**
    * 拉取推荐活动并裁剪为首页展示数量。
+   * 已登录用户使用个性化推荐，未登录用户降级为最新活动列表。
    */
   async loadRecommendList() {
     this.setData({ loading: true });
     try {
-      const list = await listPublicActivities({});
-      const recommendList = (list || []).slice(0, 6).map(mapActivity);
+      let list;
+      if (hasOperatorContext()) {
+        list = await getRecommendedActivities({ limit: 6 });
+      } else {
+        list = await listPublicActivities({});
+        list = (list || []).slice(0, 6);
+      }
+      const recommendList = (list || []).map(mapActivity);
       this.setData({ recommendList });
     } catch (e) {
-      this.setData({ recommendList: [] });
+      try {
+        const fallbackList = await listPublicActivities({});
+        const recommendList = (fallbackList || []).slice(0, 6).map(mapActivity);
+        this.setData({ recommendList });
+      } catch (fallbackError) {
+        this.setData({ recommendList: [] });
+      }
     } finally {
       this.setData({ loading: false });
     }

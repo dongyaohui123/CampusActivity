@@ -9,7 +9,6 @@ import com.campus.activity.dto.v1.activity.SubmitReviewRequest;
 import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.ActivityCategory;
-import com.campus.activity.entity.ActivityCategoryRel;
 import com.campus.activity.entity.ActivityManagerPermissionGrant;
 import com.campus.activity.entity.ActivityAuditLog;
 import com.campus.activity.entity.ActivityRegistration;
@@ -27,7 +26,6 @@ import com.campus.activity.enums.UserRole;
 import com.campus.activity.enums.UserStatus;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityCategoryMapper;
-import com.campus.activity.mapper.ActivityCategoryRelMapper;
 import com.campus.activity.mapper.ActivityManagerPermissionGrantMapper;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityMapper;
@@ -75,7 +73,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
 
     private final ActivityMapper activityMapper;
     private final ActivityCategoryMapper activityCategoryMapper;
-    private final ActivityCategoryRelMapper activityCategoryRelMapper;
     private final ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper;
     private final ActivityReviewMapper reviewMapper;
     private final ActivityAuditLogMapper auditLogMapper;
@@ -90,7 +87,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     public V1OrganizerActivityServiceImpl(
             ActivityMapper activityMapper,
             ActivityCategoryMapper activityCategoryMapper,
-            ActivityCategoryRelMapper activityCategoryRelMapper,
             ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper,
             ActivityReviewMapper reviewMapper,
             ActivityAuditLogMapper auditLogMapper,
@@ -101,7 +97,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     ) {
         this.activityMapper = activityMapper;
         this.activityCategoryMapper = activityCategoryMapper;
-        this.activityCategoryRelMapper = activityCategoryRelMapper;
         this.activityManagerPermissionGrantMapper = activityManagerPermissionGrantMapper;
         this.reviewMapper = reviewMapper;
         this.auditLogMapper = auditLogMapper;
@@ -131,6 +126,7 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
 
         Activity activity = new Activity();
         activity.setOrganizerId(operator.getId());
+        activity.setCategoryId(validatedCategory.getId());
         activity.setPublisherId(operator.getId());
         activity.setTitle(request.getTitle());
         activity.setSummary(request.getSummary());
@@ -145,7 +141,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         activity.setFeatured(Boolean.FALSE);
         activity.setStatus(ActivityStatus.DRAFT);
         activityMapper.insert(activity);
-        replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
         upsertLocationMapping(validatedLocation, campusCode);
         return activity;
     }
@@ -215,10 +210,10 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         if (request.getMaxParticipants() != null) {
             activity.setMaxParticipants(request.getMaxParticipants());
         }
-        activityMapper.updateById(activity);
         if (validatedCategory != null) {
-            replaceActivityCategoryRelation(activity.getId(), validatedCategory.getId());
+            activity.setCategoryId(validatedCategory.getId());
         }
+        activityMapper.updateById(activity);
         if (request.getLocation() != null || request.getCampusCode() != null) {
             upsertLocationMapping(activity.getLocation(), effectiveCampusCode);
         }
@@ -491,13 +486,17 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         permissionService.requireRole(operator, UserRole.ORGANIZER);
         Activity ownedActivity = getOwnedActivityOrThrow(activityId, operator.getId());
 
-        if (ownedActivity.getOrganizerId().equals(request.getUserId())) {
-            throw new BusinessException(ErrorCode.CONFLICT, "organizer does not need manager permission");
-        }
-
-        User managerUser = userMapper.selectById(request.getUserId());
+        // 通过 username 查找用户
+        String username = request.getUsername().trim();
+        User managerUser = userMapper.selectOne(
+                new QueryWrapper<User>().eq("username", username).last("LIMIT 1")
+        );
         if (managerUser == null || !UserStatus.ACTIVE.equals(managerUser.getStatus())) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "manager user is invalid or inactive");
+        }
+
+        if (ownedActivity.getOrganizerId().equals(managerUser.getId())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "organizer does not need manager permission");
         }
 
         List<ActivityManagerPermission> permissions = normalizeManagerPermissions(request.getPermissions());
@@ -507,13 +506,13 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
         ActivityManagerPermissionGrant existingGrant = activityManagerPermissionGrantMapper.selectOne(
                 new QueryWrapper<ActivityManagerPermissionGrant>()
                         .eq("activity_id", activityId)
-                        .eq("user_id", request.getUserId())
+                        .eq("user_id", managerUser.getId())
                         .last("LIMIT 1")
         );
         if (existingGrant == null) {
             ActivityManagerPermissionGrant grant = new ActivityManagerPermissionGrant();
             grant.setActivityId(activityId);
-            grant.setUserId(request.getUserId());
+            grant.setUserId(managerUser.getId());
             grant.setPermissions(encodedPermissions);
             grant.setStatus(BasicStatus.ACTIVE);
             grant.setCreatedBy(operator.getId());
@@ -673,18 +672,6 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
             throw new BusinessException(ErrorCode.BAD_REQUEST, "activityTypeId is invalid: " + activityTypeId);
         }
         return category;
-    }
-
-    /**
-     * 单选语义：先清空旧关系，再写入新关系。
-     */
-    private void replaceActivityCategoryRelation(Long activityId, Long categoryId) {
-        activityCategoryRelMapper.deleteByActivityId(activityId);
-        ActivityCategoryRel relation = new ActivityCategoryRel();
-        relation.setActivityId(activityId);
-        relation.setCategoryId(categoryId);
-        relation.setCreatedAt(LocalDateTime.now());
-        activityCategoryRelMapper.insertRelation(relation);
     }
 
     private OrganizerActivityTypeOptionView toTypeOption(ActivityCategory category) {

@@ -1,5 +1,6 @@
 package com.campus.activity.service.v1;
 
+import com.campus.activity.dto.v1.auth.ForgotPasswordRequest;
 import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
@@ -41,4 +42,11 @@ public interface V1AuthService {
      * @return login user view
      */
     LoginUserView qqLogin(QqLoginRequest request);
+
+    /**
+     * 通过用户名和手机号验证身份后重置密码。
+     *
+     * @param request 重置密码请求
+     */
+    void resetPassword(ForgotPasswordRequest request);
 }

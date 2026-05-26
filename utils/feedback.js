@@ -1,69 +1,84 @@
-﻿const Toast = require("@vant/weapp/toast/toast");
-const Notify = require("@vant/weapp/notify/notify");
-
-const TOAST_SELECTOR = "#van-toast";
-const NOTIFY_SELECTOR = "#van-notify";
+const MODAL_SELECTOR = "#custom-modal";
 
 function normalizeMessage(message, fallback) {
   return String(message || fallback || "");
 }
 
-/**
- * Vant 组件不可用时的兜底提示。
- */
-function fallbackToast(message, icon = "none", duration = 1800) {
-  if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-    wx.showToast({
-      title: normalizeMessage(message, "提示"),
-      icon,
-      duration,
-    });
+function getContext() {
+  const pages = getCurrentPages();
+  return pages[pages.length - 1];
+}
+
+function showModal(options) {
+  const context = getContext();
+  if (!context) return;
+  const modal = context.selectComponent(MODAL_SELECTOR);
+  if (modal) {
+    modal.show(options);
+  } else {
+    console.warn("未找到 custom-modal 节点，请确认页面是否已引入组件");
   }
 }
 
 function success(message, options = {}) {
-  const text = normalizeMessage(message, "操作成功");
-  try {
-    Toast.success({
-      message: text,
-      duration: Number(options.duration) > 0 ? Number(options.duration) : 1600,
-      selector: TOAST_SELECTOR,
-    });
-  } catch (e) {
-    fallbackToast(text, "success", 1600);
-  }
+  showModal({
+    type: "success",
+    message: normalizeMessage(message, "操作成功"),
+    duration: Number(options.duration) > 0 ? Number(options.duration) : 1600,
+    ...options,
+  });
 }
 
 function info(message, options = {}) {
-  const text = normalizeMessage(message, "提示");
-  try {
-    Toast({
-      message: text,
-      icon: "none",
-      duration: Number(options.duration) > 0 ? Number(options.duration) : 1800,
-      selector: TOAST_SELECTOR,
-    });
-  } catch (e) {
-    fallbackToast(text, "none", 1800);
-  }
+  showModal({
+    type: "info",
+    message: normalizeMessage(message, "提示"),
+    duration: Number(options.duration) > 0 ? Number(options.duration) : 1800,
+    ...options,
+  });
 }
 
 function error(message, options = {}) {
-  const text = normalizeMessage(message, "请求失败");
-  try {
-    Notify({
-      message: text,
-      type: options.type || "danger",
-      duration: Number(options.duration) > 0 ? Number(options.duration) : 2200,
-      selector: NOTIFY_SELECTOR,
+  showModal({
+    type: "error",
+    message: normalizeMessage(message, "请求失败"),
+    ...options,
+  });
+}
+
+function warning(message, options = {}) {
+  showModal({
+    type: "warning",
+    message: normalizeMessage(message, "注意"),
+    ...options,
+  });
+}
+
+function confirm(message, options = {}) {
+  return new Promise((resolve, reject) => {
+    if (typeof wx === "undefined" || typeof wx.showModal !== "function") {
+      reject(new Error("wx.showModal is not available"));
+      return;
+    }
+    wx.showModal({
+      title: options.title || "确认",
+      content: normalizeMessage(message, "确定执行此操作？"),
+      showCancel: options.showCancel !== false,
+      cancelText: options.cancelText || "取消",
+      confirmText: options.confirmText || "确定",
+      confirmColor: "#5062f6",
+      success: (res) => {
+        resolve(!!res.confirm);
+      },
+      fail: reject,
     });
-  } catch (e) {
-    fallbackToast(text, "none", 2200);
-  }
+  });
 }
 
 module.exports = {
   success,
   info,
   error,
+  warning,
+  confirm,
 };

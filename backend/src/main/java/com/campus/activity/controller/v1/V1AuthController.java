@@ -1,6 +1,7 @@
 package com.campus.activity.controller.v1;
 
 import com.campus.activity.common.ApiResponse;
+import com.campus.activity.dto.v1.auth.ForgotPasswordRequest;
 import com.campus.activity.dto.v1.auth.LoginRequest;
 import com.campus.activity.dto.v1.auth.QqLoginRequest;
 import com.campus.activity.dto.v1.auth.RegisterRequest;
@@ -75,5 +76,17 @@ public class V1AuthController {
     @PostMapping("/qq-login")
     public ApiResponse<LoginUserView> qqLogin(@Valid @RequestBody QqLoginRequest request) {
         return ApiResponse.success("qq login success", authService.qqLogin(request));
+    }
+
+    /**
+     * 忘记密码 — 通过用户名和手机号验证身份后重置密码。
+     *
+     * @param request 重置密码参数
+     * @return 统一成功响应
+     */
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.resetPassword(request);
+        return ApiResponse.success("password reset success", null);
     }
 }

@@ -140,17 +140,19 @@
         <text class="btn-arrow">→</text>
       </button>
 
-      <view class="divider">或</view>
+      <block wx:if="{{activeTab === 'login'}}">
+        <view class="divider">或</view>
 
-      <button class="social-btn" data-provider="wechat" bindtap="onSocialTap">
-        <van-icon class-prefix="van-icon" name="wechat" custom-class="social-icon wechat" />
-        <text class="social-text">微信登录</text>
-      </button>
+        <button class="social-btn" data-provider="wechat" bindtap="onSocialTap">
+          <van-icon class-prefix="van-icon" name="wechat" custom-class="social-icon wechat" />
+          <text class="social-text">微信 登录</text>
+        </button>
 
-      <button class="social-btn" data-provider="qq" bindtap="onSocialTap">
-        <van-icon class-prefix="van-icon" name="qq" custom-class="social-icon qq" />
-        <text class="social-text">QQ 登录</text>
-      </button>
+        <button class="social-btn" data-provider="qq" bindtap="onSocialTap">
+          <van-icon class-prefix="van-icon" name="qq" custom-class="social-icon qq" />
+          <text class="social-text">QQ 登录</text>
+        </button>
+      </block>
 
       <view class="foot-row" hidden="{{activeTab !== 'login'}}">
         <text>还没有账号？</text>
@@ -166,4 +168,4 @@
 </scroll-view>
 
 <van-toast id="van-toast" />
-<van-notify id="van-notify" />
+<custom-modal id="custom-modal" />

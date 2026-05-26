@@ -14,7 +14,6 @@ import com.campus.activity.dto.v1.activity.OrganizerActivityUpdateRequest;
 import com.campus.activity.dto.v1.activity.AddActivityManagerRequest;
 import com.campus.activity.entity.Activity;
 import com.campus.activity.entity.ActivityCategory;
-import com.campus.activity.entity.ActivityCategoryRel;
 import com.campus.activity.entity.ActivityManagerPermissionGrant;
 import com.campus.activity.entity.ActivityRegistration;
 import com.campus.activity.entity.User;
@@ -26,7 +25,6 @@ import com.campus.activity.enums.UserRole;
 import com.campus.activity.exception.BusinessException;
 import com.campus.activity.mapper.ActivityAuditLogMapper;
 import com.campus.activity.mapper.ActivityCategoryMapper;
-import com.campus.activity.mapper.ActivityCategoryRelMapper;
 import com.campus.activity.mapper.ActivityManagerPermissionGrantMapper;
 import com.campus.activity.mapper.ActivityMapper;
 import com.campus.activity.mapper.ActivityRegistrationMapper;
@@ -58,9 +56,6 @@ class V1OrganizerActivityServiceImplTest {
     private ActivityCategoryMapper activityCategoryMapper;
 
     @Mock
-    private ActivityCategoryRelMapper activityCategoryRelMapper;
-
-    @Mock
     private ActivityManagerPermissionGrantMapper activityManagerPermissionGrantMapper;
 
     @Mock
@@ -88,7 +83,6 @@ class V1OrganizerActivityServiceImplTest {
         organizerActivityService = new V1OrganizerActivityServiceImpl(
                 activityMapper,
                 activityCategoryMapper,
-                activityCategoryRelMapper,
                 activityManagerPermissionGrantMapper,
                 reviewMapper,
                 auditLogMapper,
@@ -124,11 +118,7 @@ class V1OrganizerActivityServiceImplTest {
         assertThat(saved.getId()).isEqualTo(100L);
         assertThat(saved.getFeatured()).isFalse();
         assertThat(saved.getLocation()).isEqualTo("大学生活动中心");
-        verify(activityCategoryRelMapper).deleteByActivityId(100L);
-        ArgumentCaptor<ActivityCategoryRel> relationCaptor = ArgumentCaptor.forClass(ActivityCategoryRel.class);
-        verify(activityCategoryRelMapper).insertRelation(relationCaptor.capture());
-        assertThat(relationCaptor.getValue().getActivityId()).isEqualTo(100L);
-        assertThat(relationCaptor.getValue().getCategoryId()).isEqualTo(7L);
+        assertThat(saved.getCategoryId()).isEqualTo(7L);
         verify(locationCampusMappingMapper).upsertMapping("大学生活动中心", "SOUTH");
     }
 
@@ -217,12 +207,9 @@ class V1OrganizerActivityServiceImplTest {
 
         assertThat(existing.getLocation()).isEqualTo("操场");
         assertThat(existing.getFeatured()).isTrue();
+        assertThat(existing.getCategoryId()).isEqualTo(5L);
         verify(activityMapper).updateById(existing);
-        verify(activityCategoryRelMapper).deleteByActivityId(9L);
         verify(locationCampusMappingMapper).upsertMapping("操场", "SOUTH");
-        ArgumentCaptor<ActivityCategoryRel> relationCaptor = ArgumentCaptor.forClass(ActivityCategoryRel.class);
-        verify(activityCategoryRelMapper).insertRelation(relationCaptor.capture());
-        assertThat(relationCaptor.getValue().getCategoryId()).isEqualTo(5L);
     }
 
     @Test
@@ -384,13 +371,14 @@ class V1OrganizerActivityServiceImplTest {
 
         User manager = new User();
         manager.setId(22L);
+        manager.setUsername("manager");
         manager.setNickname("manager");
         manager.setStatus(com.campus.activity.enums.UserStatus.ACTIVE);
-        when(userMapper.selectById(22L)).thenReturn(manager);
+        when(userMapper.selectOne(any(QueryWrapper.class))).thenReturn(manager);
         when(activityManagerPermissionGrantMapper.selectOne(any(QueryWrapper.class))).thenReturn(null);
 
         AddActivityManagerRequest request = new AddActivityManagerRequest();
-        request.setUserId(22L);
+        request.setUsername("manager");
 
         ActivityManagerView view = organizerActivityService.addActivityManager(7L, request, 11L, UserRole.ORGANIZER);
 

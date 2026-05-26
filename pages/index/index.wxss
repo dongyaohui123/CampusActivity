@@ -344,6 +344,19 @@ page {
   white-space: nowrap;
 }
 
+.recommend-reason {
+  margin-top: 4rpx;
+}
+
+.reason-text {
+  font-size: 20rpx;
+  color: #ff6b35;
+  background: rgba(255, 107, 53, 0.08);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  display: inline-block;
+}
+
 .fade-in {
   opacity: 0;
   animation: fadeIn 360ms ease forwards;

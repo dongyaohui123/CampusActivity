@@ -1,7 +1,7 @@
 package com.campus.activity.dto.v1.activity;
 
 import com.campus.activity.enums.ActivityManagerPermission;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
@@ -9,9 +9,8 @@ import java.util.List;
  * Request for adding one activity manager.
  */
 public class AddActivityManagerRequest {
-    @NotNull(message = "userId is required")
-    @Min(value = 1, message = "userId must be >= 1")
-    private Long userId;
+    @NotBlank(message = "username is required")
+    private String username;
 
     /**
      * Optional permissions.
@@ -19,12 +18,12 @@ public class AddActivityManagerRequest {
      */
     private List<ActivityManagerPermission> permissions;
 
-    public Long getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public List<ActivityManagerPermission> getPermissions() {

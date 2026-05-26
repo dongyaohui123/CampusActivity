@@ -348,7 +348,7 @@ class V1ApiControllerIntegrationTest {
 
         String body = """
                 {
-                  "userId":22,
+                  "username":"manager",
                   "permissions":["VIEW_REGISTRATIONS","CHECK_IN"]
                 }
                 """;

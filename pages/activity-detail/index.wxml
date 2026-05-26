@@ -150,7 +150,7 @@
 </view>
 
 <van-toast id="van-toast" />
-<van-notify id="van-notify" />
+<custom-modal id="custom-modal" />
 <van-popup
   show="{{commentComposerVisible}}"
   position="bottom"

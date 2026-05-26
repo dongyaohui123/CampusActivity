@@ -24,8 +24,8 @@ Page({
       navTitle: "活动管理员",
       roleHint: "仅组织者可管理活动管理员",
       activityTitleLabel: "活动",
-      userIdLabel: "管理员用户ID",
-      userIdPlaceholder: "请输入用户ID",
+      usernameLabel: "管理员用户名",
+      usernamePlaceholder: "请输入用户名",
       addButton: "添加管理员",
       managerList: "管理员列表",
       remove: "移除",
@@ -39,7 +39,7 @@ Page({
     activityId: 0,
     activityTitle: "",
     loading: false,
-    managerUserIdInput: "",
+    managerUsernameInput: "",
     managers: [],
   },
 
@@ -62,8 +62,8 @@ Page({
     wx.navigateBack({ delta: 1 });
   },
 
-  onUserIdInput(event) {
-    this.setData({ managerUserIdInput: event.detail || "" });
+  onUsernameInput(event) {
+    this.setData({ managerUsernameInput: event.detail || "" });
   },
 
   async loadManagers() {
@@ -85,18 +85,18 @@ Page({
   },
 
   async onAddTap() {
-    const userId = Number(this.data.managerUserIdInput);
-    if (!Number.isFinite(userId) || userId <= 0) {
-      feedback.error("请输入有效用户ID");
+    const username = this.data.managerUsernameInput.trim();
+    if (!username) {
+      feedback.error("请输入用户名");
       return;
     }
     try {
       await addActivityManager(this.data.activityId, {
-        userId,
+        username,
         permissions: ["VIEW_REGISTRATIONS", "CHECK_IN"],
       });
       feedback.success("管理员已添加");
-      this.setData({ managerUserIdInput: "" });
+      this.setData({ managerUsernameInput: "" });
       await this.loadManagers();
     } catch (e) {}
   },

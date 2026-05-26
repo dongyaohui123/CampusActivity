@@ -5,7 +5,7 @@ const RUN_ENV = "local";
 
 const BASE_URL_MAP = {
   local: "http://127.0.0.1:8080",
-  lan: "http://192.168.1.39:8080",
+  lan: "http://10.7.194.180:8080",
 };
 
 const config = {

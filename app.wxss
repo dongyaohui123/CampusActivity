@@ -15,6 +15,23 @@ page {
   font-size: 28rpx;
 }
 
+/* Toast 样式覆盖 - 品牌色统一 */
+.van-toast {
+  background-color: #5062f6 !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+}
+
+/* Notify 样式覆盖 - 品牌色统一 */
+.van-notify {
+  background-color: #5062f6 !important;
+  color: #ffffff !important;
+}
+
+.van-notify--danger {
+  background-color: #5062f6 !important;
+}
+
 .page-body {
   padding: 24rpx;
   box-sizing: border-box;

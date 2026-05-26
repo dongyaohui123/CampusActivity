@@ -1,0 +1,20 @@
+<view class="modal-mask" wx:if="{{visible}}" bindtap="onMaskTap">
+  <view class="modal-card {{animationClass}}" catchtap="noop">
+    <!-- 图标 -->
+    <view class="modal-icon icon-{{type}}">
+      <text wx:if="{{type === 'success'}}">✓</text>
+      <text wx:elif="{{type === 'error'}}">✕</text>
+      <text wx:elif="{{type === 'warning'}}">!</text>
+      <text wx:else>i</text>
+    </view>
+
+    <!-- 标题 -->
+    <view class="modal-title" wx:if="{{title}}">{{title}}</view>
+
+    <!-- 消息内容 -->
+    <view class="modal-message">{{message}}</view>
+
+    <!-- 确认按钮 -->
+    <button class="modal-btn" bindtap="onConfirm">{{confirmText}}</button>
+  </view>
+</view>
