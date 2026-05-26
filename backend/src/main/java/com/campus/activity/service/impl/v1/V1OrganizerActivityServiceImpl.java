@@ -107,6 +107,21 @@ public class V1OrganizerActivityServiceImpl implements V1OrganizerActivityServic
     }
 
     /**
+     * 查询组织者活动详情。
+     *
+     * @param activityId 活动 ID
+     * @param operatorUserId 操作人 ID
+     * @param operatorRole 操作人角色
+     * @return 活动信息
+     */
+    @Override
+    public Activity getActivityDetail(Long activityId, Long operatorUserId, UserRole operatorRole) {
+        User operator = permissionService.verifyOperator(operatorUserId, operatorRole);
+        permissionService.requireRole(operator, UserRole.ORGANIZER);
+        return getOwnedActivityOrThrow(activityId, operator.getId());
+    }
+
+    /**
      * 组织者创建活动。
      *
      * @param request 创建请求

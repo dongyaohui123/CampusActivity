@@ -56,6 +56,23 @@ public class V1OrganizerActivityController {
     }
 
     /**
+     * 查询组织者活动详情。
+     *
+     * @param activityId 活动 ID
+     * @param operatorUserId 操作人用户 ID
+     * @param operatorRole 操作人角色
+     * @return 活动详情
+     */
+    @GetMapping("/{activityId}")
+    public ApiResponse<Activity> getActivityDetail(
+            @PathVariable("activityId") @Min(value = 1, message = "activityId must be >= 1") Long activityId,
+            @RequestParam("operatorUserId") @Min(value = 1, message = "operatorUserId must be >= 1") Long operatorUserId,
+            @RequestParam("operatorRole") UserRole operatorRole
+    ) {
+        return ApiResponse.success(organizerActivityService.getActivityDetail(activityId, operatorUserId, operatorRole));
+    }
+
+    /**
      * 组织者创建活动。
      *
      * @param request 创建参数
